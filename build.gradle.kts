@@ -4,7 +4,7 @@ plugins {
     id("org.openrewrite.build.moderne-proprietary-license") version "latest.release"
 }
 
-group = "io.moderne.recipe"
+group = "org.openrewrite.recipe"
 description = "A template repository for creating new OpenRewrite modules"
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -13,7 +13,6 @@ dependencies {
     compileOnly("org.projectlombok:lombok:latest.release")
 
     implementation(platform("org.openrewrite:rewrite-bom:${rewriteVersion}"))
-    implementation("org.openrewrite:rewrite-java")
 
     annotationProcessor("org.openrewrite:rewrite-templating:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-templating:${rewriteVersion}")
@@ -21,6 +20,8 @@ dependencies {
         exclude("com.google.auto.service", "auto-service-annotations")
         exclude("io.github.eisop","dataflow-errorprone")
     }
+
+    implementation("io.quarkus:quarkus-update-recipes:latest.release")
 
     testImplementation("org.openrewrite:rewrite-test")
     testRuntimeOnly("org.openrewrite:rewrite-java-21")

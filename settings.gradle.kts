@@ -1,1 +1,1 @@
-rootProject.name = "rewrite-module-template"
+rootProject.name = "rewrite-spring-to-quarkus"

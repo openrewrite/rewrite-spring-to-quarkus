@@ -9,13 +9,13 @@
 </p>
 
 <div align="center">
-  <h1>rewrite-module-template</h1>
+  <h1>rewrite-spring-to-quarkus</h1>
 </div>
 
 <div align="center">
 
 <!-- Keep the gap above this line, otherwise they won't render correctly! -->
-[![ci](https://github.com/moderneinc/rewrite-module-template/actions/workflows/ci.yml/badge.svg)](https://github.com/moderneinc/rewrite-module-template/actions/workflows/ci.yml)
+[![ci](https://github.com/openrewrite/rewrite-spring-to-quarkus/actions/workflows/ci.yml/badge.svg)](https://github.com/openrewrite/rewrite-spring-to-quarkus/actions/workflows/ci.yml)
 [![Contributing Guide](https://img.shields.io/badge/Contributing-Guide-informational)](https://github.com/openrewrite/.github/blob/main/CONTRIBUTING.md)
 </div>
 
@@ -30,7 +30,7 @@ This is a template repository for creating new OpenRewrite modules. It provides 
 - [ ] Deploy to the Moderne Platform as recipe module
 - [ ] Add the module to the release-bot, with appropriate inter-project dependencies
 - [ ] [Add to rewrite-recipe-markdown-generator](https://github.com/openrewrite/rewrite-recipe-markdown-generator/commit/07361d8a3cdbfa3c7bc4a58e7e451028e9297db0) to generate recipe docs
-- [ ] [Add to rewrite-recipe-bom](https://github.com/openrewrite/rewrite-recipe-bom/commit/c13a444e37b6545c7e56c575e8846d063dda3d6f) to manage version for consumers, or [moderne-recipe-bom](https://github.com/moderneinc/moderne-recipe-bom/blob/main/build.gradle.kts) if proprietary
+- [ ] [Add to rewrite-recipe-bom](https://github.com/openrewrite/rewrite-recipe-bom/commit/c13a444e37b6545c7e56c575e8846d063dda3d6f) to manage version for consumers
 - [ ] Remove this to do list
 
 ## Contributing
