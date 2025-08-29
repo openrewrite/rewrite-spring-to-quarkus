@@ -13,6 +13,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok:latest.release")
 
     implementation(platform("org.openrewrite:rewrite-bom:${rewriteVersion}"))
+    implementation("org.openrewrite:rewrite-java")
 
     annotationProcessor("org.openrewrite:rewrite-templating:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-templating:${rewriteVersion}")
@@ -25,6 +26,8 @@ dependencies {
 
     testImplementation("org.openrewrite:rewrite-test")
     testRuntimeOnly("org.openrewrite:rewrite-java-21")
+
+    testRuntimeOnly("org.springframework:spring-web:latest.release")
 }
 
 tasks.withType<JavaCompile> {
