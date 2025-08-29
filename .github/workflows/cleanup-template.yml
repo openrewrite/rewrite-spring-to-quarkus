@@ -1,0 +1,49 @@
+# GitHub Actions Workflow responsible for cleaning up the template-specific files and configurations.
+# This workflow is supposed to be triggered automatically when a new template-based repository has been created.
+
+name: Cleanup Template
+on:
+  push:
+    branches: [main]
+
+jobs:
+  template-cleanup:
+    name: Cleanup Template
+    runs-on: ubuntu-latest
+    if: github.event.repository.name != 'rewrite-module-template'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Cleanup
+        run: |
+          export LC_CTYPE=C
+          export LANG=C
+
+          # Prepare variables
+          NAME="${GITHUB_REPOSITORY##*/}"
+          ACTOR=$(echo $GITHUB_ACTOR | tr '[:upper:]' '[:lower:]')
+          SAFE_NAME=$(echo ${NAME#rewrite-} | sed 's/[^a-zA-Z0-9]//g' | tr '[:upper:]' '[:lower:]')
+          SAFE_ACTOR=$(echo $ACTOR | sed 's/[^a-zA-Z0-9]//g' | tr '[:upper:]' '[:lower:]')
+          GROUP="org.$SAFE_ACTOR.$SAFE_NAME"
+
+          # Adjust the name anywhere in the project files
+          find . -type f -name "*" -exec sed -i {} \
+            -e "s/rewrite-module-template/${NAME}/g" \;
+
+          # Use the safe name for packages
+          find . -type f -name "*" -exec sed -i {} \
+            -e "s/io.moderne.java.${NAME}/io.moderne.java.${SAFE_NAME}/g" \;
+
+          # Cleanup
+          rm -rf \
+            .github/workflows/cleanup-template.yml
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "team@moderne.io"
+          git config --local user.name "team-moderne[bot]"
+          git add .
+          git commit -m "Template cleanup"
+          git push origin main

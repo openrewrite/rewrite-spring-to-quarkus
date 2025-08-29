@@ -1,0 +1,13 @@
+build/
+.gradle/
+.idea/*
+!.idea/icon.png
+.boot-releases
+out/
+.classpath
+.project
+.settings/
+bin/
+
+# Exclude files from being added to git index
+.gitmodules
