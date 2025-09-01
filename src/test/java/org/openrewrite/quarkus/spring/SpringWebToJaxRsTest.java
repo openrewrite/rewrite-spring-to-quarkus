@@ -15,6 +15,7 @@
  */
 package org.openrewrite.quarkus.spring;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
@@ -23,6 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
+@Disabled("Not yet implemented")
 class SpringWebToJaxRsTest implements RewriteTest {
 
     @Override

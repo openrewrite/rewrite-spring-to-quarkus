@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.openrewrite.recipe"
-description = "A template repository for creating new OpenRewrite modules"
+description = "A collection of OpenRewrite recipes to assist with Spring to Quarkus migrations"
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
 dependencies {
