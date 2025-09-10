@@ -28,6 +28,8 @@ dependencies {
     testRuntimeOnly("org.openrewrite:rewrite-java-21")
 
     testRuntimeOnly("org.springframework:spring-web:latest.release")
+    testRuntimeOnly("org.springframework:spring-context:latest.release")
+    testRuntimeOnly("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
 }
 
 tasks.withType<JavaCompile> {
