@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -186,7 +187,7 @@ public class SpringWebToJaxRs extends Recipe {
             J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, ctx);
 
             // Remove @RequestBody annotations from parameters
-            if (vd.getLeadingAnnotations() != null && !vd.getLeadingAnnotations().isEmpty()) {
+            if (!vd.getLeadingAnnotations().isEmpty()) {
                 List<J.Annotation> annotations = new ArrayList<>();
                 boolean hasRequestBody = false;
 
@@ -276,9 +277,7 @@ public class SpringWebToJaxRs extends Recipe {
                                 .build();
                         ann = methodTemplate.apply(getCursor(), ann.getCoordinates().replace());
 
-                        if (ann != null) {
-                            ann = ann.withArguments(null);
-                        }
+                        ann = ann.withArguments(null);
                         return ann;
                     }
                 } else if (GET_MAPPING_MATCHER.matches(ann)) {
@@ -342,7 +341,7 @@ public class SpringWebToJaxRs extends Recipe {
             return ann;
         }
 
-        private J.@Nullable Annotation convertHttpMethodMapping(J.Annotation ann, String springMapping, String jaxRsMethod, ExecutionContext ctx) {
+        private J.Annotation convertHttpMethodMapping(J.Annotation ann, String springMapping, String jaxRsMethod, ExecutionContext ctx) {
             maybeRemoveImport("org.springframework.web.bind.annotation." + springMapping);
             maybeAddImport("jakarta.ws.rs." + jaxRsMethod);
 

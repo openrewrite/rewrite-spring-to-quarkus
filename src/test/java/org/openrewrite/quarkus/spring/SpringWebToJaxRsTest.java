@@ -33,8 +33,8 @@ class SpringWebToJaxRsTest implements RewriteTest {
             .classpath("spring-web", "spring-context"));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void convertRestController() {
         rewriteRun(
           //language=java
