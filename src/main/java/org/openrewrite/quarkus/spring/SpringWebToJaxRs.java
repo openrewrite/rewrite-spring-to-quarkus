@@ -215,12 +215,12 @@ public class SpringWebToJaxRs extends Recipe {
 
                     // Build @Path with the correct argument
                     String pathAnnotation = path != null ? "@Path(\"" + path + "\")" : "@Path";
-                    JavaTemplate pathTemplate = JavaTemplate.builder(pathAnnotation)
+                    return JavaTemplate.builder(pathAnnotation)
                             .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.Path")
-                            .build();
-                    return pathTemplate.apply(getCursor(), ann.getCoordinates().replace());
+                            .build()
+                            .apply(getCursor(), ann.getCoordinates().replace());
                 }
             }
 
@@ -265,11 +265,11 @@ public class SpringWebToJaxRs extends Recipe {
                                 .orElse("");
                         newAnn = "@PathParam(" + args + ")";
                     }
-                    JavaTemplate paramTemplate = JavaTemplate.builder(newAnn)
+                    return JavaTemplate.builder(newAnn)
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.PathParam")
-                            .build();
-                    return paramTemplate.apply(getCursor(), ann.getCoordinates().replace());
+                            .build()
+                            .apply(getCursor(), ann.getCoordinates().replace());
                 }
                 if (REQUEST_PARAM_MATCHER.matches(ann)) {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestParam");
@@ -285,11 +285,11 @@ public class SpringWebToJaxRs extends Recipe {
                                 .orElse("");
                         newAnn = "@QueryParam(" + args + ")";
                     }
-                    JavaTemplate queryTemplate = JavaTemplate.builder(newAnn)
+                    return JavaTemplate.builder(newAnn)
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.QueryParam")
-                            .build();
-                    return queryTemplate.apply(getCursor(), ann.getCoordinates().replace());
+                            .build()
+                            .apply(getCursor(), ann.getCoordinates().replace());
                 }
             }
 
