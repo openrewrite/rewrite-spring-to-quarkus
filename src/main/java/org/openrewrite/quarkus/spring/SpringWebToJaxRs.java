@@ -110,12 +110,11 @@ public class SpringWebToJaxRs extends Recipe {
             // 3. We don't already have @Path
             if ((hasRestController || (hasController && hasResponseBody)) && !hasRequestMapping && !hasPath) {
                 maybeAddImport("jakarta.ws.rs.Path");
-                JavaTemplate template = JavaTemplate.builder("@Path(\"\")")
-                        .contextSensitive()
+                return JavaTemplate.builder("@Path(\"\")")
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                         .imports("jakarta.ws.rs.Path")
-                        .build();
-                return template.apply(getCursor(), cd.getCoordinates().addAnnotation((a1, a2) -> 0));
+                        .build()
+                        .apply(getCursor(), cd.getCoordinates().addAnnotation((a1, a2) -> 0));
             }
 
             return cd;
@@ -130,8 +129,8 @@ public class SpringWebToJaxRs extends Recipe {
             // Check what the original method has before transformation
             for (J.Annotation annotation : method.getLeadingAnnotations()) {
                 if (GET_MAPPING_MATCHER.matches(annotation) || POST_MAPPING_MATCHER.matches(annotation) ||
-                    PUT_MAPPING_MATCHER.matches(annotation) || DELETE_MAPPING_MATCHER.matches(annotation) ||
-                    PATCH_MAPPING_MATCHER.matches(annotation)) {
+                        PUT_MAPPING_MATCHER.matches(annotation) || DELETE_MAPPING_MATCHER.matches(annotation) ||
+                        PATCH_MAPPING_MATCHER.matches(annotation)) {
                     String path = extractPathValue(annotation);
                     if (path != null && !path.isEmpty()) {
                         pathToAdd = path;
@@ -175,12 +174,12 @@ public class SpringWebToJaxRs extends Recipe {
         @Override
         public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
             J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, ctx);
-            
+
             // Remove @RequestBody annotations from parameters
             if (vd.getLeadingAnnotations() != null && !vd.getLeadingAnnotations().isEmpty()) {
                 List<J.Annotation> annotations = new ArrayList<>();
                 boolean hasRequestBody = false;
-                
+
                 for (J.Annotation ann : vd.getLeadingAnnotations()) {
                     if (REQUEST_BODY_MATCHER.matches(ann)) {
                         maybeRemoveImport("org.springframework.web.bind.annotation.RequestBody");
@@ -190,7 +189,7 @@ public class SpringWebToJaxRs extends Recipe {
                         annotations.add(ann);
                     }
                 }
-                
+
                 if (hasRequestBody) {
                     vd = vd.withLeadingAnnotations(annotations);
                     // Clean up prefix if all annotations were removed
@@ -200,7 +199,7 @@ public class SpringWebToJaxRs extends Recipe {
                     }
                 }
             }
-            
+
             return vd;
         }
 
