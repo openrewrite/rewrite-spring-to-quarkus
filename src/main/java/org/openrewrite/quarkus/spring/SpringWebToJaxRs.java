@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -24,6 +25,10 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Space;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SpringWebToJaxRs extends Recipe {
     @Override
@@ -106,6 +111,7 @@ public class SpringWebToJaxRs extends Recipe {
             if ((hasRestController || (hasController && hasResponseBody)) && !hasRequestMapping && !hasPath) {
                 maybeAddImport("jakarta.ws.rs.Path");
                 JavaTemplate template = JavaTemplate.builder("@Path(\"\")")
+                        .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                         .imports("jakarta.ws.rs.Path")
                         .build();
@@ -156,6 +162,7 @@ public class SpringWebToJaxRs extends Recipe {
             if (hasHttpMethod && pathToAdd != null && !hasPath) {
                 maybeAddImport("jakarta.ws.rs.Path");
                 JavaTemplate template = JavaTemplate.builder("@Path(\"" + pathToAdd + "\")")
+                        .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                         .imports("jakarta.ws.rs.Path")
                         .build();
@@ -163,6 +170,38 @@ public class SpringWebToJaxRs extends Recipe {
             }
 
             return m;
+        }
+
+        @Override
+        public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
+            J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, ctx);
+            
+            // Remove @RequestBody annotations from parameters
+            if (vd.getLeadingAnnotations() != null && !vd.getLeadingAnnotations().isEmpty()) {
+                List<J.Annotation> annotations = new ArrayList<>();
+                boolean hasRequestBody = false;
+                
+                for (J.Annotation ann : vd.getLeadingAnnotations()) {
+                    if (REQUEST_BODY_MATCHER.matches(ann)) {
+                        maybeRemoveImport("org.springframework.web.bind.annotation.RequestBody");
+                        hasRequestBody = true;
+                        // Don't add this annotation to the new list
+                    } else {
+                        annotations.add(ann);
+                    }
+                }
+                
+                if (hasRequestBody) {
+                    vd = vd.withLeadingAnnotations(annotations);
+                    // Clean up prefix if all annotations were removed
+                    if (annotations.isEmpty() && vd.getTypeExpression() != null) {
+                        // Ensure there's no extra space before the type
+                        vd = vd.withTypeExpression(vd.getTypeExpression().withPrefix(Space.EMPTY));
+                    }
+                }
+            }
+            
+            return vd;
         }
 
         @Override
@@ -287,10 +326,8 @@ public class SpringWebToJaxRs extends Recipe {
                             .build();
                     ann = queryTemplate.apply(getCursor(), ann.getCoordinates().replace());
                     return ann;
-                } else if (REQUEST_BODY_MATCHER.matches(ann)) {
-                    maybeRemoveImport("org.springframework.web.bind.annotation.RequestBody");
-                    return null; // JAX-RS doesn't require annotation for request body
                 }
+                // @RequestBody is now handled in visitVariableDeclarations
             }
 
             return ann;
