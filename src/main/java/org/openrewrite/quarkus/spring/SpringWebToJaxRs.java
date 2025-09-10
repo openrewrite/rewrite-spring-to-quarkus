@@ -18,7 +18,6 @@ package org.openrewrite.quarkus.spring;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.AnnotationMatcher;
-import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
@@ -55,7 +54,8 @@ public class SpringWebToJaxRs extends Recipe {
                         new UsesType<>("org.springframework.web.bind.annotation.RequestBody", false),
                         new UsesType<>("org.springframework.web.bind.annotation.ResponseBody", false)
                 ),
-                new SpringWebToJaxRsVisitor()
+                // TODO See if we can avoid repeatUntilStable by making the visitor idempotent in a single pass
+                Repeat.repeatUntilStable(new SpringWebToJaxRsVisitor())
         );
     }
 
@@ -109,7 +109,7 @@ public class SpringWebToJaxRs extends Recipe {
                 JavaTemplate template = JavaTemplate.builder("@Path(\"\")")
                         .imports("jakarta.ws.rs.Path")
                         .build();
-                cd = template.apply(getCursor(), cd.getCoordinates().addAnnotation((a1, a2) -> 0));
+                return template.apply(getCursor(), cd.getCoordinates().addAnnotation((a1, a2) -> 0));
             }
 
             return cd;
@@ -198,11 +198,10 @@ public class SpringWebToJaxRs extends Recipe {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
                     maybeAddImport("jakarta.ws.rs.Path");
 
-                    ann = (J.Annotation) new ChangeType(
-                            "org.springframework.web.bind.annotation.RequestMapping",
-                            "jakarta.ws.rs.Path",
-                            false
-                    ).getVisitor().visitNonNull(ann, ctx, getCursor().getParentOrThrow());
+                    JavaTemplate pathTemplate = JavaTemplate.builder("@Path")
+                            .imports("jakarta.ws.rs.Path")
+                            .build();
+                    ann = pathTemplate.apply(getCursor(), ann.getCoordinates().replace());
 
                     // Simplify arguments to just the path value
                     if (ann != null) {
@@ -231,11 +230,10 @@ public class SpringWebToJaxRs extends Recipe {
                         maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
                         maybeAddImport("jakarta.ws.rs." + jaxRsAnnotation);
 
-                        ann = (J.Annotation) new ChangeType(
-                                "org.springframework.web.bind.annotation.RequestMapping",
-                                "jakarta.ws.rs." + jaxRsAnnotation,
-                                false
-                        ).getVisitor().visitNonNull(ann, ctx, getCursor().getParentOrThrow());
+                        JavaTemplate methodTemplate = JavaTemplate.builder("@" + jaxRsAnnotation)
+                                .imports("jakarta.ws.rs." + jaxRsAnnotation)
+                                .build();
+                        ann = methodTemplate.apply(getCursor(), ann.getCoordinates().replace());
 
                         if (ann != null) {
                             ann = ann.withArguments(null);
@@ -261,21 +259,39 @@ public class SpringWebToJaxRs extends Recipe {
                     maybeRemoveImport("org.springframework.web.bind.annotation.PathVariable");
                     maybeAddImport("jakarta.ws.rs.PathParam");
 
-                    ann = (J.Annotation) new ChangeType(
-                            "org.springframework.web.bind.annotation.PathVariable",
-                            "jakarta.ws.rs.PathParam",
-                            false
-                    ).getVisitor().visitNonNull(ann, ctx, getCursor().getParentOrThrow());
+                    // Keep arguments if present
+                    String newAnn = "@PathParam";
+                    if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
+                        // Extract the argument value
+                        String args = ann.getArguments().stream()
+                                .map(arg -> arg.printTrimmed(getCursor()))
+                                .reduce((a, b) -> a + ", " + b)
+                                .orElse("");
+                        newAnn = "@PathParam(" + args + ")";
+                    }
+                    JavaTemplate paramTemplate = JavaTemplate.builder(newAnn)
+                            .imports("jakarta.ws.rs.PathParam")
+                            .build();
+                    ann = paramTemplate.apply(getCursor(), ann.getCoordinates().replace());
                     return ann;
                 } else if (REQUEST_PARAM_MATCHER.matches(ann)) {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestParam");
                     maybeAddImport("jakarta.ws.rs.QueryParam");
 
-                    ann = (J.Annotation) new ChangeType(
-                            "org.springframework.web.bind.annotation.RequestParam",
-                            "jakarta.ws.rs.QueryParam",
-                            false
-                    ).getVisitor().visitNonNull(ann, ctx, getCursor().getParentOrThrow());
+                    // Keep arguments if present
+                    String newAnn = "@QueryParam";
+                    if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
+                        // Extract the argument value
+                        String args = ann.getArguments().stream()
+                                .map(arg -> arg.printTrimmed(getCursor()))
+                                .reduce((a, b) -> a + ", " + b)
+                                .orElse("");
+                        newAnn = "@QueryParam(" + args + ")";
+                    }
+                    JavaTemplate queryTemplate = JavaTemplate.builder(newAnn)
+                            .imports("jakarta.ws.rs.QueryParam")
+                            .build();
+                    ann = queryTemplate.apply(getCursor(), ann.getCoordinates().replace());
                     return ann;
                 } else if (REQUEST_BODY_MATCHER.matches(ann)) {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestBody");
@@ -290,19 +306,13 @@ public class SpringWebToJaxRs extends Recipe {
             maybeRemoveImport("org.springframework.web.bind.annotation." + springMapping);
             maybeAddImport("jakarta.ws.rs." + jaxRsMethod);
 
-            // Use ChangeType to convert the annotation
-            J.Annotation converted = (J.Annotation) new ChangeType(
-                    "org.springframework.web.bind.annotation." + springMapping,
-                    "jakarta.ws.rs." + jaxRsMethod,
-                    false
-            ).getVisitor().visitNonNull(ann, ctx, getCursor().getParentOrThrow());
+            // Build the replacement annotation using JavaTemplate
+            JavaTemplate template = JavaTemplate.builder("@" + jaxRsMethod)
+                    .imports("jakarta.ws.rs." + jaxRsMethod)
+                    .build();
 
-            // Remove arguments (HTTP method annotations in JAX-RS don't take arguments)
-            if (converted != null && converted != ann) {
-                converted = converted.withArguments(null);
-            }
-
-            return converted;
+            // Apply the template to replace the annotation
+            return template.apply(getCursor(), ann.getCoordinates().replace());
         }
 
         private @Nullable String extractPathValue(J.Annotation annotation) {
