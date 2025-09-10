@@ -133,8 +133,10 @@ public class SpringWebToJaxRs extends Recipe {
 
             // Check what the original method has before transformation
             for (J.Annotation annotation : method.getLeadingAnnotations()) {
-                if (GET_MAPPING_MATCHER.matches(annotation) || POST_MAPPING_MATCHER.matches(annotation) ||
-                        PUT_MAPPING_MATCHER.matches(annotation) || DELETE_MAPPING_MATCHER.matches(annotation) ||
+                if (GET_MAPPING_MATCHER.matches(annotation) ||
+                        POST_MAPPING_MATCHER.matches(annotation) ||
+                        PUT_MAPPING_MATCHER.matches(annotation) ||
+                        DELETE_MAPPING_MATCHER.matches(annotation) ||
                         PATCH_MAPPING_MATCHER.matches(annotation)) {
                     String path = extractPathValue(annotation);
                     if (path != null && !path.isEmpty()) {
@@ -165,12 +167,12 @@ public class SpringWebToJaxRs extends Recipe {
             // Add @Path if needed
             if (hasHttpMethod && pathToAdd != null && !hasPath) {
                 maybeAddImport("jakarta.ws.rs.Path");
-                JavaTemplate template = JavaTemplate.builder("@Path(\"" + pathToAdd + "\")")
+                return JavaTemplate.builder("@Path(\"" + pathToAdd + "\")")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                         .imports("jakarta.ws.rs.Path")
-                        .build();
-                m = template.apply(getCursor(), m.getCoordinates().addAnnotation((a1, a2) -> 0));
+                        .build()
+                        .apply(getCursor(), m.getCoordinates().addAnnotation((a1, a2) -> 0));
             }
 
             return m;
@@ -225,22 +227,15 @@ public class SpringWebToJaxRs extends Recipe {
             // Handle method-level annotations
             if (parent instanceof J.MethodDeclaration) {
                 if (REQUEST_MAPPING_MATCHER.matches(ann)) {
-                    String methodType = extractMethodType(ann);
-                    String jaxRsAnnotation = getJaxRsMethodAnnotation(methodType);
-
-                    if (jaxRsAnnotation != null) {
-                        maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
-                        maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
-                        maybeAddImport("jakarta.ws.rs." + jaxRsAnnotation);
-
-                        JavaTemplate methodTemplate = JavaTemplate.builder("@" + jaxRsAnnotation)
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                                .imports("jakarta.ws.rs." + jaxRsAnnotation)
-                                .build();
-                        ann = methodTemplate.apply(getCursor(), ann.getCoordinates().replace());
-
-                        return ann.withArguments(null);
-                    }
+                    String jaxRsAnnotation = extractMethodType(ann);
+                    maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
+                    maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
+                    maybeAddImport("jakarta.ws.rs." + jaxRsAnnotation);
+                    return JavaTemplate.builder("@" + jaxRsAnnotation)
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
+                            .imports("jakarta.ws.rs." + jaxRsAnnotation)
+                            .build()
+                            .apply(getCursor(), ann.getCoordinates().replace());
                 } else if (GET_MAPPING_MATCHER.matches(ann)) {
                     return convertHttpMethodMapping(ann, "GetMapping", "GET", ctx);
                 } else if (POST_MAPPING_MATCHER.matches(ann)) {
@@ -368,27 +363,6 @@ public class SpringWebToJaxRs extends Recipe {
                 }
             }
             return "GET"; // Default to GET if no method specified
-        }
-
-        private @Nullable String getJaxRsMethodAnnotation(String springMethod) {
-            switch (springMethod) {
-                case "GET":
-                    return "GET";
-                case "POST":
-                    return "POST";
-                case "PUT":
-                    return "PUT";
-                case "DELETE":
-                    return "DELETE";
-                case "PATCH":
-                    return "PATCH";
-                case "HEAD":
-                    return "HEAD";
-                case "OPTIONS":
-                    return "OPTIONS";
-                default:
-                    return null;
-            }
         }
     }
 }
