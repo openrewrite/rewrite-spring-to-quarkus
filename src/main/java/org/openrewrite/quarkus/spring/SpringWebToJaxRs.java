@@ -17,7 +17,6 @@ package org.openrewrite.quarkus.spring;
 
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -27,9 +26,6 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
 
 public class SpringWebToJaxRs extends Recipe {
     @Override
@@ -47,6 +43,7 @@ public class SpringWebToJaxRs extends Recipe {
         return Preconditions.check(
                 Preconditions.or(
                         new UsesType<>("org.springframework.web.bind.annotation.RestController", false),
+                        new UsesType<>("org.springframework.stereotype.Controller", false),
                         new UsesType<>("org.springframework.web.bind.annotation.RequestMapping", false),
                         new UsesType<>("org.springframework.web.bind.annotation.GetMapping", false),
                         new UsesType<>("org.springframework.web.bind.annotation.PostMapping", false),
@@ -58,96 +55,110 @@ public class SpringWebToJaxRs extends Recipe {
                         new UsesType<>("org.springframework.web.bind.annotation.RequestBody", false),
                         new UsesType<>("org.springframework.web.bind.annotation.ResponseBody", false)
                 ),
-                new TreeVisitor<Tree, ExecutionContext>() {
-                    @Override
-                    public @Nullable Tree preVisit(Tree tree, ExecutionContext ctx) {
-                        tree = new RestControllerVisitor().visit(tree, ctx);
-                        tree = new RequestMappingVisitor().visit(tree, ctx);
-                        tree = new HttpMethodMappingVisitor().visit(tree, ctx);
-                        tree = new HttpMethodMappingVisitor().visit(tree, ctx);
-                        tree = new HttpMethodMappingVisitor().visit(tree, ctx);
-                        tree = new HttpMethodMappingVisitor().visit(tree, ctx);
-                        tree = new HttpMethodMappingVisitor().visit(tree, ctx);
-                        tree = new PathVariableVisitor().visit(tree, ctx);
-                        tree = new RequestParamVisitor().visit(tree, ctx);
-                        tree = new RequestBodyVisitor().visit(tree, ctx);
-                        tree = new ResponseBodyVisitor().visit(tree, ctx);
-                        stopAfterPreVisit();
-                        return tree;
-                    }
-                }
+                new SpringWebToJaxRsVisitor()
         );
     }
 
-    private static class RestControllerVisitor extends JavaIsoVisitor<ExecutionContext> {
+    private static class SpringWebToJaxRsVisitor extends JavaIsoVisitor<ExecutionContext> {
         private static final AnnotationMatcher REST_CONTROLLER_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RestController");
         private static final AnnotationMatcher CONTROLLER_MATCHER = new AnnotationMatcher("@org.springframework.stereotype.Controller");
+        private static final AnnotationMatcher RESPONSE_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.ResponseBody");
+        private static final AnnotationMatcher REQUEST_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestMapping");
+        private static final AnnotationMatcher PATH_VARIABLE_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PathVariable");
+        private static final AnnotationMatcher REQUEST_PARAM_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestParam");
+        private static final AnnotationMatcher REQUEST_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestBody");
+
+        // HTTP method matchers
+        private static final AnnotationMatcher GET_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.GetMapping");
+        private static final AnnotationMatcher POST_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PostMapping");
+        private static final AnnotationMatcher PUT_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PutMapping");
+        private static final AnnotationMatcher DELETE_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.DeleteMapping");
+        private static final AnnotationMatcher PATCH_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PatchMapping");
 
         @Override
         public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
             J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
+            // Check if we need to add @Path annotation
             boolean hasRestController = false;
-            boolean hasResponseBody = false;
             boolean hasController = false;
+            boolean hasResponseBody = false;
+            boolean hasPath = false;
+            boolean hasRequestMapping = false;
 
-            for (J.Annotation annotation : cd.getLeadingAnnotations()) {
+            for (J.Annotation annotation : classDecl.getLeadingAnnotations()) {
                 if (REST_CONTROLLER_MATCHER.matches(annotation)) {
                     hasRestController = true;
                 } else if (CONTROLLER_MATCHER.matches(annotation)) {
                     hasController = true;
-                } else if (new AnnotationMatcher("@org.springframework.web.bind.annotation.ResponseBody").matches(annotation)) {
+                } else if (RESPONSE_BODY_MATCHER.matches(annotation)) {
                     hasResponseBody = true;
+                } else if (REQUEST_MAPPING_MATCHER.matches(annotation)) {
+                    hasRequestMapping = true;
+                } else if (annotation.getSimpleName().equals("Path")) {
+                    hasPath = true;
                 }
             }
 
-            if (hasRestController || (hasController && hasResponseBody)) {
-                // Remove @RestController, @Controller, and @ResponseBody
-                cd = cd.withLeadingAnnotations(ListUtils.map(cd.getLeadingAnnotations(), ann -> {
-                    if (REST_CONTROLLER_MATCHER.matches(ann) ||
-                            CONTROLLER_MATCHER.matches(ann) ||
-                            new AnnotationMatcher("@org.springframework.web.bind.annotation.ResponseBody").matches(ann)) {
-                        maybeRemoveImport("org.springframework.web.bind.annotation.RestController");
-                        maybeRemoveImport("org.springframework.stereotype.Controller");
-                        maybeRemoveImport("org.springframework.web.bind.annotation.ResponseBody");
-                        return null;
-                    }
-                    return ann;
-                }));
-
-                // Add @Path annotation if class doesn't have @RequestMapping
-                boolean hasRequestMapping = cd.getLeadingAnnotations().stream()
-                        .anyMatch(ann -> new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestMapping").matches(ann));
-
-                if (!hasRequestMapping) {
-                    // Add @Path("") annotation to the class
-                    maybeAddImport("jakarta.ws.rs.Path");
-                    JavaTemplate template = JavaTemplate.builder("@Path(\"\")")
-                            .imports("jakarta.ws.rs.Path")
-                            .build();
-                    cd = template.apply(getCursor(), cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
-                }
+            // Add @Path("") only if:
+            // 1. We have @RestController or (@Controller + @ResponseBody)
+            // 2. We don't have @RequestMapping (which will be converted to @Path)
+            // 3. We don't already have @Path
+            if ((hasRestController || (hasController && hasResponseBody)) && !hasRequestMapping && !hasPath) {
+                maybeAddImport("jakarta.ws.rs.Path");
+                JavaTemplate template = JavaTemplate.builder("@Path(\"\")")
+                        .imports("jakarta.ws.rs.Path")
+                        .build();
+                cd = template.apply(getCursor(), cd.getCoordinates().addAnnotation((a1, a2) -> 0));
             }
 
             return cd;
         }
-    }
-
-    private static class RequestMappingVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final AnnotationMatcher REQUEST_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestMapping");
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            // Extract path BEFORE calling super (which will transform the annotations)
+            String pathToAdd = null;
+            boolean hasHttpMethod = false;
+
+            // Check what the original method has before transformation
+            for (J.Annotation annotation : method.getLeadingAnnotations()) {
+                if (GET_MAPPING_MATCHER.matches(annotation) || POST_MAPPING_MATCHER.matches(annotation) ||
+                    PUT_MAPPING_MATCHER.matches(annotation) || DELETE_MAPPING_MATCHER.matches(annotation) ||
+                    PATCH_MAPPING_MATCHER.matches(annotation)) {
+                    String path = extractPathValue(annotation);
+                    if (path != null && !path.isEmpty()) {
+                        pathToAdd = path;
+                    }
+                    hasHttpMethod = true;
+                } else if (REQUEST_MAPPING_MATCHER.matches(annotation)) {
+                    String path = extractPathValue(annotation);
+                    if (path != null && !path.isEmpty()) {
+                        pathToAdd = path;
+                    }
+                    hasHttpMethod = true;
+                }
+            }
+
+            // Now transform the annotations
             J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
-            // Check if we need to add @Path annotation
-            String pathToAdd = getCursor().pollMessage("ADD_PATH_ANNOTATION");
-            if (pathToAdd != null) {
+            // Check if @Path already exists after transformation
+            boolean hasPath = false;
+            for (J.Annotation annotation : m.getLeadingAnnotations()) {
+                if (annotation.getSimpleName().equals("Path")) {
+                    hasPath = true;
+                    break;
+                }
+            }
+
+            // Add @Path if needed
+            if (hasHttpMethod && pathToAdd != null && !hasPath) {
                 maybeAddImport("jakarta.ws.rs.Path");
                 JavaTemplate template = JavaTemplate.builder("@Path(\"" + pathToAdd + "\")")
                         .imports("jakarta.ws.rs.Path")
                         .build();
-                m = template.apply(getCursor(), m.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                m = template.apply(getCursor(), m.getCoordinates().addAnnotation((a1, a2) -> 0));
             }
 
             return m;
@@ -155,83 +166,143 @@ public class SpringWebToJaxRs extends Recipe {
 
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-            J.Annotation ann = super.visitAnnotation(annotation, ctx);
+            J.Annotation ann = annotation;
+            Object parent = getCursor().getParentOrThrow().getValue();
 
-            if (REQUEST_MAPPING_MATCHER.matches(ann)) {
-                Object parent = getCursor().getParentOrThrow().getValue();
+            // Handle class-level annotations
+            if (parent instanceof J.ClassDeclaration) {
+                if (REST_CONTROLLER_MATCHER.matches(ann)) {
+                    maybeRemoveImport("org.springframework.web.bind.annotation.RestController");
+                    return null; // Remove the annotation
+                } else if (CONTROLLER_MATCHER.matches(ann)) {
+                    // Check if class also has @ResponseBody
+                    J.ClassDeclaration cd = (J.ClassDeclaration) parent;
+                    boolean hasResponseBody = cd.getLeadingAnnotations().stream()
+                            .anyMatch(RESPONSE_BODY_MATCHER::matches);
+                    if (hasResponseBody) {
+                        maybeRemoveImport("org.springframework.stereotype.Controller");
+                        return null; // Remove the annotation
+                    }
+                } else if (RESPONSE_BODY_MATCHER.matches(ann)) {
+                    // Check if class also has @Controller
+                    J.ClassDeclaration cd = (J.ClassDeclaration) parent;
+                    boolean hasController = cd.getLeadingAnnotations().stream()
+                            .anyMatch(CONTROLLER_MATCHER::matches);
+                    if (hasController) {
+                        maybeRemoveImport("org.springframework.web.bind.annotation.ResponseBody");
+                        return null; // Remove the annotation
+                    }
+                } else if (REQUEST_MAPPING_MATCHER.matches(ann)) {
+                    // Convert @RequestMapping to @Path at class level
+                    String path = extractPathValue(ann);
+                    maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
+                    maybeAddImport("jakarta.ws.rs.Path");
 
-                if (parent instanceof J.ClassDeclaration) {
-                    // Class-level @RequestMapping -> @Path
-                    return convertRequestMappingToPath(ann, ctx);
-                } else if (parent instanceof J.MethodDeclaration) {
-                    // Method-level @RequestMapping -> @Path + HTTP method annotation
-                    return convertMethodRequestMapping(ann, ctx);
+                    ann = (J.Annotation) new ChangeType(
+                            "org.springframework.web.bind.annotation.RequestMapping",
+                            "jakarta.ws.rs.Path",
+                            false
+                    ).getVisitor().visitNonNull(ann, ctx, getCursor().getParentOrThrow());
+
+                    // Simplify arguments to just the path value
+                    if (ann != null) {
+                        if (path != null) {
+                            JavaTemplate template = JavaTemplate.builder("\"" + path + "\"")
+                                    .build();
+                            ann = ann.withArguments(Collections.singletonList(
+                                    template.apply(getCursor(), ann.getCoordinates().replaceArguments())
+                            ));
+                        } else {
+                            ann = ann.withArguments(null);
+                        }
+                    }
+                    return ann;
+                }
+            }
+
+            // Handle method-level annotations
+            if (parent instanceof J.MethodDeclaration) {
+                if (REQUEST_MAPPING_MATCHER.matches(ann)) {
+                    String methodType = extractMethodType(ann);
+                    String jaxRsAnnotation = getJaxRsMethodAnnotation(methodType);
+
+                    if (jaxRsAnnotation != null) {
+                        maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
+                        maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
+                        maybeAddImport("jakarta.ws.rs." + jaxRsAnnotation);
+
+                        ann = (J.Annotation) new ChangeType(
+                                "org.springframework.web.bind.annotation.RequestMapping",
+                                "jakarta.ws.rs." + jaxRsAnnotation,
+                                false
+                        ).getVisitor().visitNonNull(ann, ctx, getCursor().getParentOrThrow());
+
+                        if (ann != null) {
+                            ann = ann.withArguments(null);
+                        }
+                        return ann;
+                    }
+                } else if (GET_MAPPING_MATCHER.matches(ann)) {
+                    return convertHttpMethodMapping(ann, "GetMapping", "GET", ctx);
+                } else if (POST_MAPPING_MATCHER.matches(ann)) {
+                    return convertHttpMethodMapping(ann, "PostMapping", "POST", ctx);
+                } else if (PUT_MAPPING_MATCHER.matches(ann)) {
+                    return convertHttpMethodMapping(ann, "PutMapping", "PUT", ctx);
+                } else if (DELETE_MAPPING_MATCHER.matches(ann)) {
+                    return convertHttpMethodMapping(ann, "DeleteMapping", "DELETE", ctx);
+                } else if (PATCH_MAPPING_MATCHER.matches(ann)) {
+                    return convertHttpMethodMapping(ann, "PatchMapping", "PATCH", ctx);
+                }
+            }
+
+            // Handle parameter annotations
+            if (parent instanceof J.VariableDeclarations) {
+                if (PATH_VARIABLE_MATCHER.matches(ann)) {
+                    maybeRemoveImport("org.springframework.web.bind.annotation.PathVariable");
+                    maybeAddImport("jakarta.ws.rs.PathParam");
+
+                    ann = (J.Annotation) new ChangeType(
+                            "org.springframework.web.bind.annotation.PathVariable",
+                            "jakarta.ws.rs.PathParam",
+                            false
+                    ).getVisitor().visitNonNull(ann, ctx, getCursor().getParentOrThrow());
+                    return ann;
+                } else if (REQUEST_PARAM_MATCHER.matches(ann)) {
+                    maybeRemoveImport("org.springframework.web.bind.annotation.RequestParam");
+                    maybeAddImport("jakarta.ws.rs.QueryParam");
+
+                    ann = (J.Annotation) new ChangeType(
+                            "org.springframework.web.bind.annotation.RequestParam",
+                            "jakarta.ws.rs.QueryParam",
+                            false
+                    ).getVisitor().visitNonNull(ann, ctx, getCursor().getParentOrThrow());
+                    return ann;
+                } else if (REQUEST_BODY_MATCHER.matches(ann)) {
+                    maybeRemoveImport("org.springframework.web.bind.annotation.RequestBody");
+                    return null; // JAX-RS doesn't require annotation for request body
                 }
             }
 
             return ann;
         }
 
-        private J.Annotation convertRequestMappingToPath(J.Annotation annotation, ExecutionContext ctx) {
-            J.Annotation ann = annotation;
-            maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
-            maybeAddImport("jakarta.ws.rs.Path");
+        private J.@Nullable Annotation convertHttpMethodMapping(J.Annotation ann, String springMapping, String jaxRsMethod, ExecutionContext ctx) {
+            maybeRemoveImport("org.springframework.web.bind.annotation." + springMapping);
+            maybeAddImport("jakarta.ws.rs." + jaxRsMethod);
 
-            // Extract path value from @RequestMapping
-            String pathValue = extractPathValue(annotation);
-
-            // Change to @Path
-            annotation = (J.Annotation) new ChangeType(
-                    "org.springframework.web.bind.annotation.RequestMapping",
-                    "jakarta.ws.rs.Path",
+            // Use ChangeType to convert the annotation
+            J.Annotation converted = (J.Annotation) new ChangeType(
+                    "org.springframework.web.bind.annotation." + springMapping,
+                    "jakarta.ws.rs." + jaxRsMethod,
                     false
-            ).getVisitor().visit(annotation, ctx, getCursor().getParentOrThrow());
+            ).getVisitor().visitNonNull(ann, ctx, getCursor().getParentOrThrow());
 
-            // Update arguments to just the path
-            if (annotation != null && pathValue != null) {
-                JavaTemplate template = JavaTemplate.builder("#{}")
-                        .build();
-                annotation = annotation.withArguments(Collections.singletonList(
-                        template.apply(getCursor(), annotation.getCoordinates().replaceArguments(),
-                                "\"" + pathValue + "\"")
-                ));
+            // Remove arguments (HTTP method annotations in JAX-RS don't take arguments)
+            if (converted != null && converted != ann) {
+                converted = converted.withArguments(null);
             }
 
-            return annotation != null ? annotation : ann;
-        }
-
-        private J.@Nullable Annotation convertMethodRequestMapping(J.Annotation annotation, ExecutionContext ctx) {
-            // Extract method type from @RequestMapping
-            String methodType = extractMethodType(annotation);
-            String pathValue = extractPathValue(annotation);
-
-            if (methodType != null) {
-                String jaxRsAnnotation = getJaxRsMethodAnnotation(methodType);
-                if (jaxRsAnnotation != null) {
-                    maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
-                    maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
-                    maybeAddImport("jakarta.ws.rs." + jaxRsAnnotation);
-
-                    // If there was a path, we'll need to handle it in visitMethodDeclaration
-                    if (pathValue != null && !pathValue.isEmpty()) {
-                        getCursor().getParentOrThrow().putMessage("ADD_PATH_ANNOTATION", pathValue);
-                    }
-
-                    // Change to JAX-RS HTTP method annotation
-                    annotation = (J.Annotation) new ChangeType(
-                            "org.springframework.web.bind.annotation.RequestMapping",
-                            "jakarta.ws.rs." + jaxRsAnnotation,
-                            false
-                    ).getVisitor().visit(annotation, ctx, getCursor().getParentOrThrow());
-
-                    // Remove all arguments for HTTP method annotations
-                    if (annotation != null) {
-                        annotation = annotation.withArguments(null);
-                    }
-                }
-            }
-
-            return annotation;
+            return converted;
         }
 
         private @Nullable String extractPathValue(J.Annotation annotation) {
@@ -317,212 +388,6 @@ public class SpringWebToJaxRs extends Recipe {
                 default:
                     return null;
             }
-        }
-    }
-
-    private static class HttpMethodMappingVisitor extends JavaIsoVisitor<ExecutionContext> {
-        @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-            J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-
-            // Check if we need to add @Path annotation
-            Set<String> pathKeys = getCursor().getNearestMessage("PATH_KEYS", Collections.<String>emptySet());
-            for (String key : pathKeys) {
-                if (key.startsWith("ADD_PATH_")) {
-                    String pathValue = getCursor().pollMessage(key);
-                    if (pathValue != null) {
-                        maybeAddImport("jakarta.ws.rs.Path");
-                        JavaTemplate template = JavaTemplate.builder("@Path(\"" + pathValue + "\")")
-                                .imports("jakarta.ws.rs.Path")
-                                .build();
-                        m = template.apply(getCursor(), m.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
-                    }
-                }
-            }
-
-            return m;
-        }
-
-        @Override
-        public J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-            J.Annotation ann = super.visitAnnotation(annotation, ctx);
-
-            String annotationType = getAnnotationSimpleName(ann);
-            if (annotationType == null) {
-                return ann;
-            }
-
-            String jaxRsAnnotation = null;
-            String springAnnotation = null;
-
-            switch (annotationType) {
-                case "GetMapping":
-                    jaxRsAnnotation = "GET";
-                    springAnnotation = "org.springframework.web.bind.annotation.GetMapping";
-                    break;
-                case "PostMapping":
-                    jaxRsAnnotation = "POST";
-                    springAnnotation = "org.springframework.web.bind.annotation.PostMapping";
-                    break;
-                case "PutMapping":
-                    jaxRsAnnotation = "PUT";
-                    springAnnotation = "org.springframework.web.bind.annotation.PutMapping";
-                    break;
-                case "DeleteMapping":
-                    jaxRsAnnotation = "DELETE";
-                    springAnnotation = "org.springframework.web.bind.annotation.DeleteMapping";
-                    break;
-                case "PatchMapping":
-                    jaxRsAnnotation = "PATCH";
-                    springAnnotation = "org.springframework.web.bind.annotation.PatchMapping";
-                    break;
-            }
-
-            if (jaxRsAnnotation != null && springAnnotation != null) {
-                // Extract path value
-                String pathValue = extractPathValue(ann);
-
-                maybeRemoveImport(springAnnotation);
-                maybeAddImport("jakarta.ws.rs." + jaxRsAnnotation);
-
-                // If there was a path, need to add @Path annotation
-                if (pathValue != null && !pathValue.isEmpty()) {
-                    getCursor().getParentOrThrow().putMessage("ADD_PATH_" + pathValue, pathValue);
-                    Set<String> pathKeys = getCursor().getParentOrThrow().getNearestMessage("PATH_KEYS", new HashSet<>());
-                    pathKeys.add("ADD_PATH_" + pathValue);
-                    getCursor().getParentOrThrow().putMessage("PATH_KEYS", pathKeys);
-                }
-
-                // Convert to JAX-RS annotation
-                ann = (J.Annotation) new ChangeType(
-                        springAnnotation,
-                        "jakarta.ws.rs." + jaxRsAnnotation,
-                        false
-                ).getVisitor().visit(ann, ctx, getCursor().getParentOrThrow());
-
-                // Remove arguments
-                if (ann != null) {
-                    ann = ann.withArguments(null);
-                }
-            }
-
-            return ann;
-        }
-
-        private @Nullable String getAnnotationSimpleName(J.Annotation annotation) {
-            if (annotation.getAnnotationType() instanceof J.Identifier) {
-                return ((J.Identifier) annotation.getAnnotationType()).getSimpleName();
-            } else if (annotation.getAnnotationType() instanceof J.FieldAccess) {
-                return ((J.FieldAccess) annotation.getAnnotationType()).getSimpleName();
-            }
-            return null;
-        }
-
-        private @Nullable String extractPathValue(J.Annotation annotation) {
-            if (annotation.getArguments() == null || annotation.getArguments().isEmpty()) {
-                return null;
-            }
-
-            Expression firstArg = annotation.getArguments().get(0);
-            if (firstArg instanceof J.Literal) {
-                Object value = ((J.Literal) firstArg).getValue();
-                if (value instanceof String) {
-                    return (String) value;
-                }
-            } else if (firstArg instanceof J.Assignment) {
-                J.Assignment assignment = (J.Assignment) firstArg;
-                if (assignment.getVariable() instanceof J.Identifier) {
-                    String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
-                    if ("value".equals(name) || "path".equals(name)) {
-                        if (assignment.getAssignment() instanceof J.Literal) {
-                            Object value = ((J.Literal) assignment.getAssignment()).getValue();
-                            if (value instanceof String) {
-                                return (String) value;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-    }
-
-    private static class PathVariableVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final AnnotationMatcher PATH_VARIABLE_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PathVariable");
-
-        @Override
-        public J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-            J.Annotation ann = super.visitAnnotation(annotation, ctx);
-
-            if (PATH_VARIABLE_MATCHER.matches(ann)) {
-                maybeRemoveImport("org.springframework.web.bind.annotation.PathVariable");
-                maybeAddImport("jakarta.ws.rs.PathParam");
-
-                ann = (J.Annotation) new ChangeType(
-                        "org.springframework.web.bind.annotation.PathVariable",
-                        "jakarta.ws.rs.PathParam",
-                        false
-                ).getVisitor().visit(ann, ctx, getCursor().getParentOrThrow());
-            }
-
-            return ann;
-        }
-    }
-
-    private static class RequestParamVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final AnnotationMatcher REQUEST_PARAM_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestParam");
-
-        @Override
-        public J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-            J.Annotation ann = super.visitAnnotation(annotation, ctx);
-
-            if (REQUEST_PARAM_MATCHER.matches(ann)) {
-                maybeRemoveImport("org.springframework.web.bind.annotation.RequestParam");
-                maybeAddImport("jakarta.ws.rs.QueryParam");
-
-                ann = (J.Annotation) new ChangeType(
-                        "org.springframework.web.bind.annotation.RequestParam",
-                        "jakarta.ws.rs.QueryParam",
-                        false
-                ).getVisitor().visit(ann, ctx, getCursor().getParentOrThrow());
-            }
-
-            return ann;
-        }
-    }
-
-    private static class RequestBodyVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final AnnotationMatcher REQUEST_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestBody");
-
-        @Override
-        public J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-            J.Annotation ann = super.visitAnnotation(annotation, ctx);
-
-            if (REQUEST_BODY_MATCHER.matches(ann)) {
-                maybeRemoveImport("org.springframework.web.bind.annotation.RequestBody");
-                // JAX-RS doesn't require annotation for request body (it's implicit)
-                return null;
-            }
-
-            return ann;
-        }
-    }
-
-    private static class ResponseBodyVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final AnnotationMatcher RESPONSE_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.ResponseBody");
-
-        @Override
-        public J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-            J.Annotation ann = super.visitAnnotation(annotation, ctx);
-
-            if (RESPONSE_BODY_MATCHER.matches(ann)) {
-                maybeRemoveImport("org.springframework.web.bind.annotation.ResponseBody");
-                // JAX-RS doesn't require @ResponseBody (it's implicit for resource methods)
-                return null;
-            }
-
-            return ann;
         }
     }
 }
