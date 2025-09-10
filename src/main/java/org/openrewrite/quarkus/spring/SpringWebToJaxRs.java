@@ -18,17 +18,10 @@ package org.openrewrite.quarkus.spring;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.AnnotationMatcher;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Space;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SpringWebToJaxRs extends Recipe {
     @Override
@@ -83,6 +76,7 @@ public class SpringWebToJaxRs extends Recipe {
         public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
             // There's a weird issue with duplicated newlines on annotated classes
             J.CompilationUnit cu = super.visitCompilationUnit(compilationUnit, ctx);
+            doAfterVisit(new RemoveAnnotationVisitor(REQUEST_BODY_MATCHER));
             return cu.withClasses(ListUtils.mapFirst(cu.getClasses(),
                     cd -> cd
                             .withPrefix(cd.getPrefix().withWhitespace("\n\n"))
@@ -183,39 +177,7 @@ public class SpringWebToJaxRs extends Recipe {
         }
 
         @Override
-        public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
-            J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, ctx);
-
-            // Remove @RequestBody annotations from parameters
-            if (!vd.getLeadingAnnotations().isEmpty()) {
-                List<J.Annotation> annotations = new ArrayList<>();
-                boolean hasRequestBody = false;
-
-                for (J.Annotation ann : vd.getLeadingAnnotations()) {
-                    if (REQUEST_BODY_MATCHER.matches(ann)) {
-                        maybeRemoveImport("org.springframework.web.bind.annotation.RequestBody");
-                        hasRequestBody = true;
-                        // Don't add this annotation to the new list
-                    } else {
-                        annotations.add(ann);
-                    }
-                }
-
-                if (hasRequestBody) {
-                    vd = vd.withLeadingAnnotations(annotations);
-                    // Clean up prefix if all annotations were removed
-                    if (annotations.isEmpty() && vd.getTypeExpression() != null) {
-                        // Ensure there's no extra space before the type
-                        vd = vd.withTypeExpression(vd.getTypeExpression().withPrefix(Space.EMPTY));
-                    }
-                }
-            }
-
-            return vd;
-        }
-
-        @Override
-        public  J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+        public J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
             J.Annotation ann = annotation;
             Object parent = getCursor().getParentOrThrow().getValue();
 
@@ -277,8 +239,7 @@ public class SpringWebToJaxRs extends Recipe {
                                 .build();
                         ann = methodTemplate.apply(getCursor(), ann.getCoordinates().replace());
 
-                        ann = ann.withArguments(null);
-                        return ann;
+                        return ann.withArguments(null);
                     }
                 } else if (GET_MAPPING_MATCHER.matches(ann)) {
                     return convertHttpMethodMapping(ann, "GetMapping", "GET", ctx);
