@@ -58,7 +58,7 @@ public class SpringWebToJaxRs extends Recipe {
                         new UsesType<>("org.springframework.web.bind.annotation.RequestBody", false),
                         new UsesType<>("org.springframework.web.bind.annotation.ResponseBody", false)
                 ),
-                // TODO See if we can avoid repeatUntilStable by making the visitor idempotent in a single pass
+                // XXX See if we can avoid repeatUntilStable by making the visitor idempotent in a single pass
                 Repeat.repeatUntilStable(new SpringWebToJaxRsVisitor())
         );
     }
