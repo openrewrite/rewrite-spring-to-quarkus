@@ -30,7 +30,7 @@ class SpringWebToJaxRsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new SpringWebToJaxRs())
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-web", "spring-context", "jakarta.ws.rs-api"));
+            .classpath("spring-web", "spring-context"));
     }
 
     @Test

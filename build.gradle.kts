@@ -7,6 +7,10 @@ plugins {
 group = "org.openrewrite.recipe"
 description = "A collection of OpenRewrite recipes to assist with Spring to Quarkus migrations"
 
+recipeDependencies {
+    parserClasspath("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
+}
+
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
 dependencies {
     annotationProcessor("org.projectlombok:lombok:latest.release")

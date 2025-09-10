@@ -19,12 +19,11 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-
-import java.util.Collections;
 
 public class SpringWebToJaxRs extends Recipe {
     @Override
@@ -107,6 +106,7 @@ public class SpringWebToJaxRs extends Recipe {
             if ((hasRestController || (hasController && hasResponseBody)) && !hasRequestMapping && !hasPath) {
                 maybeAddImport("jakarta.ws.rs.Path");
                 JavaTemplate template = JavaTemplate.builder("@Path(\"\")")
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                         .imports("jakarta.ws.rs.Path")
                         .build();
                 return template.apply(getCursor(), cd.getCoordinates().addAnnotation((a1, a2) -> 0));
@@ -156,6 +156,7 @@ public class SpringWebToJaxRs extends Recipe {
             if (hasHttpMethod && pathToAdd != null && !hasPath) {
                 maybeAddImport("jakarta.ws.rs.Path");
                 JavaTemplate template = JavaTemplate.builder("@Path(\"" + pathToAdd + "\")")
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                         .imports("jakarta.ws.rs.Path")
                         .build();
                 m = template.apply(getCursor(), m.getCoordinates().addAnnotation((a1, a2) -> 0));
@@ -198,24 +199,13 @@ public class SpringWebToJaxRs extends Recipe {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
                     maybeAddImport("jakarta.ws.rs.Path");
 
-                    JavaTemplate pathTemplate = JavaTemplate.builder("@Path")
+                    // Build @Path with the correct argument
+                    String pathAnnotation = path != null ? "@Path(\"" + path + "\")" : "@Path";
+                    JavaTemplate pathTemplate = JavaTemplate.builder(pathAnnotation)
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.Path")
                             .build();
-                    ann = pathTemplate.apply(getCursor(), ann.getCoordinates().replace());
-
-                    // Simplify arguments to just the path value
-                    if (ann != null) {
-                        if (path != null) {
-                            JavaTemplate template = JavaTemplate.builder("\"" + path + "\"")
-                                    .build();
-                            ann = ann.withArguments(Collections.singletonList(
-                                    template.apply(getCursor(), ann.getCoordinates().replaceArguments())
-                            ));
-                        } else {
-                            ann = ann.withArguments(null);
-                        }
-                    }
-                    return ann;
+                    return pathTemplate.apply(getCursor(), ann.getCoordinates().replace());
                 }
             }
 
@@ -231,6 +221,7 @@ public class SpringWebToJaxRs extends Recipe {
                         maybeAddImport("jakarta.ws.rs." + jaxRsAnnotation);
 
                         JavaTemplate methodTemplate = JavaTemplate.builder("@" + jaxRsAnnotation)
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                                 .imports("jakarta.ws.rs." + jaxRsAnnotation)
                                 .build();
                         ann = methodTemplate.apply(getCursor(), ann.getCoordinates().replace());
@@ -270,6 +261,7 @@ public class SpringWebToJaxRs extends Recipe {
                         newAnn = "@PathParam(" + args + ")";
                     }
                     JavaTemplate paramTemplate = JavaTemplate.builder(newAnn)
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.PathParam")
                             .build();
                     ann = paramTemplate.apply(getCursor(), ann.getCoordinates().replace());
@@ -289,6 +281,7 @@ public class SpringWebToJaxRs extends Recipe {
                         newAnn = "@QueryParam(" + args + ")";
                     }
                     JavaTemplate queryTemplate = JavaTemplate.builder(newAnn)
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.QueryParam")
                             .build();
                     ann = queryTemplate.apply(getCursor(), ann.getCoordinates().replace());
@@ -308,6 +301,7 @@ public class SpringWebToJaxRs extends Recipe {
 
             // Build the replacement annotation using JavaTemplate
             JavaTemplate template = JavaTemplate.builder("@" + jaxRsMethod)
+                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                     .imports("jakarta.ws.rs." + jaxRsMethod)
                     .build();
 
