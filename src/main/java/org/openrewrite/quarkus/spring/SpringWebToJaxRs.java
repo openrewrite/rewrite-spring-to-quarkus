@@ -296,7 +296,6 @@ public class SpringWebToJaxRs extends Recipe {
                             .build();
                     return queryTemplate.apply(getCursor(), ann.getCoordinates().replace());
                 }
-                // @RequestBody is now handled in visitVariableDeclarations
             }
 
             return ann;
@@ -305,46 +304,40 @@ public class SpringWebToJaxRs extends Recipe {
         private J.Annotation convertHttpMethodMapping(J.Annotation ann, String springMapping, String jaxRsMethod, ExecutionContext ctx) {
             maybeRemoveImport("org.springframework.web.bind.annotation." + springMapping);
             maybeAddImport("jakarta.ws.rs." + jaxRsMethod);
-
-            // Build the replacement annotation using JavaTemplate
-            JavaTemplate template = JavaTemplate.builder("@" + jaxRsMethod)
+            return JavaTemplate.builder("@" + jaxRsMethod)
                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                     .imports("jakarta.ws.rs." + jaxRsMethod)
-                    .build();
-
-            // Apply the template to replace the annotation
-            return template.apply(getCursor(), ann.getCoordinates().replace());
+                    .build()
+                    .apply(getCursor(), ann.getCoordinates().replace());
         }
 
         private @Nullable String extractPathValue(J.Annotation annotation) {
-            if (annotation.getArguments() == null) {
-                return null;
-            }
-
-            for (Expression arg : annotation.getArguments()) {
-                if (arg instanceof J.Literal) {
-                    J.Literal literal = (J.Literal) arg;
-                    if (literal.getValue() instanceof String) {
-                        return (String) literal.getValue();
-                    }
-                } else if (arg instanceof J.Assignment) {
-                    J.Assignment assignment = (J.Assignment) arg;
-                    if (assignment.getVariable() instanceof J.Identifier) {
-                        String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
-                        if ("value".equals(name) || "path".equals(name)) {
-                            if (assignment.getAssignment() instanceof J.Literal) {
-                                Object value = ((J.Literal) assignment.getAssignment()).getValue();
-                                if (value instanceof String) {
-                                    return (String) value;
-                                }
-                            } else if (assignment.getAssignment() instanceof J.NewArray) {
-                                J.NewArray array = (J.NewArray) assignment.getAssignment();
-                                if (array.getInitializer() != null && !array.getInitializer().isEmpty()) {
-                                    Expression first = array.getInitializer().get(0);
-                                    if (first instanceof J.Literal) {
-                                        Object value = ((J.Literal) first).getValue();
-                                        if (value instanceof String) {
-                                            return (String) value;
+            if (annotation.getArguments() != null) {
+                for (Expression arg : annotation.getArguments()) {
+                    if (arg instanceof J.Literal) {
+                        J.Literal literal = (J.Literal) arg;
+                        if (literal.getValue() instanceof String) {
+                            return (String) literal.getValue();
+                        }
+                    } else if (arg instanceof J.Assignment) {
+                        J.Assignment assignment = (J.Assignment) arg;
+                        if (assignment.getVariable() instanceof J.Identifier) {
+                            String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
+                            if ("value".equals(name) || "path".equals(name)) {
+                                if (assignment.getAssignment() instanceof J.Literal) {
+                                    Object value = ((J.Literal) assignment.getAssignment()).getValue();
+                                    if (value instanceof String) {
+                                        return (String) value;
+                                    }
+                                } else if (assignment.getAssignment() instanceof J.NewArray) {
+                                    J.NewArray array = (J.NewArray) assignment.getAssignment();
+                                    if (array.getInitializer() != null && !array.getInitializer().isEmpty()) {
+                                        Expression first = array.getInitializer().get(0);
+                                        if (first instanceof J.Literal) {
+                                            Object value = ((J.Literal) first).getValue();
+                                            if (value instanceof String) {
+                                                return (String) value;
+                                            }
                                         }
                                     }
                                 }
@@ -353,32 +346,28 @@ public class SpringWebToJaxRs extends Recipe {
                     }
                 }
             }
-
             return null;
         }
 
         private String extractMethodType(J.Annotation annotation) {
-            if (annotation.getArguments() == null) {
-                return "GET"; // Default to GET if no method specified
-            }
-
-            for (Expression arg : annotation.getArguments()) {
-                if (arg instanceof J.Assignment) {
-                    J.Assignment assignment = (J.Assignment) arg;
-                    if (assignment.getVariable() instanceof J.Identifier &&
-                            "method".equals(((J.Identifier) assignment.getVariable()).getSimpleName())) {
-                        Expression methodExpr = assignment.getAssignment();
-                        if (methodExpr instanceof J.FieldAccess) {
-                            return ((J.FieldAccess) methodExpr).getSimpleName();
-                        }
-                        if (methodExpr instanceof J.Identifier) {
-                            return ((J.Identifier) methodExpr).getSimpleName();
+            if (annotation.getArguments() != null) {
+                for (Expression arg : annotation.getArguments()) {
+                    if (arg instanceof J.Assignment) {
+                        J.Assignment assignment = (J.Assignment) arg;
+                        if (assignment.getVariable() instanceof J.Identifier &&
+                                "method".equals(((J.Identifier) assignment.getVariable()).getSimpleName())) {
+                            Expression methodExpr = assignment.getAssignment();
+                            if (methodExpr instanceof J.FieldAccess) {
+                                return ((J.FieldAccess) methodExpr).getSimpleName();
+                            }
+                            if (methodExpr instanceof J.Identifier) {
+                                return ((J.Identifier) methodExpr).getSimpleName();
+                            }
                         }
                     }
                 }
             }
-
-            return "GET"; // Default to GET if no method found
+            return "GET"; // Default to GET if no method specified
         }
 
         private @Nullable String getJaxRsMethodAnnotation(String springMethod) {
