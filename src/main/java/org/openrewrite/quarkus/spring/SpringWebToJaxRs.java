@@ -79,6 +79,17 @@ public class SpringWebToJaxRs extends Recipe {
         private static final AnnotationMatcher PATCH_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PatchMapping");
 
         @Override
+        public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
+            // There's a weird issue with duplicated newlines on annotated classes
+            J.CompilationUnit cu = super.visitCompilationUnit(compilationUnit, ctx);
+            return cu.withClasses(ListUtils.mapFirst(cu.getClasses(),
+                    cd -> cd
+                            .withPrefix(cd.getPrefix().withWhitespace("\n\n"))
+                            .withLeadingAnnotations(ListUtils.mapFirst(cd.getLeadingAnnotations(),
+                                    ann -> ann.withPrefix(ann.getPrefix().withWhitespace(""))))));
+        }
+
+        @Override
         public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
             J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
