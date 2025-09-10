@@ -202,6 +202,7 @@ public class SpringWebToJaxRs extends Recipe {
                     // Build @Path with the correct argument
                     String pathAnnotation = path != null ? "@Path(\"" + path + "\")" : "@Path";
                     JavaTemplate pathTemplate = JavaTemplate.builder(pathAnnotation)
+                            .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.Path")
                             .build();
