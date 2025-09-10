@@ -17,7 +17,6 @@ package org.openrewrite.quarkus.spring;
 
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -99,7 +98,7 @@ public class SpringWebToJaxRs extends Recipe {
                     hasResponseBody = true;
                 } else if (REQUEST_MAPPING_MATCHER.matches(annotation)) {
                     hasRequestMapping = true;
-                } else if (annotation.getSimpleName().equals("Path")) {
+                } else if ("Path".equals(annotation.getSimpleName())) {
                     hasPath = true;
                 }
             }
@@ -151,7 +150,7 @@ public class SpringWebToJaxRs extends Recipe {
             // Check if @Path already exists after transformation
             boolean hasPath = false;
             for (J.Annotation annotation : m.getLeadingAnnotations()) {
-                if (annotation.getSimpleName().equals("Path")) {
+                if ("Path".equals(annotation.getSimpleName())) {
                     hasPath = true;
                     break;
                 }
@@ -204,7 +203,7 @@ public class SpringWebToJaxRs extends Recipe {
         }
 
         @Override
-        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+        public  J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
             J.Annotation ann = annotation;
             Object parent = getCursor().getParentOrThrow().getValue();
 
@@ -213,7 +212,8 @@ public class SpringWebToJaxRs extends Recipe {
                 if (REST_CONTROLLER_MATCHER.matches(ann)) {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RestController");
                     return null; // Remove the annotation
-                } else if (CONTROLLER_MATCHER.matches(ann)) {
+                }
+                if (CONTROLLER_MATCHER.matches(ann)) {
                     // Check if class also has @ResponseBody
                     J.ClassDeclaration cd = (J.ClassDeclaration) parent;
                     boolean hasResponseBody = cd.getLeadingAnnotations().stream()
@@ -303,9 +303,9 @@ public class SpringWebToJaxRs extends Recipe {
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.PathParam")
                             .build();
-                    ann = paramTemplate.apply(getCursor(), ann.getCoordinates().replace());
-                    return ann;
-                } else if (REQUEST_PARAM_MATCHER.matches(ann)) {
+                    return paramTemplate.apply(getCursor(), ann.getCoordinates().replace());
+                }
+                if (REQUEST_PARAM_MATCHER.matches(ann)) {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestParam");
                     maybeAddImport("jakarta.ws.rs.QueryParam");
 
@@ -323,8 +323,7 @@ public class SpringWebToJaxRs extends Recipe {
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.QueryParam")
                             .build();
-                    ann = queryTemplate.apply(getCursor(), ann.getCoordinates().replace());
-                    return ann;
+                    return queryTemplate.apply(getCursor(), ann.getCoordinates().replace());
                 }
                 // @RequestBody is now handled in visitVariableDeclarations
             }
@@ -400,7 +399,8 @@ public class SpringWebToJaxRs extends Recipe {
                         Expression methodExpr = assignment.getAssignment();
                         if (methodExpr instanceof J.FieldAccess) {
                             return ((J.FieldAccess) methodExpr).getSimpleName();
-                        } else if (methodExpr instanceof J.Identifier) {
+                        }
+                        if (methodExpr instanceof J.Identifier) {
                             return ((J.Identifier) methodExpr).getSimpleName();
                         }
                     }
