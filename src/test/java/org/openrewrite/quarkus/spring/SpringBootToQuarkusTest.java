@@ -72,9 +72,6 @@ class SpringBootToQuarkusTest implements RewriteTest {
 
                     <properties>
                         <java.version>17</java.version>
-                        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-                        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-                        <quarkus.platform.version>3.8.0</quarkus.platform.version>
                     </properties>
                     <dependencyManagement>
                         <dependencies>
@@ -87,15 +84,6 @@ class SpringBootToQuarkusTest implements RewriteTest {
                             </dependency>
                         </dependencies>
                     </dependencyManagement>
-                    <build>
-                        <plugins>
-                            <plugin>
-                                <groupId>io.quarkus.platform</groupId>
-                                <artifactId>quarkus-maven-plugin</artifactId>
-                                <version>${quarkus.platform.version}</version>
-                            </plugin>
-                        </plugins>
-                    </build>
                 </project>
                 """.formatted(quarkusVersion);
             })
@@ -146,11 +134,6 @@ class SpringBootToQuarkusTest implements RewriteTest {
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
-                    <properties>
-                        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-                        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-                        <quarkus.platform.version>3.8.0</quarkus.platform.version>
-                    </properties>
 
                     <dependencyManagement>
                         <dependencies>
@@ -170,15 +153,6 @@ class SpringBootToQuarkusTest implements RewriteTest {
                             </dependency>
                         </dependencies>
                     </dependencyManagement>
-                    <build>
-                        <plugins>
-                            <plugin>
-                                <groupId>io.quarkus.platform</groupId>
-                                <artifactId>quarkus-maven-plugin</artifactId>
-                                <version>${quarkus.platform.version}</version>
-                            </plugin>
-                        </plugins>
-                    </build>
                 </project>
                 """.formatted(quarkusVersion);
                 })

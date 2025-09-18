@@ -38,17 +38,7 @@ preconditions:
       artifactIdPattern: spring-boot-starter-parent
       version: 3.x
 recipeList:
-  # Maven transformations - Replace Spring Boot parent with Quarkus BOM
   - org.openrewrite.quarkus.spring.RemoveSpringBootParent
-  - org.openrewrite.maven.AddProperty:
-      key: quarkus.platform.version
-      value: 3.8.0
-  - org.openrewrite.maven.AddProperty:
-      key: quarkus.platform.group-id
-      value: io.quarkus.platform
-  - org.openrewrite.maven.AddProperty:
-      key: quarkus.platform.artifact-id
-      value: quarkus-bom
   - org.openrewrite.maven.AddManagedDependency:
       groupId: io.quarkus.platform
       artifactId: quarkus-bom
@@ -56,7 +46,3 @@ recipeList:
       type: pom
       scope: import
       addToRootPom: false
-  - org.openrewrite.maven.AddPlugin:
-      groupId: io.quarkus.platform
-      artifactId: quarkus-maven-plugin
-      version: ${quarkus.platform.version}
