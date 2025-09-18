@@ -60,8 +60,8 @@ public class RemoveSpringBootParent extends Recipe {
                 String version = tag.getChildValue("version").orElse("");
 
                 // Only process Spring Boot 3.x parent POMs
-                return "org.springframework.boot".equals(groupId) && 
-                       "spring-boot-starter-parent".equals(artifactId) &&
+                return "org.springframework.boot".equals(groupId) &&
+}
                        version.startsWith("3.");
             }
         };
