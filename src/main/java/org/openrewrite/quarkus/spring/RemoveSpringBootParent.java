@@ -42,6 +42,7 @@ public class RemoveSpringBootParent extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new MavenIsoVisitor<ExecutionContext>() {
 
+            @Override
             public  Xml.@Nullable Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
                 if (isSpringBootParent(tag)) {
                     // Remove the parent tag entirely
