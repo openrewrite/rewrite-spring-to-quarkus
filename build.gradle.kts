@@ -8,28 +8,24 @@ group = "org.openrewrite.recipe"
 description = "A collection of OpenRewrite recipes to assist with Spring to Quarkus migrations"
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
+
 dependencies {
     annotationProcessor("org.projectlombok:lombok:latest.release")
     compileOnly("org.projectlombok:lombok:latest.release")
 
     implementation(platform("org.openrewrite:rewrite-bom:${rewriteVersion}"))
     implementation("org.openrewrite:rewrite-java")
-
-    annotationProcessor("org.openrewrite:rewrite-templating:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-templating:${rewriteVersion}")
-    compileOnly("com.google.errorprone:error_prone_core:2.+") {
-        exclude("com.google.auto.service", "auto-service-annotations")
-        exclude("io.github.eisop","dataflow-errorprone")
-    }
-
-    implementation("io.quarkus:quarkus-update-recipes:latest.release")
+    implementation("org.openrewrite:rewrite-maven")
+    implementation("org.openrewrite:rewrite-xml")
+    implementation("org.openrewrite:rewrite-properties")
+    implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
+    implementation("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
+    implementation("org.openrewrite.recipe:rewrite-static-analysis:${rewriteVersion}")
 
     testImplementation("org.openrewrite:rewrite-test")
+    testImplementation("org.openrewrite.gradle.tooling:model")
+    testImplementation("org.openrewrite:rewrite-gradle")
+
     testRuntimeOnly("org.openrewrite:rewrite-java-21")
-
-    testRuntimeOnly("org.springframework:spring-web:latest.release")
-}
-
-tasks.withType<JavaCompile> {
-    options.compilerArgs.add("-Arewrite.javaParserClasspathFrom=resources")
+    testRuntimeOnly(gradleApi())
 }
