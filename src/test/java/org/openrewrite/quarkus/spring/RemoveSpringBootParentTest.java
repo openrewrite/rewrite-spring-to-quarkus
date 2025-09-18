@@ -36,11 +36,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
             //language=xml
             pomXml(
                 """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
 
                     <parent>
@@ -63,11 +59,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
                 </project>
                 """,
                 """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
 
                     <groupId>com.example</groupId>
@@ -92,11 +84,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
             //language=xml
             pomXml(
                 """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
 
                     <parent>
@@ -128,13 +116,9 @@ class RemoveSpringBootParentTest implements RewriteTest {
             //language=xml
             pomXml(
                 """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
-                    
+
                     <parent>
                         <groupId>org.springframework</groupId>
                         <artifactId>spring-framework-bom</artifactId>
@@ -142,7 +126,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
                         <type>pom</type>
                         <scope>import</scope>
                     </parent>
-                    
+
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
@@ -158,33 +142,29 @@ class RemoveSpringBootParentTest implements RewriteTest {
             //language=xml
             pomXml(
                 """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
-                    
+
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
                         <version>3.2.1</version>
                         <relativePath/>
                     </parent>
-                    
+
                     <groupId>com.example</groupId>
                     <artifactId>complex-demo</artifactId>
                     <version>1.0.0-SNAPSHOT</version>
                     <packaging>jar</packaging>
                     <name>Complex Demo Application</name>
                     <description>Demo project with complex structure</description>
-                    
+
                     <properties>
                         <java.version>21</java.version>
                         <spring-cloud.version>2023.0.0</spring-cloud.version>
                         <testcontainers.version>1.19.3</testcontainers.version>
                     </properties>
-                    
+
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -195,7 +175,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
                             <artifactId>spring-boot-starter-data-jpa</artifactId>
                         </dependency>
                     </dependencies>
-                    
+
                     <dependencyManagement>
                         <dependencies>
                             <dependency>
@@ -207,7 +187,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
                             </dependency>
                         </dependencies>
                     </dependencyManagement>
-                    
+
                     <build>
                         <plugins>
                             <plugin>
@@ -219,26 +199,22 @@ class RemoveSpringBootParentTest implements RewriteTest {
                 </project>
                 """,
                 """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
-                    
+
                     <groupId>com.example</groupId>
                     <artifactId>complex-demo</artifactId>
                     <version>1.0.0-SNAPSHOT</version>
                     <packaging>jar</packaging>
                     <name>Complex Demo Application</name>
                     <description>Demo project with complex structure</description>
-                    
+
                     <properties>
                         <java.version>21</java.version>
                         <spring-cloud.version>2023.0.0</spring-cloud.version>
                         <testcontainers.version>1.19.3</testcontainers.version>
                     </properties>
-                    
+
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -249,7 +225,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
                             <artifactId>spring-boot-starter-data-jpa</artifactId>
                         </dependency>
                     </dependencies>
-                    
+
                     <dependencyManagement>
                         <dependencies>
                             <dependency>
@@ -261,7 +237,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
                             </dependency>
                         </dependencies>
                     </dependencyManagement>
-                    
+
                     <build>
                         <plugins>
                             <plugin>
@@ -284,13 +260,13 @@ class RemoveSpringBootParentTest implements RewriteTest {
                 """
                 <project>
                     <modelVersion>4.0.0</modelVersion>
-                    
+
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
                         <version>3.1.5</version>
                     </parent>
-                    
+
                     <groupId>com.example</groupId>
                     <artifactId>minimal-demo</artifactId>
                     <version>1.0.0</version>
@@ -299,7 +275,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
                 """
                 <project>
                     <modelVersion>4.0.0</modelVersion>
-                    
+
                     <groupId>com.example</groupId>
                     <artifactId>minimal-demo</artifactId>
                     <version>1.0.0</version>

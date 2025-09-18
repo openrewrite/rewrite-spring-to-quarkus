@@ -40,25 +40,18 @@ class SpringBootToQuarkusTest implements RewriteTest {
             //language=xml
             pomXml(
                 """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
 
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
                         <version>3.1.0</version>
-                        <relativePath/>
                     </parent>
 
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
-                    <name>demo</name>
-                    <description>Demo project for Spring Boot</description>
 
                     <properties>
                         <java.version>17</java.version>
@@ -70,18 +63,12 @@ class SpringBootToQuarkusTest implements RewriteTest {
                     assertThat(versionMatcher.find()).isTrue();
                     String quarkusVersion = versionMatcher.group(1);
                     return """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
 
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
-                    <name>demo</name>
-                    <description>Demo project for Spring Boot</description>
 
                     <properties>
                         <java.version>17</java.version>
@@ -122,18 +109,13 @@ class SpringBootToQuarkusTest implements RewriteTest {
             //language=xml
             pomXml(
                 """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
 
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
                         <version>3.1.0</version>
-                        <relativePath/>
                     </parent>
 
                     <groupId>com.example</groupId>
@@ -158,11 +140,7 @@ class SpringBootToQuarkusTest implements RewriteTest {
                     assertThat(versionMatcher.find()).isTrue();
                     String quarkusVersion = versionMatcher.group(1);
                     return """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
 
                     <groupId>com.example</groupId>
@@ -214,34 +192,18 @@ class SpringBootToQuarkusTest implements RewriteTest {
             //language=xml
             pomXml(
                 """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
 
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
                         <version>2.7.18</version>
-                        <relativePath/>
                     </parent>
 
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
-
-                    <properties>
-                        <java.version>11</java.version>
-                    </properties>
-
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-web</artifactId>
-                        </dependency>
-                    </dependencies>
                 </project>
                 """
             )
@@ -254,58 +216,15 @@ class SpringBootToQuarkusTest implements RewriteTest {
             //language=xml
             pomXml(
                 """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
 
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
-
-                    <dependencies>
-                        <dependency>
-                            <groupId>com.fasterxml.jackson.core</groupId>
-                            <artifactId>jackson-core</artifactId>
-                            <version>2.15.2</version>
-                        </dependency>
-                    </dependencies>
                 </project>
                 """
             )
         );
     }
-
-    @Test
-    void doNotTransformProjectWithoutParent() {
-        rewriteRun(
-            //language=xml
-            pomXml(
-                """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
-                    <modelVersion>4.0.0</modelVersion>
-
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-
-                    <dependencies>
-                        <dependency>
-                            <groupId>junit</groupId>
-                            <artifactId>junit</artifactId>
-                            <version>4.13.2</version>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """
-            )
-        );
-    }
-
 }
