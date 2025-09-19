@@ -30,7 +30,7 @@ class SpringBootToQuarkusTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringBootToQuarkusBOM");
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringBootToQuarkus");
     }
 
     @DocumentExample

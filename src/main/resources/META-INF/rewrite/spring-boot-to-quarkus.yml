@@ -15,10 +15,20 @@
 #
 
 ---
-type: specs.openrewrite.org/v1beta/category
-name: Spring to Quarkus
-packageName: org.openrewrite.quarkus.spring
-description: Recipes to rewrite Spring to Quarkus.
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootToQuarkus
+displayName: Migrate Spring Boot to Quarkus
+description: Replace Spring Boot with Quarkus.
+tags:
+  - spring
+  - quarkus
+  - migration
+  - bom
+preconditions:
+  - org.openrewrite.maven.search.ParentPomInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-parent
+      version: 3.x
 recipeList:
   - org.openrewrite.quarkus.spring.SpringBootToQuarkusBOM
 
@@ -32,11 +42,6 @@ tags:
   - quarkus
   - migration
   - bom
-preconditions:
-  - org.openrewrite.maven.search.ParentPomInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-parent
-      version: 3.x
 recipeList:
   - org.openrewrite.quarkus.spring.RemoveSpringBootParent
   - org.openrewrite.maven.AddManagedDependency:
