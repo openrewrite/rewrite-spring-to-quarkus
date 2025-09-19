@@ -56,8 +56,8 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.SpringBootToQuarkusBuildPlugin
-displayName: Replace Spring Boot build plugin with Quarkus build plugin
-description: Replace Spring Boot Maven build plugin with Quarkus Maven plugin using the same version as the quarkus-bom.
+displayName: Add or replace Spring Boot build plugin with Quarkus build plugin
+description: Remove Spring Boot Maven plugin if present and add Quarkus Maven plugin using the same version as the quarkus-bom.
 tags:
   - spring
   - quarkus

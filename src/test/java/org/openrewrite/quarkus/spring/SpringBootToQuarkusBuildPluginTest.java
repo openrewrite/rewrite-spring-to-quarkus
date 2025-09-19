@@ -74,35 +74,35 @@ class SpringBootToQuarkusBuildPluginTest implements RewriteTest {
                     assertThat(versionMatcher.find()).isTrue();
                     String quarkusVersion = versionMatcher.group(1);
                     return """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
+                      <project>
+                          <modelVersion>4.0.0</modelVersion>
 
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
+                          <groupId>com.example</groupId>
+                          <artifactId>demo</artifactId>
+                          <version>0.0.1-SNAPSHOT</version>
 
-                    <dependencyManagement>
-                        <dependencies>
-                            <dependency>
-                                <groupId>io.quarkus.platform</groupId>
-                                <artifactId>quarkus-bom</artifactId>
-                                <version>%s</version>
-                                <type>pom</type>
-                                <scope>import</scope>
-                            </dependency>
-                        </dependencies>
-                    </dependencyManagement>
-                    <build>
-                        <plugins>
-                            <plugin>
-                                <groupId>io.quarkus.platform</groupId>
-                                <artifactId>quarkus-maven-plugin</artifactId>
-                                <version>%s</version>
-                            </plugin>
-                        </plugins>
-                    </build>
-                </project>
-                """.formatted(quarkusVersion, quarkusVersion);
+                          <dependencyManagement>
+                              <dependencies>
+                                  <dependency>
+                                      <groupId>io.quarkus.platform</groupId>
+                                      <artifactId>quarkus-bom</artifactId>
+                                      <version>%s</version>
+                                      <type>pom</type>
+                                      <scope>import</scope>
+                                  </dependency>
+                              </dependencies>
+                          </dependencyManagement>
+                          <build>
+                              <plugins>
+                                  <plugin>
+                                      <groupId>io.quarkus.platform</groupId>
+                                      <artifactId>quarkus-maven-plugin</artifactId>
+                                      <version>%s</version>
+                                  </plugin>
+                              </plugins>
+                          </build>
+                      </project>
+                      """.formatted(quarkusVersion, quarkusVersion);
                 })
             )
         );
