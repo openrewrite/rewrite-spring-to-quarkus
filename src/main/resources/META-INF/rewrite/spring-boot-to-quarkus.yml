@@ -1,0 +1,53 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootToQuarkus
+displayName: Migrate Spring Boot to Quarkus
+description: Replace Spring Boot with Quarkus.
+tags:
+  - spring
+  - quarkus
+  - migration
+  - bom
+preconditions:
+  - org.openrewrite.maven.search.ParentPomInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-parent
+      version: 3.x
+recipeList:
+  - org.openrewrite.quarkus.spring.SpringBootToQuarkusBOM
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootToQuarkusBOM
+displayName: Migrate Spring Boot BOM to Quarkus BOM
+description: Replace Spring Boot parent POM or dependency management with Quarkus BOM configuration for both Maven and Gradle projects.
+tags:
+  - spring
+  - quarkus
+  - migration
+  - bom
+recipeList:
+  - org.openrewrite.quarkus.spring.RemoveSpringBootParent
+  - org.openrewrite.maven.AddManagedDependency:
+      groupId: io.quarkus.platform
+      artifactId: quarkus-bom
+      version: 3.x
+      type: pom
+      scope: import
+      addToRootPom: false
