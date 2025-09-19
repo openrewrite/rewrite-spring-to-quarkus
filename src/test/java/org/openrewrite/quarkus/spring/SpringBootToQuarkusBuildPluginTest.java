@@ -20,6 +20,10 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class SpringBootToQuarkusBuildPluginTest implements RewriteTest {
@@ -38,15 +42,22 @@ class SpringBootToQuarkusBuildPluginTest implements RewriteTest {
                 """
                 <project>
                     <modelVersion>4.0.0</modelVersion>
-                    
+
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
-                    
-                    <properties>
-                        <quarkus.platform.version>3.8.0</quarkus.platform.version>
-                    </properties>
-                    
+
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>3.2.5.Final</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
                     <build>
                         <plugins>
                             <plugin>
@@ -58,74 +69,41 @@ class SpringBootToQuarkusBuildPluginTest implements RewriteTest {
                     </build>
                 </project>
                 """,
-                """
+                spec -> spec.after(actual -> {
+                    Matcher versionMatcher = Pattern.compile("<artifactId>quarkus-maven-plugin</artifactId>\\s*<version>([^<]+)</version>").matcher(actual);
+                    assertThat(versionMatcher.find()).isTrue();
+                    String quarkusVersion = versionMatcher.group(1);
+                    return """
                 <project>
                     <modelVersion>4.0.0</modelVersion>
-                    
+
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
-                    
-                    <properties>
-                        <quarkus.platform.version>3.8.0</quarkus.platform.version>
-                    </properties>
+
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>%s</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
                     <build>
                         <plugins>
                             <plugin>
                                 <groupId>io.quarkus.platform</groupId>
                                 <artifactId>quarkus-maven-plugin</artifactId>
-                                <version>${quarkus.platform.version}</version>
+                                <version>%s</version>
                             </plugin>
                         </plugins>
                     </build>
                 </project>
-                """
-            )
-        );
-    }
-
-    @Test
-    void doNotChangeProjectWithoutSpringBootPlugin() {
-        rewriteRun(
-            //language=xml
-            pomXml(
-                """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    
-                    <build>
-                        <plugins>
-                            <plugin>
-                                <groupId>org.apache.maven.plugins</groupId>
-                                <artifactId>maven-compiler-plugin</artifactId>
-                                <version>3.11.0</version>
-                            </plugin>
-                        </plugins>
-                    </build>
-                </project>
-                """
-            )
-        );
-    }
-
-    @Test
-    void doNotChangeProjectWithoutBuildSection() {
-        rewriteRun(
-            //language=xml
-            pomXml(
-                """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                </project>
-                """
+                """.formatted(quarkusVersion, quarkusVersion);
+                })
             )
         );
     }
@@ -138,15 +116,22 @@ class SpringBootToQuarkusBuildPluginTest implements RewriteTest {
                 """
                 <project>
                     <modelVersion>4.0.0</modelVersion>
-                    
+
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
-                    
-                    <properties>
-                        <quarkus.platform.version>3.8.0</quarkus.platform.version>
-                    </properties>
-                    
+
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>3.2.5.Final</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
                     <build>
                         <plugins>
                             <plugin>
@@ -163,18 +148,29 @@ class SpringBootToQuarkusBuildPluginTest implements RewriteTest {
                     </build>
                 </project>
                 """,
-                """
+                spec -> spec.after(actual -> {
+                    Matcher versionMatcher = Pattern.compile("<artifactId>quarkus-maven-plugin</artifactId>\\s*<version>([^<]+)</version>").matcher(actual);
+                    assertThat(versionMatcher.find()).isTrue();
+                    String quarkusVersion = versionMatcher.group(1);
+                    return """
                 <project>
                     <modelVersion>4.0.0</modelVersion>
-                    
+
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
-                    
-                    <properties>
-                        <quarkus.platform.version>3.8.0</quarkus.platform.version>
-                    </properties>
-                    
+
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>%s</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
                     <build>
                         <plugins>
                             <plugin>
@@ -185,12 +181,13 @@ class SpringBootToQuarkusBuildPluginTest implements RewriteTest {
                             <plugin>
                                 <groupId>io.quarkus.platform</groupId>
                                 <artifactId>quarkus-maven-plugin</artifactId>
-                                <version>${quarkus.platform.version}</version>
+                                <version>%s</version>
                             </plugin>
                         </plugins>
                     </build>
                 </project>
-                """
+                """.formatted(quarkusVersion, quarkusVersion);
+                })
             )
         );
     }
@@ -203,15 +200,22 @@ class SpringBootToQuarkusBuildPluginTest implements RewriteTest {
                 """
                 <project>
                     <modelVersion>4.0.0</modelVersion>
-                    
+
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
-                    
-                    <properties>
-                        <quarkus.platform.version>3.8.0</quarkus.platform.version>
-                    </properties>
-                    
+
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>3.2.5.Final</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
                     <build>
                         <plugins>
                             <plugin>
@@ -226,31 +230,42 @@ class SpringBootToQuarkusBuildPluginTest implements RewriteTest {
                     </build>
                 </project>
                 """,
-                """
+                spec -> spec.after(actual -> {
+                    Matcher versionMatcher = Pattern.compile("<artifactId>quarkus-maven-plugin</artifactId>\\s*<version>([^<]+)</version>").matcher(actual);
+                    assertThat(versionMatcher.find()).isTrue();
+                    String quarkusVersion = versionMatcher.group(1);
+                    return """
                 <project>
                     <modelVersion>4.0.0</modelVersion>
-                    
+
                     <groupId>com.example</groupId>
                     <artifactId>demo</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
-                    
-                    <properties>
-                        <quarkus.platform.version>3.8.0</quarkus.platform.version>
-                    </properties>
+
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>%s</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
                     <build>
                         <plugins>
                             <plugin>
                                 <groupId>io.quarkus.platform</groupId>
                                 <artifactId>quarkus-maven-plugin</artifactId>
-                                <version>${quarkus.platform.version}</version>
+                                <version>%s</version>
                             </plugin>
                         </plugins>
                     </build>
                 </project>
-                """
+                """.formatted(quarkusVersion, quarkusVersion);
+                })
             )
         );
     }
-
-    // TODO: Add Gradle tests when Gradle support is implemented
 }

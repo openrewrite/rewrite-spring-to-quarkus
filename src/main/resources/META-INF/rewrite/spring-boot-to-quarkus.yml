@@ -31,6 +31,7 @@ preconditions:
       version: 3.x
 recipeList:
   - org.openrewrite.quarkus.spring.SpringBootToQuarkusBOM
+  - org.openrewrite.quarkus.spring.SpringBootToQuarkusBuildPlugin
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -51,3 +52,20 @@ recipeList:
       type: pom
       scope: import
       addToRootPom: false
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootToQuarkusBuildPlugin
+displayName: Replace Spring Boot build plugin with Quarkus build plugin
+description: Replace Spring Boot Maven build plugin with Quarkus Maven plugin using the same version as the quarkus-bom.
+tags:
+  - spring
+  - quarkus
+  - migration
+  - build
+  - maven
+recipeList:
+  - org.openrewrite.maven.RemovePlugin:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-maven-plugin
+  - org.openrewrite.quarkus.spring.AddQuarkusMavenPlugin
