@@ -31,7 +31,11 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-gradle")
 
     testRuntimeOnly("org.openrewrite:rewrite-java-21")
-    testRuntimeOnly("org.springframework:spring-web:latest.release")
-    testRuntimeOnly("org.springframework:spring-context:latest.release")
+    testRuntimeOnly("org.springframework.boot:spring-boot:3.5.4")
+    testRuntimeOnly("org.springframework.boot:spring-boot-autoconfigure:3.5.4")
+    testRuntimeOnly("org.springframework.data:spring-data-jpa:3.5.4")
+    testRuntimeOnly("org.springframework:spring-context:6.2.11")
+    testRuntimeOnly("org.springframework:spring-beans:6.2.11")
+    testRuntimeOnly("org.springframework:spring-web:6.2.11")
     testRuntimeOnly(gradleApi())
 }

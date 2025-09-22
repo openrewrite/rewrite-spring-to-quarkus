@@ -1,0 +1,79 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootApplicationMigration
+displayName: Migrate Spring Boot application class to Quarkus
+description: Removes @SpringBootApplication and SpringApplication.run(), converts @EnableXXX annotations to Quarkus extensions, and optionally removes the main application class.
+tags:
+  - spring
+  - quarkus
+  - migration
+  - application
+  - annotations
+recipeList:
+  - org.openrewrite.quarkus.spring.RemoveSpringBootApplication
+  - org.openrewrite.quarkus.spring.ConvertEnableAnnotationsToQuarkusExtensions
+  - org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.ConvertEnableAnnotationsToQuarkusExtensions
+displayName: Convert @EnableXXX annotations to Quarkus extensions
+description: Converts Spring @EnableXXX annotations to their corresponding Quarkus extension dependencies.
+tags:
+  - spring
+  - quarkus
+  - annotations
+  - extensions
+recipeList:
+  # Convert @EnableXXX annotations to Quarkus dependencies
+  - org.openrewrite.quarkus.spring.ConvertAnnotationToDependency
+
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
+displayName: Add Spring compatibility extensions for commonly used annotations
+description: Adds Quarkus Spring compatibility extensions when Spring annotations are detected in the codebase.
+tags:
+  - spring
+  - quarkus
+  - compatibility
+recipeList:
+  # Add Spring DI extension for @Component, @Service, @Repository, @Autowired
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-di
+      version: x
+      onlyIfUsing: org.springframework.stereotype.*
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-di
+      version: x
+      onlyIfUsing: org.springframework.beans.factory.annotation.*
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-web
+      version: x
+      onlyIfUsing: org.springframework.web.bind.annotation.*
+  # Add Spring Boot extension for @ConfigurationProperties
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-boot-properties
+      version: x
+      onlyIfUsing: org.springframework.boot.context.properties.ConfigurationProperties

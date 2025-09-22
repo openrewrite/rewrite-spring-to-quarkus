@@ -31,6 +31,7 @@ preconditions:
       version: 3.x
 recipeList:
   - org.openrewrite.quarkus.spring.SpringBootToQuarkusBOM
+  - org.openrewrite.quarkus.spring.SpringBootApplicationMigration
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
