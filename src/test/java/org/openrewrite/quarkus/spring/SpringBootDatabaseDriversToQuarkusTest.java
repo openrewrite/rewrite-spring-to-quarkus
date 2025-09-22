@@ -93,7 +93,6 @@ class SpringBootDatabaseDriversToQuarkusTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest
     @CsvSource({
       "com.h2database,h2,2.2.224,quarkus-jdbc-h2",
       "com.mysql,mysql-connector-j,8.3.0,quarkus-jdbc-mysql",
