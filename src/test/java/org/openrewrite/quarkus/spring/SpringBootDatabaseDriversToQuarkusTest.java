@@ -103,7 +103,7 @@ class SpringBootDatabaseDriversToQuarkusTest implements RewriteTest {
       "org.apache.derby,derby,10.16.1.1,quarkus-jdbc-derby",
       "com.ibm.db2,jcc,12.1.0.0,quarkus-jdbc-db2"
     })
-    void migrateDatabaseDriver(String groupId, String artifactId, String version, String quarkusArtifactId) {
+    @ParameterizedTest
         rewriteRun(
 
           //language=xml
