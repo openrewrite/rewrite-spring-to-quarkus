@@ -15,6 +15,7 @@
  */
 package org.openrewrite.quarkus.spring;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
@@ -461,5 +462,162 @@ class SpringWebToJaxRsTest implements RewriteTest {
               """
           )
         );
+    }
+
+    @Nested
+    class ConsumesProduces {
+        @Test
+        void convertRequestMappingWithConsumesAndProduces() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.web.bind.annotation.RequestMapping;
+                  import org.springframework.web.bind.annotation.RestController;
+
+                  @RestController
+                  public class TestController {
+
+                      @RequestMapping(value = "/test", consumes = "application/json", produces = "application/xml")
+                      public String test() {
+                          return "test";
+                      }
+                  }
+                  """,
+                """
+                  import jakarta.ws.rs.Consumes;
+                  import jakarta.ws.rs.GET;
+                  import jakarta.ws.rs.Path;
+                  import jakarta.ws.rs.Produces;
+
+                  @Path("")
+                  public class TestController {
+
+                      @GET
+                      @Path("/test")
+                      @Consumes("application/json")
+                      @Produces("application/xml")
+                      public String test() {
+                          return "test";
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void convertGetMappingWithConsumes() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.web.bind.annotation.GetMapping;
+                  import org.springframework.web.bind.annotation.RestController;
+
+                  @RestController
+                  public class TestController {
+
+                      @GetMapping(value = "/test", consumes = "application/json")
+                      public String test() {
+                          return "test";
+                      }
+                  }
+                  """,
+                """
+                  import jakarta.ws.rs.Consumes;
+                  import jakarta.ws.rs.GET;
+                  import jakarta.ws.rs.Path;
+
+                  @Path("")
+                  public class TestController {
+
+                      @GET
+                      @Path("/test")
+                      @Consumes("application/json")
+                      public String test() {
+                          return "test";
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void convertPostMappingWithProduces() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.web.bind.annotation.PostMapping;
+                  import org.springframework.web.bind.annotation.RestController;
+
+                  @RestController
+                  public class TestController {
+
+                      @PostMapping(value = "/test", produces = "application/json")
+                      public String test() {
+                          return "test";
+                      }
+                  }
+                  """,
+                """
+                  import jakarta.ws.rs.POST;
+                  import jakarta.ws.rs.Path;
+                  import jakarta.ws.rs.Produces;
+
+                  @Path("")
+                  public class TestController {
+
+                      @POST
+                      @Path("/test")
+                      @Produces("application/json")
+                      public String test() {
+                          return "test";
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void convertRequestMappingWithArrayConsumes() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.web.bind.annotation.RequestMapping;
+                  import org.springframework.web.bind.annotation.RestController;
+
+                  @RestController
+                  public class TestController {
+
+                      @RequestMapping(value = "/test", consumes = {"application/json", "application/xml"})
+                      public String test() {
+                          return "test";
+                      }
+                  }
+                  """,
+                """
+                  import jakarta.ws.rs.Consumes;
+                  import jakarta.ws.rs.GET;
+                  import jakarta.ws.rs.Path;
+
+                  @Path("")
+                  public class TestController {
+
+                      @GET
+                      @Path("/test")
+                      @Consumes({"application/json", "application/xml"})
+                      public String test() {
+                          return "test";
+                      }
+                  }
+                  """
+              )
+            );
+        }
     }
 }
