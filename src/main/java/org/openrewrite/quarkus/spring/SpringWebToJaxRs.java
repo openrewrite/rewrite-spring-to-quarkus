@@ -236,15 +236,20 @@ public class SpringWebToJaxRs extends Recipe {
                             .imports("jakarta.ws.rs." + jaxRsAnnotation)
                             .build()
                             .apply(getCursor(), ann.getCoordinates().replace());
-                } else if (GET_MAPPING_MATCHER.matches(ann)) {
+                }
+                if (GET_MAPPING_MATCHER.matches(ann)) {
                     return convertHttpMethodMapping(ann, "GetMapping", "GET", ctx);
-                } else if (POST_MAPPING_MATCHER.matches(ann)) {
+                }
+                if (POST_MAPPING_MATCHER.matches(ann)) {
                     return convertHttpMethodMapping(ann, "PostMapping", "POST", ctx);
-                } else if (PUT_MAPPING_MATCHER.matches(ann)) {
+                }
+                if (PUT_MAPPING_MATCHER.matches(ann)) {
                     return convertHttpMethodMapping(ann, "PutMapping", "PUT", ctx);
-                } else if (DELETE_MAPPING_MATCHER.matches(ann)) {
+                }
+                if (DELETE_MAPPING_MATCHER.matches(ann)) {
                     return convertHttpMethodMapping(ann, "DeleteMapping", "DELETE", ctx);
-                } else if (PATCH_MAPPING_MATCHER.matches(ann)) {
+                }
+                if (PATCH_MAPPING_MATCHER.matches(ann)) {
                     return convertHttpMethodMapping(ann, "PatchMapping", "PATCH", ctx);
                 }
             }
