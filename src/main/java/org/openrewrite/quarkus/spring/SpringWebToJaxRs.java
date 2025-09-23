@@ -357,11 +357,7 @@ public class SpringWebToJaxRs extends Recipe {
                             String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
                             for (String attrName : attributeNames) {
                                 if (attrName.equals(name)) {
-                                    if (assignment.getAssignment() instanceof J.Literal) {
-                                        return assignment.getAssignment();
-                                    } else if (assignment.getAssignment() instanceof J.NewArray) {
-                                        return assignment.getAssignment();
-                                    }
+                                    return assignment.getAssignment();
                                 }
                             }
                         }
