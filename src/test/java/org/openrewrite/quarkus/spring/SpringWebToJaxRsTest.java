@@ -466,7 +466,6 @@ class SpringWebToJaxRsTest implements RewriteTest {
 
     @Nested
     class ConsumesProduces {
-        @DocumentExample
         @Test
         void convertRequestMappingWithConsumesAndProduces() {
             rewriteRun(
@@ -611,7 +610,7 @@ class SpringWebToJaxRsTest implements RewriteTest {
 
                       @GET
                       @Path("/test")
-                      @Consumes("application/json")
+                      @Consumes({"application/json", "application/xml"})
                       public String test() {
                           return "test";
                       }
