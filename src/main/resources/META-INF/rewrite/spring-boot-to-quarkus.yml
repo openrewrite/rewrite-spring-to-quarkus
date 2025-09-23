@@ -57,31 +57,107 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.SpringBootDatabaseDriversToQuarkus
 displayName: Migrate database drivers to Quarkus JDBC extensions
-description: Replaces Spring Boot database driver dependencies with their Quarkus JDBC extension equivalents and removes runtime scope declarations.
+description: Replaces Spring Boot database driver dependencies with their Quarkus JDBC extension equivalents.
 tags:
   - spring
   - quarkus
   - database
   - jdbc
 recipeList:
-  # H2 Database (test scope first, then regular)
   - org.openrewrite.quarkus.spring.H2DriverToQuarkus
   - org.openrewrite.quarkus.spring.H2TestDriverToQuarkus
-  # PostgreSQL
-  - org.openrewrite.quarkus.spring.PostgreSQLDriverToQuarkus
-  # MySQL
-  - org.openrewrite.quarkus.spring.MySQLDriverToQuarkus
-  # MariaDB
-  - org.openrewrite.quarkus.spring.MariaDBDriverToQuarkus
-  # Oracle
-  - org.openrewrite.quarkus.spring.OracleDriverToQuarkus
-  # Microsoft SQL Server
-  - org.openrewrite.quarkus.spring.MSSQLDriverToQuarkus
-  # Derby (test scope first, then regular)
   - org.openrewrite.quarkus.spring.DerbyDriverToQuarkus
   - org.openrewrite.quarkus.spring.DerbyTestDriverToQuarkus
-  # DB2
-  - org.openrewrite.quarkus.spring.DB2DriverToQuarkus
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-postgresql
+      newVersion: x
+      oldGroupId: org.postgresql
+      oldArtifactId: postgresql
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-postgresql
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-mysql
+      newVersion: x
+      oldGroupId: com.mysql
+      oldArtifactId: mysql-connector-j
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-mysql
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-mysql
+      newVersion: x
+      oldGroupId: mysql
+      oldArtifactId: mysql-connector-java
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-mysql
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-mariadb
+      newVersion: x
+      oldGroupId: org.mariadb.jdbc
+      oldArtifactId: mariadb-java-client
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-mariadb
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-oracle
+      newVersion: x
+      oldGroupId: com.oracle.database.jdbc
+      oldArtifactId: ojdbc8
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-oracle
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-oracle
+      newVersion: x
+      oldGroupId: com.oracle.database.jdbc
+      oldArtifactId: ojdbc10
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-oracle
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-oracle
+      newVersion: x
+      oldGroupId: com.oracle.database.jdbc
+      oldArtifactId: ojdbc11
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-oracle
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-oracle
+      newVersion: x
+      oldGroupId: com.oracle.ojdbc
+      oldArtifactId: ojdbc8
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-oracle
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-mssql
+      newVersion: x
+      oldGroupId: com.microsoft.sqlserver
+      oldArtifactId: mssql-jdbc
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-mssql
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-db2
+      newVersion: x
+      oldGroupId: com.ibm.db2
+      oldArtifactId: jcc
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-db2
   - org.openrewrite.maven.RemoveRedundantDependencyVersions:
       groupPattern: io.quarkus
       artifactPattern: "*"
@@ -91,7 +167,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.H2DriverToQuarkus
 displayName: Replace H2 driver with Quarkus JDBC H2
-description: Migrates com.h2database:h2 to io.quarkus:quarkus-jdbc-h2
+description: Migrates com.h2database:h2 to io.quarkus:quarkus-jdbc-h2 (excludes test scope)
 tags:
   - spring
   - quarkus
@@ -104,13 +180,15 @@ preconditions:
       onlyDirect: true
       scope: compile
 recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: com.h2database
-      artifactId: h2
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-h2
+      newVersion: x
+      oldGroupId: com.h2database
+      oldArtifactId: h2
+  - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-h2
-      version: x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -128,6 +206,7 @@ preconditions:
       groupIdPattern: com.h2database
       artifactIdPattern: h2
       onlyDirect: true
+      scope: test
 recipeList:
   - org.openrewrite.maven.RemoveDependency:
       groupId: com.h2database
@@ -141,256 +220,9 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.PostgreSQLDriverToQuarkus
-displayName: Replace PostgreSQL driver with Quarkus JDBC PostgreSQL
-description: Migrates org.postgresql:postgresql to io.quarkus:quarkus-jdbc-postgresql
-tags:
-  - spring
-  - quarkus
-  - database
-  - postgresql
-preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
-      groupIdPattern: org.postgresql
-      artifactIdPattern: postgresql
-      onlyDirect: true
-recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: org.postgresql
-      artifactId: postgresql
-  - org.openrewrite.maven.AddDependency:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-postgresql
-      version: x
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.MySQLDriverToQuarkus
-displayName: Replace MySQL driver with Quarkus JDBC MySQL
-description: Migrates com.mysql:mysql-connector-j (or mysql:mysql-connector-java) to io.quarkus:quarkus-jdbc-mysql
-tags:
-  - spring
-  - quarkus
-  - database
-  - mysql
-recipeList:
-  - org.openrewrite.quarkus.spring.MySQLModernDriverToQuarkus
-  - org.openrewrite.quarkus.spring.MySQLLegacyDriverToQuarkus
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.MySQLModernDriverToQuarkus
-displayName: Replace modern MySQL driver with Quarkus JDBC MySQL
-description: Migrates com.mysql:mysql-connector-j to io.quarkus:quarkus-jdbc-mysql
-tags:
-  - spring
-  - quarkus
-  - database
-  - mysql
-preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
-      groupIdPattern: com.mysql
-      artifactIdPattern: mysql-connector-j
-      onlyDirect: true
-recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: com.mysql
-      artifactId: mysql-connector-j
-  - org.openrewrite.maven.AddDependency:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-mysql
-      version: x
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.MySQLLegacyDriverToQuarkus
-displayName: Replace legacy MySQL driver with Quarkus JDBC MySQL
-description: Migrates mysql:mysql-connector-java to io.quarkus:quarkus-jdbc-mysql
-tags:
-  - spring
-  - quarkus
-  - database
-  - mysql
-preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
-      groupIdPattern: mysql
-      artifactIdPattern: mysql-connector-java
-      onlyDirect: true
-recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: mysql
-      artifactId: mysql-connector-java
-  - org.openrewrite.maven.AddDependency:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-mysql
-      version: x
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.MariaDBDriverToQuarkus
-displayName: Replace MariaDB driver with Quarkus JDBC MariaDB
-description: Migrates org.mariadb.jdbc:mariadb-java-client to io.quarkus:quarkus-jdbc-mariadb
-tags:
-  - spring
-  - quarkus
-  - database
-  - mariadb
-preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
-      groupIdPattern: org.mariadb.jdbc
-      artifactIdPattern: mariadb-java-client
-      onlyDirect: true
-recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: org.mariadb.jdbc
-      artifactId: mariadb-java-client
-  - org.openrewrite.maven.AddDependency:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-mariadb
-      version: x
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.OracleDriverToQuarkus
-displayName: Replace Oracle driver with Quarkus JDBC Oracle
-description: Migrates com.oracle.database.jdbc:ojdbc* to io.quarkus:quarkus-jdbc-oracle
-tags:
-  - spring
-  - quarkus
-  - database
-  - oracle
-recipeList:
-  - org.openrewrite.quarkus.spring.Oracle8DriverToQuarkus
-  - org.openrewrite.quarkus.spring.Oracle10DriverToQuarkus
-  - org.openrewrite.quarkus.spring.Oracle11DriverToQuarkus
-  - org.openrewrite.quarkus.spring.OracleLegacyDriverToQuarkus
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.Oracle8DriverToQuarkus
-displayName: Replace Oracle ojdbc8 driver with Quarkus JDBC Oracle
-description: Migrates com.oracle.database.jdbc:ojdbc8 to io.quarkus:quarkus-jdbc-oracle
-tags:
-  - spring
-  - quarkus
-  - database
-  - oracle
-preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
-      groupIdPattern: com.oracle.database.jdbc
-      artifactIdPattern: ojdbc8
-      onlyDirect: true
-recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: com.oracle.database.jdbc
-      artifactId: ojdbc8
-  - org.openrewrite.maven.AddDependency:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-oracle
-      version: x
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.Oracle10DriverToQuarkus
-displayName: Replace Oracle ojdbc10 driver with Quarkus JDBC Oracle
-description: Migrates com.oracle.database.jdbc:ojdbc10 to io.quarkus:quarkus-jdbc-oracle
-tags:
-  - spring
-  - quarkus
-  - database
-  - oracle
-preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
-      groupIdPattern: com.oracle.database.jdbc
-      artifactIdPattern: ojdbc10
-      onlyDirect: true
-recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: com.oracle.database.jdbc
-      artifactId: ojdbc10
-  - org.openrewrite.maven.AddDependency:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-oracle
-      version: x
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.Oracle11DriverToQuarkus
-displayName: Replace Oracle ojdbc11 driver with Quarkus JDBC Oracle
-description: Migrates com.oracle.database.jdbc:ojdbc11 to io.quarkus:quarkus-jdbc-oracle
-tags:
-  - spring
-  - quarkus
-  - database
-  - oracle
-preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
-      groupIdPattern: com.oracle.database.jdbc
-      artifactIdPattern: ojdbc11
-      onlyDirect: true
-recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: com.oracle.database.jdbc
-      artifactId: ojdbc11
-  - org.openrewrite.maven.AddDependency:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-oracle
-      version: x
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.OracleLegacyDriverToQuarkus
-displayName: Replace legacy Oracle driver with Quarkus JDBC Oracle
-description: Migrates com.oracle.ojdbc:ojdbc8 to io.quarkus:quarkus-jdbc-oracle
-tags:
-  - spring
-  - quarkus
-  - database
-  - oracle
-preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
-      groupIdPattern: com.oracle.ojdbc
-      artifactIdPattern: ojdbc8
-      onlyDirect: true
-recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: com.oracle.ojdbc
-      artifactId: ojdbc8
-  - org.openrewrite.maven.AddDependency:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-oracle
-      version: x
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.MSSQLDriverToQuarkus
-displayName: Replace Microsoft SQL Server driver with Quarkus JDBC MSSQL
-description: Migrates com.microsoft.sqlserver:mssql-jdbc to io.quarkus:quarkus-jdbc-mssql
-tags:
-  - spring
-  - quarkus
-  - database
-  - mssql
-  - sqlserver
-preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
-      groupIdPattern: com.microsoft.sqlserver
-      artifactIdPattern: mssql-jdbc
-      onlyDirect: true
-recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: com.microsoft.sqlserver
-      artifactId: mssql-jdbc
-  - org.openrewrite.maven.AddDependency:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-mssql
-      version: x
-
----
-type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.DerbyDriverToQuarkus
 displayName: Replace Derby driver with Quarkus JDBC Derby
-description: Migrates org.apache.derby:derby or derbyclient to io.quarkus:quarkus-jdbc-derby
+description: Migrates org.apache.derby:derby or derbyclient to io.quarkus:quarkus-jdbc-derby (excludes test scope)
 tags:
   - spring
   - quarkus
@@ -399,19 +231,24 @@ tags:
 preconditions:
   - org.openrewrite.maven.search.DependencyInsight:
       groupIdPattern: org.apache.derby
-      artifactIdPattern: derby
+      artifactIdPattern: derby*
       onlyDirect: true
 recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: org.apache.derby
-      artifactId: derby
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: org.apache.derby
-      artifactId: derbyclient
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-derby
+      newVersion: x
+      oldGroupId: org.apache.derby
+      oldArtifactId: derby
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-derby
+      newVersion: x
+      oldGroupId: org.apache.derby
+      oldArtifactId: derbyclient
+  - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-derby
-      version: x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -429,6 +266,7 @@ preconditions:
       groupIdPattern: org.apache.derby
       artifactIdPattern: derby|derbyclient
       onlyDirect: true
+      scope: test
 recipeList:
   - org.openrewrite.maven.RemoveDependency:
       groupId: org.apache.derby
@@ -444,26 +282,3 @@ recipeList:
       version: x
       scope: test
 
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.DB2DriverToQuarkus
-displayName: Replace DB2 driver with Quarkus JDBC DB2
-description: Migrates com.ibm.db2:jcc to io.quarkus:quarkus-jdbc-db2
-tags:
-  - spring
-  - quarkus
-  - database
-  - db2
-preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
-      groupIdPattern: com.ibm.db2
-      artifactIdPattern: jcc
-      onlyDirect: true
-recipeList:
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: com.ibm.db2
-      artifactId: jcc
-  - org.openrewrite.maven.AddDependency:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-db2
-      version: x
