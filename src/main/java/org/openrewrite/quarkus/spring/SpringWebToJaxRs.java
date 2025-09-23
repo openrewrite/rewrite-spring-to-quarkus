@@ -128,9 +128,9 @@ public class SpringWebToJaxRs extends Recipe {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             // Extract path, consumes, and produces BEFORE calling super (which will transform the annotations)
-            String pathToAdd = null;
-            String consumesToAdd = null;
-            String producesToAdd = null;
+            Expression pathToAdd = null;
+            Expression consumesToAdd = null;
+            Expression producesToAdd = null;
             boolean hasHttpMethod = false;
 
             // Check what the original method has before transformation
@@ -140,32 +140,14 @@ public class SpringWebToJaxRs extends Recipe {
                         PUT_MAPPING_MATCHER.matches(annotation) ||
                         DELETE_MAPPING_MATCHER.matches(annotation) ||
                         PATCH_MAPPING_MATCHER.matches(annotation)) {
-                    String path = extractPathValue(annotation);
-                    if (path != null && !path.isEmpty()) {
-                        pathToAdd = path;
-                    }
-                    String consumes = extractAttributeValue(annotation, "consumes");
-                    if (consumes != null) {
-                        consumesToAdd = consumes;
-                    }
-                    String produces = extractAttributeValue(annotation, "produces");
-                    if (produces != null) {
-                        producesToAdd = produces;
-                    }
+                    pathToAdd = extractPathValue(annotation);
+                    consumesToAdd = extractAttributeValue(annotation, "consumes");
+                    producesToAdd = extractAttributeValue(annotation, "produces");
                     hasHttpMethod = true;
                 } else if (REQUEST_MAPPING_MATCHER.matches(annotation)) {
-                    String path = extractPathValue(annotation);
-                    if (path != null && !path.isEmpty()) {
-                        pathToAdd = path;
-                    }
-                    String consumes = extractAttributeValue(annotation, "consumes");
-                    if (consumes != null) {
-                        consumesToAdd = consumes;
-                    }
-                    String produces = extractAttributeValue(annotation, "produces");
-                    if (produces != null) {
-                        producesToAdd = produces;
-                    }
+                    pathToAdd = extractPathValue(annotation);
+                    consumesToAdd = extractAttributeValue(annotation, "consumes");
+                    producesToAdd = extractAttributeValue(annotation, "produces");
                     hasHttpMethod = true;
                 }
             }
@@ -202,23 +184,23 @@ public class SpringWebToJaxRs extends Recipe {
             // Add @Consumes if needed
             if (hasHttpMethod && consumesToAdd != null && !hasConsumes) {
                 maybeAddImport("jakarta.ws.rs.Consumes");
-                m = JavaTemplate.builder("@Consumes(\"" + consumesToAdd + "\")")
+                m = JavaTemplate.builder("@Consumes(#{any()})")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                         .imports("jakarta.ws.rs.Consumes")
                         .build()
-                        .apply(updateCursor(m), m.getCoordinates().addAnnotation((a1, a2) -> 0));
+                        .apply(updateCursor(m), m.getCoordinates().addAnnotation((a1, a2) -> 0), consumesToAdd);
             }
 
             // Add @Produces if needed
             if (hasHttpMethod && producesToAdd != null && !hasProduces) {
                 maybeAddImport("jakarta.ws.rs.Produces");
-                m = JavaTemplate.builder("@Produces(\"" + producesToAdd + "\")")
+                m = JavaTemplate.builder("@Produces(#{any()})")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                         .imports("jakarta.ws.rs.Produces")
                         .build()
-                        .apply(updateCursor(m), m.getCoordinates().addAnnotation((a1, a2) -> 0));
+                        .apply(updateCursor(m), m.getCoordinates().addAnnotation((a1, a2) -> 0), producesToAdd);
             }
 
             return m;
@@ -255,18 +237,18 @@ public class SpringWebToJaxRs extends Recipe {
                     }
                 } else if (REQUEST_MAPPING_MATCHER.matches(ann)) {
                     // Convert @RequestMapping to @Path at class level
-                    String path = extractPathValue(ann);
+                    Expression path = extractPathValue(ann);
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
                     maybeAddImport("jakarta.ws.rs.Path");
 
                     // Build @Path with the correct argument
-                    String pathAnnotation = path != null ? "@Path(\"" + path + "\")" : "@Path";
+                    String pathAnnotation = path != null ? "@Path(#{any()})" : "@Path";
                     return JavaTemplate.builder(pathAnnotation)
                             .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.Path")
                             .build()
-                            .apply(getCursor(), ann.getCoordinates().replace());
+                            .apply(getCursor(), ann.getCoordinates().replace(), path);
                 }
             }
 
@@ -357,20 +339,17 @@ public class SpringWebToJaxRs extends Recipe {
                     .apply(getCursor(), ann.getCoordinates().replace());
         }
 
-        private @Nullable String extractPathValue(J.Annotation annotation) {
+        private @Nullable Expression extractPathValue(J.Annotation annotation) {
             return extractAttributeValue(annotation, "value", "path");
         }
 
-        private @Nullable String extractAttributeValue(J.Annotation annotation, String... attributeNames) {
+        private @Nullable Expression extractAttributeValue(J.Annotation annotation, String... attributeNames) {
             if (annotation.getArguments() != null) {
                 for (Expression arg : annotation.getArguments()) {
                     if (arg instanceof J.Literal) {
                         // For shorthand notation (single unnamed argument)
                         if (attributeNames.length > 0 && ("value".equals(attributeNames[0]) || "path".equals(attributeNames[0]))) {
-                            J.Literal literal = (J.Literal) arg;
-                            if (literal.getValue() instanceof String) {
-                                return (String) literal.getValue();
-                            }
+                            return arg;
                         }
                     } else if (arg instanceof J.Assignment) {
                         J.Assignment assignment = (J.Assignment) arg;
@@ -379,21 +358,9 @@ public class SpringWebToJaxRs extends Recipe {
                             for (String attrName : attributeNames) {
                                 if (attrName.equals(name)) {
                                     if (assignment.getAssignment() instanceof J.Literal) {
-                                        Object value = ((J.Literal) assignment.getAssignment()).getValue();
-                                        if (value instanceof String) {
-                                            return (String) value;
-                                        }
+                                        return assignment.getAssignment();
                                     } else if (assignment.getAssignment() instanceof J.NewArray) {
-                                        J.NewArray array = (J.NewArray) assignment.getAssignment();
-                                        if (array.getInitializer() != null && !array.getInitializer().isEmpty()) {
-                                            Expression first = array.getInitializer().get(0);
-                                            if (first instanceof J.Literal) {
-                                                Object value = ((J.Literal) first).getValue();
-                                                if (value instanceof String) {
-                                                    return (String) value;
-                                                }
-                                            }
-                                        }
+                                        return assignment.getAssignment();
                                     }
                                 }
                             }
