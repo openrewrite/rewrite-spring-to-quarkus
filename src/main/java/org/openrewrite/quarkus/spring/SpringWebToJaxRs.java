@@ -173,12 +173,12 @@ public class SpringWebToJaxRs extends Recipe {
             // Add @Path if needed
             if (hasHttpMethod && pathToAdd != null && !hasPath) {
                 maybeAddImport("jakarta.ws.rs.Path");
-                m = JavaTemplate.builder("@Path(\"" + pathToAdd + "\")")
+                m = JavaTemplate.builder("@Path(#{any()})")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                         .imports("jakarta.ws.rs.Path")
                         .build()
-                        .apply(updateCursor(m), m.getCoordinates().addAnnotation((a1, a2) -> 0));
+                        .apply(updateCursor(m), m.getCoordinates().addAnnotation((a1, a2) -> 0), pathToAdd);
             }
 
             // Add @Consumes if needed
