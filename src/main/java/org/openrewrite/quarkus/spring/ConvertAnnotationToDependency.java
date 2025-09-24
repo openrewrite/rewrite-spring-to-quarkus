@@ -18,10 +18,7 @@ package org.openrewrite.quarkus.spring;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.ScanningRecipe;
-import org.openrewrite.Tree;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RemoveAnnotation;
 import org.openrewrite.java.tree.J;
@@ -87,11 +84,7 @@ public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotat
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
-        if (acc.foundAnnotationFqns.isEmpty()) {
-            return TreeVisitor.noop();
-        }
-
-        return new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(!acc.foundAnnotationFqns.isEmpty(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public Tree visit(Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Xml.Document) {
@@ -134,6 +127,6 @@ public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotat
                 }
                 return tree;
             }
-        };
+        });
     }
 }
