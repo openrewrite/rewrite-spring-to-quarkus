@@ -34,8 +34,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@Value
+
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotationToDependency.Accumulator> {
 
     private static final Map<String, String> ANNOTATION_FQN_TO_DEPENDENCY = new HashMap<>();
@@ -94,7 +95,6 @@ public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotat
             @Override
             public Tree visit(Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Xml.Document) {
-                    // Handle Maven POM files - add dependencies
                     return new MavenIsoVisitor<ExecutionContext>() {
                         @Override
                         public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
@@ -119,7 +119,6 @@ public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotat
                         }
                     }.visitNonNull(tree, ctx);
                 } else if (tree instanceof J.CompilationUnit) {
-                    // Handle Java files - remove annotations
                     return new JavaIsoVisitor<ExecutionContext>() {
                         @Override
                         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {

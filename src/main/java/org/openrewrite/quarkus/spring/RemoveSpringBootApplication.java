@@ -21,8 +21,11 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.RemoveAnnotation;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -44,7 +47,6 @@ public class RemoveSpringBootApplication extends Recipe {
 
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                // Remove @SpringBootApplication annotation
                 if (annotation.getSimpleName().equals("SpringBootApplication")) {
                     doAfterVisit(new RemoveAnnotation("org.springframework.boot.autoconfigure.SpringBootApplication").getVisitor());
                     maybeRemoveImport("org.springframework.boot.autoconfigure.SpringBootApplication");
@@ -54,12 +56,8 @@ public class RemoveSpringBootApplication extends Recipe {
 
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                // Remove SpringApplication.run() calls
                 if (method.getSimpleName().equals("run") && method.getSelect() != null && method.getSelect().toString().contains("SpringApplication")) {
-
                     maybeRemoveImport("org.springframework.boot.SpringApplication");
-
-                    // Return null to remove the method invocation
                     return null;
                 }
                 return super.visitMethodInvocation(method, ctx);
@@ -67,18 +65,17 @@ public class RemoveSpringBootApplication extends Recipe {
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                // Handle main method that only contains SpringApplication.run()
-                if (method.getSimpleName().equals("main") && method.getModifiers().stream().anyMatch(mod -> mod instanceof J.Modifier && ((J.Modifier) mod).getType() == J.Modifier.Type.Static) && method.getModifiers().stream().anyMatch(mod -> mod instanceof J.Modifier && ((J.Modifier) mod).getType() == J.Modifier.Type.Public)) {
-
-                    // Check if method body only contains SpringApplication.run()
+                if ("main".equals(method.getSimpleName()) &&
+                        method.getMethodType() != null &&
+                        method.getMethodType().getParameterTypes().size() == 1 &&
+                        method.getMethodType().getParameterTypes().get(0) instanceof JavaType.Array &&
+                        TypeUtils.isOfType(((JavaType.Array)method.getMethodType().getParameterTypes().get(0)).getElemType(), JavaType.buildType("java.lang.String")) &&
+                        method.hasModifier(J.Modifier.Type.Public) &&
+                        method.hasModifier(J.Modifier.Type.Static)) {
                     if (method.getBody() != null && method.getBody().getStatements().size() == 1 && method.getBody().getStatements().get(0) instanceof J.MethodInvocation) {
-
                         J.MethodInvocation methodCall = (J.MethodInvocation) method.getBody().getStatements().get(0);
                         if (methodCall.getSimpleName().equals("run") && methodCall.getSelect() != null && methodCall.getSelect().toString().contains("SpringApplication")) {
-
                             maybeRemoveImport("org.springframework.boot.SpringApplication");
-
-                            // Remove the entire main method as it's no longer needed
                             return null;
                         }
                     }
