@@ -31,6 +31,7 @@ preconditions:
       version: 3.x
 recipeList:
   - org.openrewrite.quarkus.spring.SpringBootToQuarkusBOM
+  - org.openrewrite.quarkus.spring.SpringAnnotationsToCdi
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -51,3 +52,31 @@ recipeList:
       type: pom
       scope: import
       addToRootPom: false
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringAnnotationsToCdiDeclarative
+displayName: Migrate simple Spring annotations to CDI (Declarative)
+description: Replace Spring stereotype and injection annotations with CDI equivalents using declarative recipes.
+recipeList:
+  - org.openrewrite.java.ReplaceAnnotation:
+      annotationPatternToReplace: '@org.springframework.stereotype.Service'
+      annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
+  - org.openrewrite.java.ReplaceAnnotation:
+      annotationPatternToReplace: '@org.springframework.stereotype.Component'
+      annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
+  - org.openrewrite.java.ReplaceAnnotation:
+      annotationPatternToReplace: '@org.springframework.stereotype.Repository'
+      annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
+  - org.openrewrite.java.ReplaceAnnotation:
+      annotationPatternToReplace: '@org.springframework.beans.factory.annotation.Autowired'
+      annotationTemplateToInsert: '@jakarta.inject.Inject'
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringAnnotationsToCdi
+displayName: Migrate Spring annotations to CDI (Hybrid)
+description: Replace Spring annotations with CDI equivalents using both declarative and imperative approaches.
+recipeList:
+  - org.openrewrite.quarkus.spring.SpringAnnotationsToCdiDeclarative
+  - org.openrewrite.quarkus.spring.SpringValueToCdiConfigProperty
