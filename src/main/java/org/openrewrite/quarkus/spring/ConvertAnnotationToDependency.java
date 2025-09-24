@@ -38,29 +38,19 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = false)
 public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotationToDependency.Accumulator> {
 
-    private static final Map<String, String> ANNOTATION_TO_DEPENDENCY = new HashMap<>();
+    private static final Map<String, String> ANNOTATION_FQN_TO_DEPENDENCY = new HashMap<>();
 
     static {
-        ANNOTATION_TO_DEPENDENCY.put("EnableScheduling", "quarkus-scheduler");
-        ANNOTATION_TO_DEPENDENCY.put("EnableCaching", "quarkus-cache");
-        ANNOTATION_TO_DEPENDENCY.put("EnableJpaRepositories", "quarkus-spring-data-jpa");
-        ANNOTATION_TO_DEPENDENCY.put("EnableWebSecurity", "quarkus-spring-security");
-        ANNOTATION_TO_DEPENDENCY.put("EnableConfigurationProperties", "quarkus-config-yaml");
-    }
-
-    private static final Map<String, String> ANNOTATION_TO_FULL_NAME = new HashMap<>();
-
-    static {
-        ANNOTATION_TO_FULL_NAME.put("EnableScheduling", "org.springframework.scheduling.annotation.EnableScheduling");
-        ANNOTATION_TO_FULL_NAME.put("EnableCaching", "org.springframework.cache.annotation.EnableCaching");
-        ANNOTATION_TO_FULL_NAME.put("EnableJpaRepositories", "org.springframework.data.jpa.repository.config.EnableJpaRepositories");
-        ANNOTATION_TO_FULL_NAME.put("EnableWebSecurity", "org.springframework.security.config.annotation.web.configuration.EnableWebSecurity");
-        ANNOTATION_TO_FULL_NAME.put("EnableConfigurationProperties", "org.springframework.boot.context.properties.EnableConfigurationProperties");
+        ANNOTATION_FQN_TO_DEPENDENCY.put("org.springframework.scheduling.annotation.EnableScheduling", "quarkus-scheduler");
+        ANNOTATION_FQN_TO_DEPENDENCY.put("org.springframework.cache.annotation.EnableCaching", "quarkus-cache");
+        ANNOTATION_FQN_TO_DEPENDENCY.put("org.springframework.data.jpa.repository.config.EnableJpaRepositories", "quarkus-spring-data-jpa");
+        ANNOTATION_FQN_TO_DEPENDENCY.put("org.springframework.security.config.annotation.web.configuration.EnableWebSecurity", "quarkus-spring-security");
+        ANNOTATION_FQN_TO_DEPENDENCY.put("org.springframework.boot.context.properties.EnableConfigurationProperties", "quarkus-config-yaml");
     }
 
     @Data
     public static class Accumulator {
-        Set<String> foundAnnotations = new HashSet<>();
+        Set<String> foundAnnotationFqns = new HashSet<>();
     }
 
     @Override
@@ -83,9 +73,11 @@ public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotat
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                String annotationName = annotation.getSimpleName();
-                if (ANNOTATION_TO_DEPENDENCY.containsKey(annotationName)) {
-                    acc.foundAnnotations.add(annotationName);
+                if (annotation.getType() != null) {
+                    String annotationFqn = annotation.getType().toString();
+                    if (ANNOTATION_FQN_TO_DEPENDENCY.containsKey(annotationFqn)) {
+                        acc.foundAnnotationFqns.add(annotationFqn);
+                    }
                 }
                 return super.visitAnnotation(annotation, ctx);
             }
@@ -94,7 +86,7 @@ public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotat
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
-        if (acc.foundAnnotations.isEmpty()) {
+        if (acc.foundAnnotationFqns.isEmpty()) {
             return TreeVisitor.noop();
         }
 
@@ -106,39 +98,40 @@ public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotat
                     return new MavenIsoVisitor<ExecutionContext>() {
                         @Override
                         public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
-                            for (String foundAnnotation : acc.foundAnnotations) {
-                                String dependency = ANNOTATION_TO_DEPENDENCY.get(foundAnnotation);
+                            for (String foundAnnotationFqn : acc.foundAnnotationFqns) {
+                                String dependency = ANNOTATION_FQN_TO_DEPENDENCY.get(foundAnnotationFqn);
                                 doAfterVisit(new AddDependency(
-                                    "io.quarkus",
-                                    dependency,
-                                    "x",
-                                    null,
-                                    null,
-                                    true,
-                                    null,
-                                    null,
-                                    null,
-                                    false,
-                                    null,
-                                    false
+                                        "io.quarkus",
+                                        dependency,
+                                        "x",
+                                        null,
+                                        null,
+                                        true,
+                                        null,
+                                        null,
+                                        null,
+                                        false,
+                                        null,
+                                        false
                                 ).getVisitor());
                             }
                             return super.visitDocument(document, ctx);
                         }
-                    }.visit(tree, ctx);
+                    }.visitNonNull(tree, ctx);
                 } else if (tree instanceof J.CompilationUnit) {
                     // Handle Java files - remove annotations
                     return new JavaIsoVisitor<ExecutionContext>() {
                         @Override
                         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                            String annotationName = annotation.getSimpleName();
-                            if (acc.foundAnnotations.contains(annotationName)) {
-                                String fullName = ANNOTATION_TO_FULL_NAME.get(annotationName);
-                                doAfterVisit(new RemoveAnnotation(fullName).getVisitor());
+                            if (annotation.getType() != null) {
+                                String annotationFqn = annotation.getType().toString();
+                                if (acc.foundAnnotationFqns.contains(annotationFqn)) {
+                                    doAfterVisit(new RemoveAnnotation(annotationFqn).getVisitor());
+                                }
                             }
                             return super.visitAnnotation(annotation, ctx);
                         }
-                    }.visit(tree, ctx);
+                    }.visitNonNull(tree, ctx);
                 }
                 return tree;
             }
