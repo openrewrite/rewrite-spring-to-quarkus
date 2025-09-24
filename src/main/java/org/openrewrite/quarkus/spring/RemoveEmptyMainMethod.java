@@ -21,48 +21,27 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.RemoveAnnotation;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
-public class RemoveSpringBootApplication extends Recipe {
-
-    private static final MethodMatcher SPRING_APPLICATION_RUN = new MethodMatcher("org.springframework.boot.SpringApplication run(..)");
+public class RemoveEmptyMainMethod extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Remove Spring Boot application class";
+        return "Remove empty main method";
     }
 
     @Override
     public String getDescription() {
-        return "Removes @SpringBootApplication annotation and SpringApplication.run() calls from Spring Boot main classes, optionally removing the entire class if it becomes empty.";
+        return "Removes public static void main(String[] args) methods that are empty after Spring Boot application cleanup.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-
-            @Override
-            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                if (annotation.getSimpleName().equals("SpringBootApplication")) {
-                    doAfterVisit(new RemoveAnnotation("org.springframework.boot.autoconfigure.SpringBootApplication").getVisitor());
-                }
-                return super.visitAnnotation(annotation, ctx);
-            }
-
-            @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                if (SPRING_APPLICATION_RUN.matches(method)) {
-                    maybeRemoveImport("org.springframework.boot.SpringApplication");
-                    return null;
-                }
-                return super.visitMethodInvocation(method, ctx);
-            }
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {

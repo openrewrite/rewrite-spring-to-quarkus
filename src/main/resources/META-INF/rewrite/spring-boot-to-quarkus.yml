@@ -52,3 +52,90 @@ recipeList:
       type: pom
       scope: import
       addToRootPom: false
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.RemoveSpringBootApplication
+displayName: Remove Spring Boot application artifacts
+description: Removes @SpringBootApplication annotation, SpringApplication.run() calls, and empty main methods from Spring Boot application classes.
+recipeList:
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.boot.autoconfigure.SpringBootApplication
+  - org.openrewrite.java.RemoveMethodInvocations:
+      methodPattern: org.springframework.boot.SpringApplication run(..)
+  - org.openrewrite.quarkus.spring.RemoveEmptyMainMethod
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.ConvertEnableSchedulingToQuarkusScheduler
+displayName: Convert @EnableScheduling to Quarkus Scheduler
+description: Converts Spring @EnableScheduling annotations to Quarkus scheduler extension dependency.
+preconditions:
+  - org.openrewrite.java.search.FindAnnotations:
+      annotationPattern: org.springframework.scheduling.annotation.EnableScheduling
+recipeList:
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-scheduler
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.scheduling.annotation.EnableScheduling
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.ConvertEnableCachingToQuarkusCache
+displayName: Convert @EnableCaching to Quarkus Cache
+description: Converts Spring @EnableCaching annotations to Quarkus cache extension dependency.
+preconditions:
+  - org.openrewrite.java.search.FindAnnotations:
+      annotationPattern: org.springframework.cache.annotation.EnableCaching
+recipeList:
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-cache
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.cache.annotation.EnableCaching
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.ConvertEnableJpaRepositoriesToQuarkusSpringDataJpa
+displayName: Convert @EnableJpaRepositories to Quarkus Spring Data JPA
+description: Converts Spring @EnableJpaRepositories annotations to Quarkus Spring Data JPA extension dependency.
+preconditions:
+  - org.openrewrite.java.search.FindAnnotations:
+      annotationPattern: org.springframework.data.jpa.repository.config.EnableJpaRepositories
+recipeList:
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-data-jpa
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.data.jpa.repository.config.EnableJpaRepositories
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.ConvertEnableWebSecurityToQuarkusSpringSecurity
+displayName: Convert @EnableWebSecurity to Quarkus Spring Security
+description: Converts Spring @EnableWebSecurity annotations to Quarkus Spring Security extension dependency.
+preconditions:
+  - org.openrewrite.java.search.FindAnnotations:
+      annotationPattern: org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+recipeList:
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-security
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.ConvertEnableConfigurationPropertiesToQuarkusConfigYaml
+displayName: Convert @EnableConfigurationProperties to Quarkus Config YAML
+description: Converts Spring @EnableConfigurationProperties annotations to Quarkus config YAML extension dependency.
+preconditions:
+  - org.openrewrite.java.search.FindAnnotations:
+      annotationPattern: org.springframework.boot.context.properties.EnableConfigurationProperties
+recipeList:
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-config-yaml
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.boot.context.properties.EnableConfigurationProperties

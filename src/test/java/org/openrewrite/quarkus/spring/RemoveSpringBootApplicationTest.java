@@ -26,7 +26,7 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new RemoveSpringBootApplication())
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.RemoveSpringBootApplication")
             .parser(org.openrewrite.java.JavaParser.fromJavaVersion()
                 .dependsOn(
                     """
