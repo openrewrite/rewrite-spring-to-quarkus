@@ -19,6 +19,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
+import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RemoveAnnotation;
 import org.openrewrite.java.tree.J;
@@ -36,19 +37,19 @@ import java.util.Set;
 @Value
 public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotationToDependency.Accumulator> {
 
-    private static final Map<String, String> ANNOTATION_FQN_TO_DEPENDENCY = new HashMap<>();
+    private static final Map<AnnotationMatcher, String> ANNOTATION_MATCHER_TO_DEPENDENCY = new HashMap<>();
 
     static {
-        ANNOTATION_FQN_TO_DEPENDENCY.put("org.springframework.scheduling.annotation.EnableScheduling", "quarkus-scheduler");
-        ANNOTATION_FQN_TO_DEPENDENCY.put("org.springframework.cache.annotation.EnableCaching", "quarkus-cache");
-        ANNOTATION_FQN_TO_DEPENDENCY.put("org.springframework.data.jpa.repository.config.EnableJpaRepositories", "quarkus-spring-data-jpa");
-        ANNOTATION_FQN_TO_DEPENDENCY.put("org.springframework.security.config.annotation.web.configuration.EnableWebSecurity", "quarkus-spring-security");
-        ANNOTATION_FQN_TO_DEPENDENCY.put("org.springframework.boot.context.properties.EnableConfigurationProperties", "quarkus-config-yaml");
+        ANNOTATION_MATCHER_TO_DEPENDENCY.put(new AnnotationMatcher("@org.springframework.scheduling.annotation.EnableScheduling"), "quarkus-scheduler");
+        ANNOTATION_MATCHER_TO_DEPENDENCY.put(new AnnotationMatcher("@org.springframework.cache.annotation.EnableCaching"), "quarkus-cache");
+        ANNOTATION_MATCHER_TO_DEPENDENCY.put(new AnnotationMatcher("@org.springframework.data.jpa.repository.config.EnableJpaRepositories"), "quarkus-spring-data-jpa");
+        ANNOTATION_MATCHER_TO_DEPENDENCY.put(new AnnotationMatcher("@org.springframework.security.config.annotation.web.configuration.EnableWebSecurity"), "quarkus-spring-security");
+        ANNOTATION_MATCHER_TO_DEPENDENCY.put(new AnnotationMatcher("@org.springframework.boot.context.properties.EnableConfigurationProperties"), "quarkus-config-yaml");
     }
 
     @Data
     public static class Accumulator {
-        Set<String> foundAnnotationFqns = new HashSet<>();
+        Map<String, String> foundAnnotationFqnToDependency = new HashMap<>();
     }
 
     @Override
@@ -73,26 +74,28 @@ public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotat
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 if (annotation.getType() != null) {
                     String annotationFqn = annotation.getType().toString();
-                    if (ANNOTATION_FQN_TO_DEPENDENCY.containsKey(annotationFqn)) {
-                        acc.foundAnnotationFqns.add(annotationFqn);
+                    for (Map.Entry<AnnotationMatcher, String> entry : ANNOTATION_MATCHER_TO_DEPENDENCY.entrySet()) {
+                        if (entry.getKey().matches(annotation)) {
+                            acc.foundAnnotationFqnToDependency.put(annotationFqn, entry.getValue());
+                            break;
+                        }
                     }
                 }
-                return super.visitAnnotation(annotation, ctx);
+                return annotation;
             }
         };
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
-        return Preconditions.check(!acc.foundAnnotationFqns.isEmpty(), new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(!acc.foundAnnotationFqnToDependency.isEmpty(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public Tree visit(Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Xml.Document) {
                     return new MavenIsoVisitor<ExecutionContext>() {
                         @Override
                         public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
-                            for (String foundAnnotationFqn : acc.foundAnnotationFqns) {
-                                String dependency = ANNOTATION_FQN_TO_DEPENDENCY.get(foundAnnotationFqn);
+                            for (String dependency : acc.foundAnnotationFqnToDependency.values()) {
                                 doAfterVisit(new AddDependency(
                                         "io.quarkus",
                                         dependency,
@@ -114,14 +117,11 @@ public class ConvertAnnotationToDependency extends ScanningRecipe<ConvertAnnotat
                 } else if (tree instanceof J.CompilationUnit) {
                     return new JavaIsoVisitor<ExecutionContext>() {
                         @Override
-                        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                            if (annotation.getType() != null) {
-                                String annotationFqn = annotation.getType().toString();
-                                if (acc.foundAnnotationFqns.contains(annotationFqn)) {
-                                    doAfterVisit(new RemoveAnnotation(annotationFqn).getVisitor());
-                                }
+                        public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+                            for (String annotationFqn : acc.foundAnnotationFqnToDependency.keySet()) {
+                                doAfterVisit(new RemoveAnnotation(annotationFqn).getVisitor());
                             }
-                            return super.visitAnnotation(annotation, ctx);
+                            return cu;
                         }
                     }.visitNonNull(tree, ctx);
                 }

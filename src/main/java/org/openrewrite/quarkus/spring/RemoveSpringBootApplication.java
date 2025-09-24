@@ -31,6 +31,8 @@ import org.openrewrite.java.tree.TypeUtils;
 @EqualsAndHashCode(callSuper = false)
 public class RemoveSpringBootApplication extends Recipe {
 
+    private static final MethodMatcher SPRING_APPLICATION_RUN = new MethodMatcher("org.springframework.boot.SpringApplication run(..)");
+
     @Override
     public String getDisplayName() {
         return "Remove Spring Boot application class";
@@ -49,14 +51,13 @@ public class RemoveSpringBootApplication extends Recipe {
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 if (annotation.getSimpleName().equals("SpringBootApplication")) {
                     doAfterVisit(new RemoveAnnotation("org.springframework.boot.autoconfigure.SpringBootApplication").getVisitor());
-                    maybeRemoveImport("org.springframework.boot.autoconfigure.SpringBootApplication");
                 }
                 return super.visitAnnotation(annotation, ctx);
             }
 
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                if (method.getSimpleName().equals("run") && method.getSelect() != null && method.getSelect().toString().contains("SpringApplication")) {
+                if (SPRING_APPLICATION_RUN.matches(method)) {
                     maybeRemoveImport("org.springframework.boot.SpringApplication");
                     return null;
                 }
@@ -65,22 +66,19 @@ public class RemoveSpringBootApplication extends Recipe {
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                if ("main".equals(method.getSimpleName()) &&
-                        method.getMethodType() != null &&
-                        method.getMethodType().getParameterTypes().size() == 1 &&
-                        method.getMethodType().getParameterTypes().get(0) instanceof JavaType.Array &&
-                        TypeUtils.isOfType(((JavaType.Array)method.getMethodType().getParameterTypes().get(0)).getElemType(), JavaType.buildType("java.lang.String")) &&
-                        method.hasModifier(J.Modifier.Type.Public) &&
-                        method.hasModifier(J.Modifier.Type.Static)) {
-                    if (method.getBody() != null && method.getBody().getStatements().size() == 1 && method.getBody().getStatements().get(0) instanceof J.MethodInvocation) {
-                        J.MethodInvocation methodCall = (J.MethodInvocation) method.getBody().getStatements().get(0);
-                        if (methodCall.getSimpleName().equals("run") && methodCall.getSelect() != null && methodCall.getSelect().toString().contains("SpringApplication")) {
-                            maybeRemoveImport("org.springframework.boot.SpringApplication");
-                            return null;
-                        }
+                J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
+                if ("main".equals(md.getSimpleName()) &&
+                        md.getMethodType() != null &&
+                        md.getMethodType().getParameterTypes().size() == 1 &&
+                        md.getMethodType().getParameterTypes().get(0) instanceof JavaType.Array &&
+                        TypeUtils.isOfType(((JavaType.Array)md.getMethodType().getParameterTypes().get(0)).getElemType(), JavaType.buildType("java.lang.String")) &&
+                        md.hasModifier(J.Modifier.Type.Public) &&
+                        md.hasModifier(J.Modifier.Type.Static)) {
+                    if (md.getBody() != null && md.getBody().getStatements().isEmpty()) {
+                        return null;
                     }
                 }
-                return super.visitMethodDeclaration(method, ctx);
+                return md;
             }
         };
     }
