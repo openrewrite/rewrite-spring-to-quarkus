@@ -20,54 +20,57 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class EnableSchedulingToQuarkusTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new ConvertAnnotationToDependency())
-            .parser(org.openrewrite.java.JavaParser.fromJavaVersion()
-                .dependsOn(
-                    """
-                    package org.springframework.scheduling.annotation;
-                    import java.lang.annotation.*;
-                    @Target(ElementType.TYPE)
-                    @Retention(RetentionPolicy.RUNTIME)
-                    @Documented
-                    public @interface EnableScheduling {
-                    }
-                    """
-                )
-            );
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.ConvertEnableAnnotationsToQuarkusExtensions")
+          .parser(org.openrewrite.java.JavaParser.fromJavaVersion()
+            .dependsOn(
+              """
+                package org.springframework.scheduling.annotation;
+                import java.lang.annotation.*;
+                @Target(ElementType.TYPE)
+                @Retention(RetentionPolicy.RUNTIME)
+                @Documented
+                public @interface EnableScheduling {
+                }
+                """
+            )
+          );
     }
 
     @DocumentExample
     @Test
     void convertEnableSchedulingToQuarkusScheduler() {
         rewriteRun(
-            //language=java
-            java(
+          mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
                 """
-                package com.example.demo;
-                
-                import org.springframework.scheduling.annotation.EnableScheduling;
-                
-                @EnableScheduling
-                public class SchedulingConfig {
-                }
-                """,
+                  package com.example.demo;
+
+                  import org.springframework.scheduling.annotation.EnableScheduling;
+
+                  @EnableScheduling
+                  public class SchedulingConfig {
+                  }
+                  """,
                 """
-                package com.example.demo;
-                
-                public class SchedulingConfig {
-                }
-                """
+                  package com.example.demo;
+
+                  public class SchedulingConfig {
+                  }
+                  """
+              )
             ),
             //language=xml
             pomXml(
-                """
+              """
                 <project>
                     <modelVersion>4.0.0</modelVersion>
                     <groupId>com.example</groupId>
@@ -86,7 +89,7 @@ class EnableSchedulingToQuarkusTest implements RewriteTest {
                     </dependencyManagement>
                 </project>
                 """,
-                """
+              """
                 <project>
                     <modelVersion>4.0.0</modelVersion>
                     <groupId>com.example</groupId>
@@ -112,25 +115,30 @@ class EnableSchedulingToQuarkusTest implements RewriteTest {
                 </project>
                 """
             )
+          )
         );
     }
 
     @Test
     void doNotChangeNonSchedulingClass() {
         rewriteRun(
-            //language=java
-            java(
+          mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
                 """
-                package com.example.demo;
-                
-                public class RegularClass {
-                    
-                    public void someMethod() {
-                        System.out.println("Hello");
-                    }
-                }
-                """
+                  package com.example.demo;
+
+                  public class RegularClass {
+
+                      public void someMethod() {
+                          System.out.println("Hello");
+                      }
+                  }
+                  """
+              )
             )
+          )
         );
     }
 }
