@@ -18,11 +18,13 @@ package org.openrewrite.quarkus.spring;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
 
@@ -54,7 +56,9 @@ public class SpringValueToCdiConfigProperty extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(
+                new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
+                new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
@@ -87,6 +91,6 @@ public class SpringValueToCdiConfigProperty extends Recipe {
                 }
                 return a;
             }
-        };
+        });
     }
 }
