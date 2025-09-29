@@ -35,23 +35,20 @@ import java.util.regex.Pattern;
 @EqualsAndHashCode(callSuper = false)
 public class SpringValueToCdiConfigProperty extends Recipe {
 
-    /*
-    The regex pattern [$][{]([^:}]+)(?::([^}]+))?[}] breaks down as:
-    - [$][{] - matches literal ${
-    - ([^:}]+) - captures property key (anything except : or })
-    - (?::([^}]+))? - optionally captures :defaultValue
-    - [}] - matches literal }
-     */
-    private static final Pattern VALUE_ANNOTATION_PROPERTY_VALUE = Pattern.compile("[$][{]([^:}]+)(?::([^}]+))?[}]");
+    private static final Pattern VALUE_ANNOTATION_PROPERTY_VALUE = Pattern.compile(
+            "[$][{]" + // Opening ${
+                    "([^:}]+)" + // captures property key (anything except : or })
+                    "(?::([^}]+))?" + // optionally captures :defaultValue
+                    "[}]"); // Closing }
 
     @Override
     public String getDisplayName() {
-        return "Replace Spring @Value with CDI @ConfigProperty";
+        return "Replace Spring `@Value` with CDI `@ConfigProperty`";
     }
 
     @Override
     public String getDescription() {
-        return "Transform Spring @Value annotations to MicroProfile @ConfigProperty with proper parameter mapping.";
+        return "Transform Spring `@Value` annotations to MicroProfile `@ConfigProperty` with proper parameter mapping.";
     }
 
     @Override
@@ -59,38 +56,41 @@ public class SpringValueToCdiConfigProperty extends Recipe {
         return Preconditions.check(
                 new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
                 new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                        J.Annotation a = super.visitAnnotation(annotation, ctx);
+                        if (!TypeUtils.isOfClassType(a.getType(), "org.springframework.beans.factory.annotation.Value") || a.getArguments() == null || a.getArguments().isEmpty()) {
+                            return a;
+                        }
+                        maybeRemoveImport("org.springframework.beans.factory.annotation.Value");
+                        maybeAddImport("org.eclipse.microprofile.config.inject.ConfigProperty");
 
-            @Override
-            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                J.Annotation a = super.visitAnnotation(annotation, ctx);
-                if (TypeUtils.isOfClassType(a.getType(), "org.springframework.beans.factory.annotation.Value") && a.getArguments() != null && !a.getArguments().isEmpty()) {
-                    maybeRemoveImport("org.springframework.beans.factory.annotation.Value");
-                    maybeAddImport("org.eclipse.microprofile.config.inject.ConfigProperty");
-
-                    if (a.getArguments().get(0) instanceof J.Literal) {
+                        if (!(a.getArguments().get(0) instanceof J.Literal)) {
+                            return a;
+                        }
                         J.Literal literal = (J.Literal) a.getArguments().get(0);
                         String value = (String) literal.getValue();
-                        if (value != null) {
-                            Matcher matcher = VALUE_ANNOTATION_PROPERTY_VALUE.matcher(value);
-                            if (matcher.matches()) {
-                                String propertyKey = matcher.group(1);
-                                String defaultValue = matcher.group(2);
-
-                                String configPropertyTemplate = defaultValue != null
-                                    ? String.format("@ConfigProperty(name = \"%s\", defaultValue = \"%s\")", propertyKey, defaultValue)
-                                    : String.format("@ConfigProperty(name = \"%s\")", propertyKey);
-
-                                return JavaTemplate.builder(configPropertyTemplate)
-                                        .imports("org.eclipse.microprofile.config.inject.ConfigProperty")
-                                        .javaParser(JavaParser.fromJavaVersion().classpath("microprofile-config-api"))
-                                        .build()
-                                        .apply(getCursor(), a.getCoordinates().replace());
-                            }
+                        if (value == null) {
+                            return a;
                         }
+
+                        Matcher matcher = VALUE_ANNOTATION_PROPERTY_VALUE.matcher(value);
+                        if (!matcher.matches()) {
+                            return a;
+                        }
+
+                        String propertyKey = matcher.group(1);
+                        String defaultValue = matcher.group(2);
+                        String configPropertyTemplate = defaultValue != null ?
+                                String.format("@ConfigProperty(name = \"%s\", defaultValue = \"%s\")", propertyKey, defaultValue) :
+                                String.format("@ConfigProperty(name = \"%s\")", propertyKey);
+
+                        return JavaTemplate.builder(configPropertyTemplate)
+                                .imports("org.eclipse.microprofile.config.inject.ConfigProperty")
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "microprofile-config-api"))
+                                .build()
+                                .apply(getCursor(), a.getCoordinates().replace());
                     }
-                }
-                return a;
-            }
-        });
+                });
     }
 }
