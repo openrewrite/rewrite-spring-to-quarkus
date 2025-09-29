@@ -41,13 +41,11 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
           //language=java
           java(
             """
-              package com.example.demo;
-
               import org.springframework.boot.SpringApplication;
               import org.springframework.boot.autoconfigure.SpringBootApplication;
 
               @SpringBootApplication
-              public class DemoApplication {
+              class DemoApplication {
 
                   public static void main(String[] args) {
                       SpringApplication.run(DemoApplication.class, args);
@@ -55,9 +53,7 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
               }
               """,
             """
-              package com.example.demo;
-
-              public class DemoApplication {
+              class DemoApplication {
               }
               """
           ),
@@ -92,15 +88,13 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
           //language=java
           java(
             """
-              package com.example.demo;
-
               import org.springframework.boot.SpringApplication;
               import org.springframework.boot.autoconfigure.SpringBootApplication;
               import org.springframework.scheduling.annotation.EnableScheduling;
 
               @SpringBootApplication
               @EnableScheduling
-              public class DemoApplication {
+              class DemoApplication {
 
                   public static void main(String[] args) {
                       SpringApplication.run(DemoApplication.class, args);
@@ -108,9 +102,7 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
               }
               """,
             """
-              package com.example.demo;
-
-              public class DemoApplication {
+              class DemoApplication {
               }
               """
           ),
@@ -151,15 +143,13 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
           //language=java
           java(
             """
-              package com.example.demo;
-
               import org.springframework.boot.SpringApplication;
               import org.springframework.boot.autoconfigure.SpringBootApplication;
               import org.springframework.cache.annotation.EnableCaching;
 
               @SpringBootApplication
               @EnableCaching
-              public class DemoApplication {
+              class DemoApplication {
 
                   public static void main(String[] args) {
                       SpringApplication.run(DemoApplication.class, args);
@@ -167,9 +157,7 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
               }
               """,
             """
-              package com.example.demo;
-
-              public class DemoApplication {
+              class DemoApplication {
               }
               """
           ),
@@ -210,15 +198,13 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
           //language=java
           java(
             """
-              package com.example.demo;
-
               import org.springframework.boot.SpringApplication;
               import org.springframework.boot.autoconfigure.SpringBootApplication;
               import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
               @SpringBootApplication
               @EnableJpaRepositories
-              public class DemoApplication {
+              class DemoApplication {
 
                   public static void main(String[] args) {
                       SpringApplication.run(DemoApplication.class, args);
@@ -226,9 +212,7 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
               }
               """,
             """
-              package com.example.demo;
-
-              public class DemoApplication {
+              class DemoApplication {
               }
               """
           ),
@@ -269,8 +253,6 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
           //language=java
           java(
             """
-              package com.example.demo;
-
               import org.springframework.boot.SpringApplication;
               import org.springframework.boot.autoconfigure.SpringBootApplication;
               import org.springframework.scheduling.annotation.EnableScheduling;
@@ -281,7 +263,7 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
               @EnableScheduling
               @EnableCaching
               @EnableJpaRepositories
-              public class DemoApplication {
+              class DemoApplication {
 
                   public static void main(String[] args) {
                       SpringApplication.run(DemoApplication.class, args);
@@ -289,9 +271,7 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
               }
               """,
             """
-              package com.example.demo;
-
-              public class DemoApplication {
+              class DemoApplication {
               }
               """
           ),
@@ -342,14 +322,12 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
               //language=java
               java(
                 """
-                  package com.example.demo;
-
-                  import org.springframework.stereotype.Service;
+                      import org.springframework.stereotype.Service;
                   import org.springframework.web.bind.annotation.RestController;
                   import org.springframework.web.bind.annotation.GetMapping;
 
                   @RestController
-                  public class DemoController {
+                  class DemoController {
 
                       @GetMapping("/hello")
                       public String hello() {
@@ -361,14 +339,12 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
               //language=java
               java(
                 """
-                  package com.example.demo;
-
-                  import org.springframework.stereotype.Service;
+                      import org.springframework.stereotype.Service;
                   import org.springframework.beans.factory.annotation.Autowired;
                   import org.springframework.data.repository.Repository;
 
                   @Service
-                  public class DemoService {
+                  class DemoService {
 
                       @Autowired
                       private Repository<?,?> repository;
@@ -441,9 +417,7 @@ class SpringBootApplicationMigrationTest implements RewriteTest {
           //language=java
           java(
             """
-              package com.example.demo;
-
-              public class RegularApplication {
+              class RegularApplication {
 
                   public static void main(String[] args) {
                       System.out.println("Hello World");

@@ -16,22 +16,6 @@
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.SpringBootApplicationMigration
-displayName: Migrate Spring Boot application class to Quarkus
-description: Removes @SpringBootApplication and SpringApplication.run(), converts @EnableXXX annotations to Quarkus extensions, and optionally removes the main application class.
-tags:
-  - spring
-  - quarkus
-  - migration
-  - application
-  - annotations
-recipeList:
-  - org.openrewrite.quarkus.spring.RemoveSpringBootApplication
-  - org.openrewrite.quarkus.spring.ConvertEnableAnnotationsToQuarkusExtensions
-  - org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
-
----
-type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
 displayName: Add Spring compatibility extensions for commonly used annotations
 description: Adds Quarkus Spring compatibility extensions when Spring annotations are detected in the codebase.
@@ -65,40 +49,52 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.ConvertEnableAnnotationsToQuarkusExtensions
-displayName: Convert @EnableScheduling annotations to Quarkus extensions
-description: Converts Spring @EnableScheduling annotations to their corresponding Quarkus extension dependencies.
+name: org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies
+displayName: Migrate `@EnableXyz` annotations to Quarkus extensions
+description: Removes Spring `@EnableXyz` annotations and adds the corresponding Quarkus extensions as dependencies.
+tags:
+  - spring
+  - quarkus
+  - migration
+  - application
+  - annotations
 recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-scheduler
-      version: x4
+      version: x
       onlyIfUsing: org.springframework.scheduling.annotation.EnableScheduling
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.scheduling.annotation.EnableScheduling
+
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-cache
       version: x
       onlyIfUsing: org.springframework.cache.annotation.EnableCaching
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.cache.annotation.EnableCaching
+
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-spring-data-jpa
       version: x
       onlyIfUsing: org.springframework.data.jpa.repository.config.EnableJpaRepositories
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.data.jpa.repository.config.EnableJpaRepositories
+
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-spring-security
       version: x
       onlyIfUsing: org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-config-yaml
       version: x
       onlyIfUsing: org.springframework.boot.context.properties.EnableConfigurationProperties
   - org.openrewrite.java.RemoveAnnotation:
-      annotationPattern: org.springframework.scheduling.annotation.EnableScheduling
-  - org.openrewrite.java.RemoveAnnotation:
-      annotationPattern: org.springframework.cache.annotation.EnableCaching
-  - org.openrewrite.java.RemoveAnnotation:
-      annotationPattern: org.springframework.data.jpa.repository.config.EnableJpaRepositories
-  - org.openrewrite.java.RemoveAnnotation:
-      annotationPattern: org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+      annotationPattern: org.springframework.boot.context.properties.EnableConfigurationProperties

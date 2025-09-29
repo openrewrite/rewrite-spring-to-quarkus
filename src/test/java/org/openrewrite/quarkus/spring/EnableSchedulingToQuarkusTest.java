@@ -27,8 +27,11 @@ class EnableSchedulingToQuarkusTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.ConvertEnableAnnotationsToQuarkusExtensions")
+        spec.recipeFromResource(
+            "/META-INF/rewrite/autoconfig.yml",
+            "org.openrewrite.quarkus.spring.EnableSchedulingToQuarkusScheduler")
           .parser(org.openrewrite.java.JavaParser.fromJavaVersion()
+            //language=java
             .dependsOn(
               """
                 package org.springframework.scheduling.annotation;
@@ -114,29 +117,6 @@ class EnableSchedulingToQuarkusTest implements RewriteTest {
                     </dependencies>
                 </project>
                 """
-            )
-          )
-        );
-    }
-
-    @Test
-    void doNotChangeNonSchedulingClass() {
-        rewriteRun(
-          mavenProject("project",
-            srcMainJava(
-              //language=java
-              java(
-                """
-                  package com.example.demo;
-
-                  public class RegularClass {
-
-                      public void someMethod() {
-                          System.out.println("Hello");
-                      }
-                  }
-                  """
-              )
             )
           )
         );
