@@ -28,7 +28,9 @@ class SpringBootDatabaseDriversToQuarkusTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringBootDatabaseDriversToQuarkus");
+        spec.recipeFromResource(
+          "/META-INF/rewrite/database-drivers.yml",
+          "org.openrewrite.quarkus.spring.SpringBootDatabaseDriversToQuarkus");
     }
 
     @DocumentExample
