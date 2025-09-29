@@ -30,6 +30,8 @@ preconditions:
       artifactIdPattern: spring-boot-starter-parent
       version: 3.x
 recipeList:
+  - org.openrewrite.quarkus.spring.SpringBootToQuarkusBOM
+  - org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
   - org.openrewrite.quarkus.spring.SpringBootToQuarkusBuild
 
 ---
