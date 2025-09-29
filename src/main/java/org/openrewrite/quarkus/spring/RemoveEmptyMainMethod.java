@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -42,8 +43,9 @@ public class RemoveEmptyMainMethod extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
+
             @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            public  J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 JavaType stringType = JavaType.buildType("java.lang.String");
                 J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
                 if ("main".equals(md.getSimpleName()) &&

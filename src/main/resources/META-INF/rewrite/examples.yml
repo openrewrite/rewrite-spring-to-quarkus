@@ -13,6 +13,158 @@
 # limitations under the License.
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
+examples:
+- description: ''
+  sources:
+  - before: |
+      import org.springframework.stereotype.Service;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.data.repository.Repository;
+
+      @Service
+      class DemoService {
+
+          @Autowired
+          private Repository<?,?> repository;
+
+          public void doSomething() {
+              // business logic
+          }
+      }
+    language: java
+  - before: |
+      import org.springframework.stereotype.Service;
+      import org.springframework.web.bind.annotation.RestController;
+      import org.springframework.web.bind.annotation.GetMapping;
+
+      @RestController
+      class DemoController {
+
+          @GetMapping("/hello")
+          public String hello() {
+              return "Hello World";
+          }
+      }
+    language: java
+  - before: project
+    language: mavenProject
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>io.quarkus.platform</groupId>
+                      <artifactId>quarkus-bom</artifactId>
+                      <version>3.26.4</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>io.quarkus.platform</groupId>
+                      <artifactId>quarkus-bom</artifactId>
+                      <version>3.26.4</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+          <dependencies>
+              <dependency>
+                  <groupId>io.quarkus</groupId>
+                  <artifactId>quarkus-spring-di</artifactId>
+              </dependency>
+              <dependency>
+                  <groupId>io.quarkus</groupId>
+                  <artifactId>quarkus-spring-web</artifactId>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies
+examples:
+- description: ''
+  sources:
+  - before: |
+      package com.example.demo;
+
+      import org.springframework.scheduling.annotation.EnableScheduling;
+
+      @EnableScheduling
+      public class SchedulingConfig {
+      }
+    after: |
+      package com.example.demo;
+
+      public class SchedulingConfig {
+      }
+    language: java
+  - before: project
+    language: mavenProject
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>io.quarkus.platform</groupId>
+                      <artifactId>quarkus-bom</artifactId>
+                      <version>3.26.4</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>io.quarkus.platform</groupId>
+                      <artifactId>quarkus-bom</artifactId>
+                      <version>3.26.4</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+          <dependencies>
+              <dependency>
+                  <groupId>io.quarkus</groupId>
+                  <artifactId>quarkus-scheduler</artifactId>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.MigrateBootStarters
 examples:
 - description: ''
@@ -194,6 +346,79 @@ examples:
                   </plugin>
               </plugins>
           </build>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.RemoveEmptyMainMethod
+examples:
+- description: ''
+  sources:
+  - before: |
+      public class Application {
+          public static void main(String[] args) {
+              // This method will be removed
+          }
+      }
+    after: |
+      public class Application {
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.RemoveSpringBootApplication
+examples:
+- description: ''
+  sources:
+  - before: |
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication
+      public class DemoApplication {
+          public static void main(String[] args) {
+              SpringApplication.run(DemoApplication.class, args);
+          }
+      }
+    after: |
+      public class DemoApplication {
+      }
+    language: java
+- description: ''
+  sources:
+  - before: |
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication
+      class DemoApplication {
+
+          public static void main(String[] args) {
+              SpringApplication.run(DemoApplication.class, args);
+          }
+      }
+    after: |
+      class DemoApplication {
+      }
+    language: java
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>io.quarkus.platform</groupId>
+                      <artifactId>quarkus-bom</artifactId>
+                      <version>3.26.4</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
       </project>
     path: pom.xml
     language: xml

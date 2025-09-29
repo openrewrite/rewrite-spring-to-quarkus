@@ -112,7 +112,6 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
         );
     }
 
-    @DocumentExample
     @Test
     void migrateBasicSpringBootApplication() {
         rewriteRun(
