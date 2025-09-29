@@ -30,12 +30,12 @@ preconditions:
       artifactIdPattern: spring-boot-starter-parent
       version: 3.x
 recipeList:
-  - org.openrewrite.quarkus.spring.SpringBootToQuarkusBOM
+  - org.openrewrite.quarkus.spring.SpringBootToQuarkusBuild
   - org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.SpringBootToQuarkusBOM
+name: org.openrewrite.quarkus.spring.SpringBootToQuarkusBuild
 displayName: Migrate Spring Boot BOM to Quarkus BOM
 description: Replace Spring Boot parent POM or dependency management with Quarkus BOM configuration for both Maven and Gradle projects.
 tags:
@@ -44,7 +44,6 @@ tags:
   - migration
   - bom
 recipeList:
-  - org.openrewrite.quarkus.spring.RemoveSpringBootParent
   - org.openrewrite.maven.AddManagedDependency:
       groupId: io.quarkus.platform
       artifactId: quarkus-bom
@@ -52,3 +51,5 @@ recipeList:
       type: pom
       scope: import
       addToRootPom: false
+  - org.openrewrite.quarkus.spring.MigrateBootStarters
+  - org.openrewrite.quarkus.spring.RemoveSpringBootParent
