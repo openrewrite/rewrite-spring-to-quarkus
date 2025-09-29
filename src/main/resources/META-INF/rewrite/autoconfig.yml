@@ -1,0 +1,100 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
+displayName: Add Spring compatibility extensions for commonly used annotations
+description: Adds Quarkus Spring compatibility extensions when Spring annotations are detected in the codebase.
+tags:
+  - spring
+  - quarkus
+  - compatibility
+recipeList:
+  # Add Spring DI extension for @Component, @Service, @Repository, @Autowired
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-di
+      version: x
+      onlyIfUsing: org.springframework.stereotype.*
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-di
+      version: x
+      onlyIfUsing: org.springframework.beans.factory.annotation.*
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-web
+      version: x
+      onlyIfUsing: org.springframework.web.bind.annotation.*
+  # Add Spring Boot extension for @ConfigurationProperties
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-boot-properties
+      version: x
+      onlyIfUsing: org.springframework.boot.context.properties.ConfigurationProperties
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies
+displayName: Migrate `@EnableXyz` annotations to Quarkus extensions
+description: Removes Spring `@EnableXyz` annotations and adds the corresponding Quarkus extensions as dependencies.
+tags:
+  - spring
+  - quarkus
+  - migration
+  - application
+  - annotations
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-scheduler
+      version: x
+      onlyIfUsing: org.springframework.scheduling.annotation.EnableScheduling
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.scheduling.annotation.EnableScheduling
+
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-cache
+      version: x
+      onlyIfUsing: org.springframework.cache.annotation.EnableCaching
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.cache.annotation.EnableCaching
+
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-data-jpa
+      version: x
+      onlyIfUsing: org.springframework.data.jpa.repository.config.EnableJpaRepositories
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.data.jpa.repository.config.EnableJpaRepositories
+
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-spring-security
+      version: x
+      onlyIfUsing: org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-config-yaml
+      version: x
+      onlyIfUsing: org.springframework.boot.context.properties.EnableConfigurationProperties
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.boot.context.properties.EnableConfigurationProperties
