@@ -36,24 +36,24 @@ public class RemoveEmptyMainMethod extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Removes public static void main(String[] args) methods that are empty after Spring Boot application cleanup.";
+        return "Removes `public static void main(String[] args)` methods that are empty after Spring Boot application cleanup.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                JavaType stringType = JavaType.buildType("java.lang.String");
                 J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
                 if ("main".equals(md.getSimpleName()) &&
+                        md.hasModifier(J.Modifier.Type.Public) &&
+                        md.hasModifier(J.Modifier.Type.Static) &&
+                        md.getBody() != null && (md.getBody().getStatements().isEmpty() || md.getBody().getStatements().get(0) instanceof J.Empty) &&
                         md.getMethodType() != null &&
                         md.getMethodType().getParameterTypes().size() == 1 &&
-                        md.getMethodType().getParameterTypes().get(0) instanceof JavaType.Array &&
-                        TypeUtils.isOfType(((JavaType.Array)md.getMethodType().getParameterTypes().get(0)).getElemType(), JavaType.buildType("java.lang.String")) &&
-                        md.hasModifier(J.Modifier.Type.Public) &&
-                        md.hasModifier(J.Modifier.Type.Static)) {
-                    if (md.getBody() != null && md.getBody().getStatements().isEmpty()) {
+                        md.getMethodType().getParameterTypes().get(0) instanceof JavaType.Array) {
+                    if (TypeUtils.isOfType(((JavaType.Array) md.getMethodType().getParameterTypes().get(0)).getElemType(), stringType)) {
                         return null;
                     }
                 }
