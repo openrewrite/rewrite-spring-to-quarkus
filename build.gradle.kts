@@ -36,7 +36,6 @@ dependencies {
     testRuntimeOnly("org.openrewrite:rewrite-java-21")
     testRuntimeOnly("org.springframework:spring-web:latest.release")
     testRuntimeOnly("org.springframework:spring-context:latest.release")
-    testRuntimeOnly("jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1")
     testRuntimeOnly("org.eclipse.microprofile.config:microprofile-config-api:3.0.3")
     testRuntimeOnly("javax.persistence:javax.persistence-api:2.2")
     testRuntimeOnly("javax.validation:validation-api:2.0.1.Final")
