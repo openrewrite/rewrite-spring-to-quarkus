@@ -33,255 +33,255 @@ class RemoveSpringBootParentTest implements RewriteTest {
     @Test
     void removeSpringBootParent() {
         rewriteRun(
-            //language=xml
-            pomXml(
-                """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
 
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>3.1.0</version>
-                        <relativePath/>
-                    </parent>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.1.0</version>
+                      <relativePath/>
+                  </parent>
 
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
 
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-web</artifactId>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """,
-                """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-web</artifactId>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """,
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
 
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
 
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-web</artifactId>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """
-            )
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-web</artifactId>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
+          )
         );
     }
 
     @Test
     void doNotRemoveSpringBoot2xParent() {
         rewriteRun(
-            //language=xml
-            pomXml(
-                """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
 
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>2.7.18</version>
-                        <relativePath/>
-                    </parent>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>2.7.18</version>
+                      <relativePath/>
+                  </parent>
 
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
 
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-web</artifactId>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """
-            )
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-web</artifactId>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
+          )
         );
     }
 
     @Test
     void doNotRemoveOtherSpringParent() {
         rewriteRun(
-            //language=xml
-            pomXml(
-                """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
 
-                    <parent>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-framework-bom</artifactId>
-                        <version>6.0.0</version>
-                        <type>pom</type>
-                        <scope>import</scope>
-                    </parent>
+                  <parent>
+                      <groupId>org.springframework</groupId>
+                      <artifactId>spring-framework-bom</artifactId>
+                      <version>6.0.0</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </parent>
 
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                </project>
-                """
-            )
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+              </project>
+              """
+          )
         );
     }
 
     @Test
     void removeSpringBootParentWithComplexProject() {
         rewriteRun(
-            //language=xml
-            pomXml(
-                """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
 
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>3.2.1</version>
-                        <relativePath/>
-                    </parent>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.2.1</version>
+                      <relativePath/>
+                  </parent>
 
-                    <groupId>com.example</groupId>
-                    <artifactId>complex-demo</artifactId>
-                    <version>1.0.0-SNAPSHOT</version>
-                    <packaging>jar</packaging>
-                    <name>Complex Demo Application</name>
-                    <description>Demo project with complex structure</description>
+                  <groupId>com.example</groupId>
+                  <artifactId>complex-demo</artifactId>
+                  <version>1.0.0-SNAPSHOT</version>
+                  <packaging>jar</packaging>
+                  <name>Complex Demo Application</name>
+                  <description>Demo project with complex structure</description>
 
-                    <properties>
-                        <java.version>21</java.version>
-                        <spring-cloud.version>2023.0.0</spring-cloud.version>
-                        <testcontainers.version>1.19.3</testcontainers.version>
-                    </properties>
+                  <properties>
+                      <java.version>21</java.version>
+                      <spring-cloud.version>2023.0.0</spring-cloud.version>
+                      <testcontainers.version>1.19.3</testcontainers.version>
+                  </properties>
 
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-web</artifactId>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-data-jpa</artifactId>
-                        </dependency>
-                    </dependencies>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-web</artifactId>
+                      </dependency>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-data-jpa</artifactId>
+                      </dependency>
+                  </dependencies>
 
-                    <dependencyManagement>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.springframework.cloud</groupId>
-                                <artifactId>spring-cloud-dependencies</artifactId>
-                                <version>${spring-cloud.version}</version>
-                                <type>pom</type>
-                                <scope>import</scope>
-                            </dependency>
-                        </dependencies>
-                    </dependencyManagement>
+                  <dependencyManagement>
+                      <dependencies>
+                          <dependency>
+                              <groupId>org.springframework.cloud</groupId>
+                              <artifactId>spring-cloud-dependencies</artifactId>
+                              <version>${spring-cloud.version}</version>
+                              <type>pom</type>
+                              <scope>import</scope>
+                          </dependency>
+                      </dependencies>
+                  </dependencyManagement>
 
-                    <build>
-                        <plugins>
-                            <plugin>
-                                <groupId>org.springframework.boot</groupId>
-                                <artifactId>spring-boot-maven-plugin</artifactId>
-                            </plugin>
-                        </plugins>
-                    </build>
-                </project>
-                """,
-                """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
+                  <build>
+                      <plugins>
+                          <plugin>
+                              <groupId>org.springframework.boot</groupId>
+                              <artifactId>spring-boot-maven-plugin</artifactId>
+                          </plugin>
+                      </plugins>
+                  </build>
+              </project>
+              """,
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
 
-                    <groupId>com.example</groupId>
-                    <artifactId>complex-demo</artifactId>
-                    <version>1.0.0-SNAPSHOT</version>
-                    <packaging>jar</packaging>
-                    <name>Complex Demo Application</name>
-                    <description>Demo project with complex structure</description>
+                  <groupId>com.example</groupId>
+                  <artifactId>complex-demo</artifactId>
+                  <version>1.0.0-SNAPSHOT</version>
+                  <packaging>jar</packaging>
+                  <name>Complex Demo Application</name>
+                  <description>Demo project with complex structure</description>
 
-                    <properties>
-                        <java.version>21</java.version>
-                        <spring-cloud.version>2023.0.0</spring-cloud.version>
-                        <testcontainers.version>1.19.3</testcontainers.version>
-                    </properties>
+                  <properties>
+                      <java.version>21</java.version>
+                      <spring-cloud.version>2023.0.0</spring-cloud.version>
+                      <testcontainers.version>1.19.3</testcontainers.version>
+                  </properties>
 
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-web</artifactId>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-data-jpa</artifactId>
-                        </dependency>
-                    </dependencies>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-web</artifactId>
+                      </dependency>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-data-jpa</artifactId>
+                      </dependency>
+                  </dependencies>
 
-                    <dependencyManagement>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.springframework.cloud</groupId>
-                                <artifactId>spring-cloud-dependencies</artifactId>
-                                <version>${spring-cloud.version}</version>
-                                <type>pom</type>
-                                <scope>import</scope>
-                            </dependency>
-                        </dependencies>
-                    </dependencyManagement>
+                  <dependencyManagement>
+                      <dependencies>
+                          <dependency>
+                              <groupId>org.springframework.cloud</groupId>
+                              <artifactId>spring-cloud-dependencies</artifactId>
+                              <version>${spring-cloud.version}</version>
+                              <type>pom</type>
+                              <scope>import</scope>
+                          </dependency>
+                      </dependencies>
+                  </dependencyManagement>
 
-                    <build>
-                        <plugins>
-                            <plugin>
-                                <groupId>org.springframework.boot</groupId>
-                                <artifactId>spring-boot-maven-plugin</artifactId>
-                            </plugin>
-                        </plugins>
-                    </build>
-                </project>
-                """
-            )
+                  <build>
+                      <plugins>
+                          <plugin>
+                              <groupId>org.springframework.boot</groupId>
+                              <artifactId>spring-boot-maven-plugin</artifactId>
+                          </plugin>
+                      </plugins>
+                  </build>
+              </project>
+              """
+          )
         );
     }
 
     @Test
     void removeSpringBootParentWithMinimalNamespace() {
         rewriteRun(
-            //language=xml
-            pomXml(
-                """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
 
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>3.1.5</version>
-                    </parent>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.1.5</version>
+                  </parent>
 
-                    <groupId>com.example</groupId>
-                    <artifactId>minimal-demo</artifactId>
-                    <version>1.0.0</version>
-                </project>
-                """,
-                """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>minimal-demo</artifactId>
+                  <version>1.0.0</version>
+              </project>
+              """,
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
 
-                    <groupId>com.example</groupId>
-                    <artifactId>minimal-demo</artifactId>
-                    <version>1.0.0</version>
-                </project>
-                """
-            )
+                  <groupId>com.example</groupId>
+                  <artifactId>minimal-demo</artifactId>
+                  <version>1.0.0</version>
+              </project>
+              """
+          )
         );
     }
 
