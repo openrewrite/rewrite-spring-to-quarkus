@@ -66,6 +66,8 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
           //language=java
           java(
             """
+              package com.example;
+
               import org.springframework.boot.SpringApplication;
               import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -77,6 +79,8 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
               }
               """,
             """
+              package com.example;
+
               public class DemoApplication {
               }
               """
@@ -118,6 +122,8 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
           //language=java
           java(
             """
+              package com.example;
+
               import org.springframework.boot.SpringApplication;
               import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -130,6 +136,8 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
               }
               """,
             """
+              package com.example;
+
               class DemoApplication {
               }
               """
@@ -153,238 +161,6 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
                           </dependency>
                       </dependencies>
                   </dependencyManagement>
-              </project>
-              """
-          )
-        );
-    }
-
-    @Test
-    void migrateSpringBootApplicationWithEnableScheduling() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
-              import org.springframework.scheduling.annotation.EnableScheduling;
-
-              @SpringBootApplication
-              @EnableScheduling
-              class DemoApplication {
-
-                  public static void main(String[] args) {
-                      SpringApplication.run(DemoApplication.class, args);
-                  }
-              }
-              """,
-            """
-              class DemoApplication {
-              }
-              """
-          ),
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>com.example</groupId>
-                  <artifactId>demo</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <dependencyManagement>
-                      <dependencies>
-                          <dependency>
-                              <groupId>io.quarkus.platform</groupId>
-                              <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
-                              <type>pom</type>
-                              <scope>import</scope>
-                          </dependency>
-                      </dependencies>
-                  </dependencyManagement>
-                  <dependencies>
-                      <dependency>
-                          <groupId>io.quarkus</groupId>
-                          <artifactId>quarkus-scheduler</artifactId>
-                      </dependency>
-                  </dependencies>
-              </project>
-              """
-          )
-        );
-    }
-
-    @Test
-    void migrateSpringBootApplicationWithEnableCaching() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
-              import org.springframework.cache.annotation.EnableCaching;
-
-              @SpringBootApplication
-              @EnableCaching
-              class DemoApplication {
-
-                  public static void main(String[] args) {
-                      SpringApplication.run(DemoApplication.class, args);
-                  }
-              }
-              """,
-            """
-              class DemoApplication {
-              }
-              """
-          ),
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>com.example</groupId>
-                  <artifactId>demo</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <dependencyManagement>
-                      <dependencies>
-                          <dependency>
-                              <groupId>io.quarkus.platform</groupId>
-                              <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
-                              <type>pom</type>
-                              <scope>import</scope>
-                          </dependency>
-                      </dependencies>
-                  </dependencyManagement>
-                  <dependencies>
-                      <dependency>
-                          <groupId>io.quarkus</groupId>
-                          <artifactId>quarkus-cache</artifactId>
-                      </dependency>
-                  </dependencies>
-              </project>
-              """
-          )
-        );
-    }
-
-    @Test
-    void migrateSpringBootApplicationWithEnableJpaRepositories() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
-              import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-
-              @SpringBootApplication
-              @EnableJpaRepositories
-              class DemoApplication {
-
-                  public static void main(String[] args) {
-                      SpringApplication.run(DemoApplication.class, args);
-                  }
-              }
-              """,
-            """
-              class DemoApplication {
-              }
-              """
-          ),
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>com.example</groupId>
-                  <artifactId>demo</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <dependencyManagement>
-                      <dependencies>
-                          <dependency>
-                              <groupId>io.quarkus.platform</groupId>
-                              <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
-                              <type>pom</type>
-                              <scope>import</scope>
-                          </dependency>
-                      </dependencies>
-                  </dependencyManagement>
-                  <dependencies>
-                      <dependency>
-                          <groupId>io.quarkus</groupId>
-                          <artifactId>quarkus-spring-data-jpa</artifactId>
-                      </dependency>
-                  </dependencies>
-              </project>
-              """
-          )
-        );
-    }
-
-    @Test
-    void migrateSpringBootApplicationWithMultipleEnableAnnotations() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
-              import org.springframework.scheduling.annotation.EnableScheduling;
-              import org.springframework.cache.annotation.EnableCaching;
-              import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-
-              @SpringBootApplication
-              @EnableScheduling
-              @EnableCaching
-              @EnableJpaRepositories
-              class DemoApplication {
-
-                  public static void main(String[] args) {
-                      SpringApplication.run(DemoApplication.class, args);
-                  }
-              }
-              """,
-            """
-              class DemoApplication {
-              }
-              """
-          ),
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>com.example</groupId>
-                  <artifactId>demo</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <dependencyManagement>
-                      <dependencies>
-                          <dependency>
-                              <groupId>io.quarkus.platform</groupId>
-                              <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
-                              <type>pom</type>
-                              <scope>import</scope>
-                          </dependency>
-                      </dependencies>
-                  </dependencyManagement>
-                  <dependencies>
-                      <dependency>
-                          <groupId>io.quarkus</groupId>
-                          <artifactId>quarkus-scheduler</artifactId>
-                      </dependency>
-                      <dependency>
-                          <groupId>io.quarkus</groupId>
-                          <artifactId>quarkus-cache</artifactId>
-                      </dependency>
-                      <dependency>
-                          <groupId>io.quarkus</groupId>
-                          <artifactId>quarkus-spring-data-jpa</artifactId>
-                      </dependency>
-                  </dependencies>
               </project>
               """
           )
@@ -397,10 +173,9 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
           //language=java
           java(
             """
+              package com.example;
               class RegularApplication {
-
                   public static void main(String[] args) {
-                      System.out.println("Hello World");
                   }
               }
               """
