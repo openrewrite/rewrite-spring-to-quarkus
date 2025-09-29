@@ -25,27 +25,13 @@ import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
-
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources(
             "org.openrewrite.quarkus.spring.RemoveSpringBootApplication",
             "org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies")
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-boot", "spring-boot-autoconfigure", "spring-beans", "spring-context", "spring-data-jpa", "spring-web")
-            //language=java
-            .dependsOn(
-              """
-                package org.springframework.scheduling.annotation;
-                import java.lang.annotation.*;
-                @Target(ElementType.TYPE)
-                @Retention(RetentionPolicy.RUNTIME)
-                @Documented
-                public @interface EnableScheduling {
-                }
-                """
-            )
-          );
+            .classpath("spring-boot", "spring-boot-autoconfigure", "spring-beans", "spring-context", "spring-data-jpa", "spring-web"));
     }
 
     @DocumentExample
