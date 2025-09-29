@@ -31,7 +31,7 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
             "org.openrewrite.quarkus.spring.RemoveSpringBootApplication",
             "org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies")
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-boot", "spring-boot-autoconfigure", "spring-beans", "spring-context", "spring-data-jpa", "spring-web"));
+            .classpath("spring-boot", "spring-boot-autoconfigure", "spring-context", "spring-data-jpa"));
     }
 
     @DocumentExample
