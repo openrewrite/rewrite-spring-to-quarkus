@@ -25,10 +25,7 @@ tags:
   - migration
   - bom
 preconditions:
-  - org.openrewrite.maven.search.ParentPomInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-parent
-      version: 3.x
+  - org.openrewrite.quarkus.spring.IsSpringBoot3Application
 recipeList:
   - org.openrewrite.maven.AddManagedDependency:
       groupId: io.quarkus.platform
@@ -47,6 +44,21 @@ recipeList:
   - org.openrewrite.quarkus.spring.ValueToCdiConfigProperty
   - org.openrewrite.quarkus.spring.WebToJaxRs
   - org.openrewrite.quarkus.spring.RemoveSpringBootParent
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.IsSpringBoot3Application
+displayName: Check for Spring Boot 3 application
+description: Checks for the presence of Spring Boot 3 dependencies.
+recipeList:
+  - org.openrewrite.maven.search.ParentPomInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-parent
+      version: 3.x
+  - org.openrewrite.maven.search.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: '*'
+      version: 3.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
