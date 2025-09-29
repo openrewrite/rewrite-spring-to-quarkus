@@ -266,7 +266,7 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.quarkus.spring.SpringWebToJaxRs
+recipeName: org.openrewrite.quarkus.spring.WebToJaxRs
 examples:
 - description: ''
   sources:

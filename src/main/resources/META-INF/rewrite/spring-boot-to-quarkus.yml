@@ -42,7 +42,7 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateBootStarters
   - org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI
   - org.openrewrite.quarkus.spring.ValueToCdiConfigProperty
-  - org.openrewrite.quarkus.spring.SpringWebToJaxRs
+  - org.openrewrite.quarkus.spring.WebToJaxRs
   - org.openrewrite.quarkus.spring.RemoveSpringBootParent
 
 ---
