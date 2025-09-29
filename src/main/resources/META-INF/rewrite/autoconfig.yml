@@ -25,23 +25,23 @@ tags:
   - compatibility
 recipeList:
   # Add Spring DI extension for @Component, @Service, @Repository, @Autowired
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-spring-di
       version: x
       onlyIfUsing: org.springframework.stereotype.*
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-spring-di
       version: x
       onlyIfUsing: org.springframework.beans.factory.annotation.*
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-spring-web
       version: x
       onlyIfUsing: org.springframework.web.bind.annotation.*
   # Add Spring Boot extension for @ConfigurationProperties
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-spring-boot-properties
       version: x
