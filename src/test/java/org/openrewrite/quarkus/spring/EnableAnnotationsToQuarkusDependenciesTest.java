@@ -23,7 +23,7 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class EnableSchedulingToQuarkusTest implements RewriteTest {
+class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -55,18 +55,14 @@ class EnableSchedulingToQuarkusTest implements RewriteTest {
               //language=java
               java(
                 """
-                  package com.example.demo;
-
                   import org.springframework.scheduling.annotation.EnableScheduling;
 
                   @EnableScheduling
-                  public class SchedulingConfig {
+                  class SchedulingConfig {
                   }
                   """,
                 """
-                  package com.example.demo;
-
-                  public class SchedulingConfig {
+                  class SchedulingConfig {
                   }
                   """
               )
