@@ -9,6 +9,9 @@ description = "A collection of OpenRewrite recipes to assist with Spring to Quar
 
 recipeDependencies {
     parserClasspath("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
+    parserClasspath("jakarta.inject:jakarta.inject-api:2.0.1")
+    parserClasspath("jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1")
+    parserClasspath("org.eclipse.microprofile.config:microprofile-config-api:3.0.3")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -37,5 +40,7 @@ dependencies {
     testRuntimeOnly("org.springframework:spring-context:6.2.11")
     testRuntimeOnly("org.springframework:spring-beans:6.2.11")
     testRuntimeOnly("org.springframework:spring-web:6.2.11")
+    testRuntimeOnly("javax.persistence:javax.persistence-api:2.2")
+    testRuntimeOnly("javax.validation:validation-api:2.0.1.Final")
     testRuntimeOnly(gradleApi())
 }
