@@ -19,9 +19,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.search.DeclaresMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
@@ -42,25 +44,25 @@ public class RemoveEmptyMainMethod extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-
-            @Override
-            public  J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                JavaType stringType = JavaType.buildType("java.lang.String");
-                J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                if ("main".equals(md.getSimpleName()) &&
-                        md.hasModifier(J.Modifier.Type.Public) &&
-                        md.hasModifier(J.Modifier.Type.Static) &&
-                        md.getBody() != null && (md.getBody().getStatements().isEmpty() || md.getBody().getStatements().get(0) instanceof J.Empty) &&
-                        md.getMethodType() != null &&
-                        md.getMethodType().getParameterTypes().size() == 1 &&
-                        md.getMethodType().getParameterTypes().get(0) instanceof JavaType.Array) {
-                    if (TypeUtils.isOfType(((JavaType.Array) md.getMethodType().getParameterTypes().get(0)).getElemType(), stringType)) {
-                        return null;
+        return Preconditions.check(
+                new DeclaresMethod<>("*..* main(String[])"),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                        JavaType stringType = JavaType.buildType("java.lang.String");
+                        J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
+                        if ("main".equals(md.getSimpleName()) &&
+                                md.hasModifier(J.Modifier.Type.Public) &&
+                                md.hasModifier(J.Modifier.Type.Static) &&
+                                md.getBody() != null && (md.getBody().getStatements().isEmpty() || md.getBody().getStatements().get(0) instanceof J.Empty) &&
+                                md.getMethodType() != null &&
+                                md.getMethodType().getParameterTypes().size() == 1 &&
+                                md.getMethodType().getParameterTypes().get(0) instanceof JavaType.Array && TypeUtils.isOfType(((JavaType.Array) md.getMethodType().getParameterTypes().get(0)).getElemType(), stringType)) {
+                            return null;
+                        }
+                        return md;
                     }
                 }
-                return md;
-            }
-        };
+        );
     }
 }

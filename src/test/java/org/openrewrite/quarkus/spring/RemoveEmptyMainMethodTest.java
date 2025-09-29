@@ -37,6 +37,7 @@ class RemoveEmptyMainMethodTest implements RewriteTest {
         rewriteRun(
           java(
             """
+              package com.example;
               public class Application {
                   public static void main(String[] args) {
                       // This method will be removed
@@ -44,6 +45,7 @@ class RemoveEmptyMainMethodTest implements RewriteTest {
               }
               """,
             """
+              package com.example;
               public class Application {
               }
               """
@@ -63,11 +65,13 @@ class RemoveEmptyMainMethodTest implements RewriteTest {
         rewriteRun(
           java(
             """
+              package com.example;
               public class Application {
                   %s
               }
               """.formatted(methodSignature),
             """
+              package com.example;
               public class Application {
               }
               """
@@ -88,6 +92,7 @@ class RemoveEmptyMainMethodTest implements RewriteTest {
         rewriteRun(
           java(
             """
+              package com.example;
               public class Application {
                   %s
               }
