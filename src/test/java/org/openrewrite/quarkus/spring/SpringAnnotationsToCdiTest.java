@@ -26,7 +26,7 @@ import static org.openrewrite.java.Assertions.java;
 class SpringAnnotationsToCdiTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.MigrateStereotypeAnnotationsToCDI")
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI")
           .parser(JavaParser.fromJavaVersion()
             .classpath("spring-context", "spring-beans", "javax.persistence-api", "validation-api"));
     }

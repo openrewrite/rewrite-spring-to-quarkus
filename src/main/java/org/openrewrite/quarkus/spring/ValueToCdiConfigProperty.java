@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
-public class SpringValueToCdiConfigProperty extends Recipe {
+public class ValueToCdiConfigProperty extends Recipe {
 
     private static final Pattern VALUE_ANNOTATION_PROPERTY_VALUE = Pattern.compile(
             "[$][{]" + // Opening ${

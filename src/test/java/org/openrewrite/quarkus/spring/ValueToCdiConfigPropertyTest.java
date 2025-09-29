@@ -23,11 +23,11 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class SpringValueToCdiConfigPropertyTest implements RewriteTest {
+class ValueToCdiConfigPropertyTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new SpringValueToCdiConfigProperty())
+        spec.recipe(new ValueToCdiConfigProperty())
           .parser(JavaParser.fromJavaVersion().classpath("spring-beans"));
     }
 
