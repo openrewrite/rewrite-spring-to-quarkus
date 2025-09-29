@@ -25,11 +25,11 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 
 @SuppressWarnings({"ConstantConditions", "unused"})
-class SpringWebToJaxRsTest implements RewriteTest {
+class WebToJaxRsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new SpringWebToJaxRs())
+        spec.recipe(new WebToJaxRs())
           .parser(JavaParser.fromJavaVersion().classpath("spring-web", "spring-context"));
     }
 

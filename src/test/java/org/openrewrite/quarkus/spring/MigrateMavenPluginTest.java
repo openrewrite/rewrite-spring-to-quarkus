@@ -130,7 +130,7 @@ class MigrateMavenPluginTest implements RewriteTest {
                   </build>
               </project>
               """,
-                """
+            """
               <project>
                   <groupId>com.example</groupId>
                   <artifactId>demo</artifactId>

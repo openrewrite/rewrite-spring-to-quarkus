@@ -23,7 +23,7 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
-public class SpringWebToJaxRs extends Recipe {
+public class WebToJaxRs extends Recipe {
     @Override
     public String getDisplayName() {
         return "Convert Spring Web annotations to JAX-RS";
@@ -52,11 +52,11 @@ public class SpringWebToJaxRs extends Recipe {
                         new UsesType<>("org.springframework.web.bind.annotation.ResponseBody", false)
                 ),
                 // XXX See if we can avoid repeatUntilStable by making the visitor idempotent in a single pass
-                Repeat.repeatUntilStable(new SpringWebToJaxRsVisitor())
+                Repeat.repeatUntilStable(new WebToJaxRsVisitor())
         );
     }
 
-    private static class SpringWebToJaxRsVisitor extends JavaIsoVisitor<ExecutionContext> {
+    private static class WebToJaxRsVisitor extends JavaIsoVisitor<ExecutionContext> {
         private static final AnnotationMatcher REST_CONTROLLER_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RestController");
         private static final AnnotationMatcher CONTROLLER_MATCHER = new AnnotationMatcher("@org.springframework.stereotype.Controller");
         private static final AnnotationMatcher RESPONSE_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.ResponseBody");

@@ -40,6 +40,9 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateMavenPlugin
   - org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
   - org.openrewrite.quarkus.spring.MigrateBootStarters
+  - org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI
+  - org.openrewrite.quarkus.spring.ValueToCdiConfigProperty
+  - org.openrewrite.quarkus.spring.WebToJaxRs
   - org.openrewrite.quarkus.spring.RemoveSpringBootParent
 
 ---
@@ -58,3 +61,26 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-maven-plugin
   - org.openrewrite.quarkus.spring.AddQuarkusMavenPlugin
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI
+displayName: Migrate simple Spring annotations to CDI
+description: Replace Spring stereotype and injection annotations with CDI equivalents using declarative recipes.
+recipeList:
+  - org.openrewrite.java.ReplaceAnnotation:
+      annotationPatternToReplace: '@org.springframework.stereotype.Service'
+      annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
+      classpathResourceName: 'jakarta.enterprise.cdi-api'
+  - org.openrewrite.java.ReplaceAnnotation:
+      annotationPatternToReplace: '@org.springframework.stereotype.Component'
+      annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
+      classpathResourceName: 'jakarta.enterprise.cdi-api'
+  - org.openrewrite.java.ReplaceAnnotation:
+      annotationPatternToReplace: '@org.springframework.stereotype.Repository'
+      annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
+      classpathResourceName: 'jakarta.enterprise.cdi-api'
+  - org.openrewrite.java.ReplaceAnnotation:
+      annotationPatternToReplace: '@org.springframework.beans.factory.annotation.Autowired'
+      annotationTemplateToInsert: '@jakarta.inject.Inject'
+      classpathResourceName: 'jakarta.inject-api'
