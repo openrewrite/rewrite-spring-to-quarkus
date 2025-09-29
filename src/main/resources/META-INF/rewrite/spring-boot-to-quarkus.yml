@@ -55,7 +55,7 @@ recipeList:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-parent
       version: 3.x
-  - org.openrewrite.maven.search.FindDependency:
+  - org.openrewrite.java.dependencies.search.FindDependency:
       groupId: org.springframework.boot
       artifactId: '*'
       version: 3.x

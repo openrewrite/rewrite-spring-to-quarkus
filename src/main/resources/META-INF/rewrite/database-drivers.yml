@@ -135,7 +135,7 @@ tags:
   - database
   - h2
 preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
+  - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: com.h2database
       artifactIdPattern: h2
       onlyDirect: true
@@ -163,17 +163,17 @@ tags:
   - h2
   - test
 preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
+  - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: com.h2database
       artifactIdPattern: h2
       onlyDirect: true
       scope: test
 recipeList:
-  - org.openrewrite.maven.RemoveDependency:
+  - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: com.h2database
       artifactId: h2
       scope: test
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-h2
       version: x
@@ -190,7 +190,7 @@ tags:
   - database
   - derby
 preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
+  - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.apache.derby
       artifactIdPattern: derby*
       onlyDirect: true
@@ -223,21 +223,21 @@ tags:
   - derby
   - test
 preconditions:
-  - org.openrewrite.maven.search.DependencyInsight:
+  - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.apache.derby
       artifactIdPattern: derby|derbyclient
       onlyDirect: true
       scope: test
 recipeList:
-  - org.openrewrite.maven.RemoveDependency:
+  - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.apache.derby
       artifactId: derby
       scope: test
-  - org.openrewrite.maven.RemoveDependency:
+  - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.apache.derby
       artifactId: derbyclient
       scope: test
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-derby
       version: x
