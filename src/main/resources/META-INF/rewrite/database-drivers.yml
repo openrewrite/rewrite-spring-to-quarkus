@@ -16,7 +16,7 @@
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.SpringBootDatabaseDriversToQuarkus
+name: org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
 displayName: Migrate database drivers to Quarkus JDBC extensions
 description: Replaces Spring Boot database driver dependencies with their Quarkus JDBC extension equivalents.
 tags:
@@ -30,92 +30,92 @@ recipeList:
   - org.openrewrite.quarkus.spring.DerbyDriverToQuarkus
   - org.openrewrite.quarkus.spring.DerbyTestDriverToQuarkus
   - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.postgresql
+      oldArtifactId: postgresql
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-postgresql
       newVersion: x
-      oldGroupId: org.postgresql
-      oldArtifactId: postgresql
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-postgresql
   - org.openrewrite.java.dependencies.ChangeDependency:
-      newGroupId: io.quarkus
-      newArtifactId: quarkus-jdbc-mysql
-      newVersion: x
       oldGroupId: com.mysql
       oldArtifactId: mysql-connector-j
-  - org.openrewrite.maven.ChangeDependencyScope:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-mysql
-  - org.openrewrite.java.dependencies.ChangeDependency:
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-mysql
       newVersion: x
-      oldGroupId: mysql
-      oldArtifactId: mysql-connector-java
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-mysql
   - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: mysql
+      oldArtifactId: mysql-connector-java
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-mysql
+      newVersion: x
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-mysql
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.mariadb.jdbc
+      oldArtifactId: mariadb-java-client
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-mariadb
       newVersion: x
-      oldGroupId: org.mariadb.jdbc
-      oldArtifactId: mariadb-java-client
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-mariadb
   - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.oracle.database.jdbc
+      oldArtifactId: ojdbc8
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-oracle
       newVersion: x
-      oldGroupId: com.oracle.database.jdbc
-      oldArtifactId: ojdbc8
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-oracle
   - org.openrewrite.java.dependencies.ChangeDependency:
-      newGroupId: io.quarkus
-      newArtifactId: quarkus-jdbc-oracle
-      newVersion: x
       oldGroupId: com.oracle.database.jdbc
       oldArtifactId: ojdbc10
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-oracle
+      newVersion: x
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-oracle
   - org.openrewrite.java.dependencies.ChangeDependency:
-      newGroupId: io.quarkus
-      newArtifactId: quarkus-jdbc-oracle
-      newVersion: x
       oldGroupId: com.oracle.database.jdbc
       oldArtifactId: ojdbc11
-  - org.openrewrite.maven.ChangeDependencyScope:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-oracle
-  - org.openrewrite.java.dependencies.ChangeDependency:
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-oracle
       newVersion: x
-      oldGroupId: com.oracle.ojdbc
-      oldArtifactId: ojdbc8
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-oracle
   - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.oracle.ojdbc
+      oldArtifactId: ojdbc8
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-jdbc-oracle
+      newVersion: x
+  - org.openrewrite.maven.ChangeDependencyScope:
+      groupId: io.quarkus
+      artifactId: quarkus-jdbc-oracle
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.microsoft.sqlserver
+      oldArtifactId: mssql-jdbc
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-mssql
       newVersion: x
-      oldGroupId: com.microsoft.sqlserver
-      oldArtifactId: mssql-jdbc
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-mssql
   - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.ibm.db2
+      oldArtifactId: jcc
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-db2
       newVersion: x
-      oldGroupId: com.ibm.db2
-      oldArtifactId: jcc
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-db2
@@ -128,7 +128,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.H2DriverToQuarkus
 displayName: Replace H2 driver with Quarkus JDBC H2
-description: Migrates com.h2database:h2 to io.quarkus:quarkus-jdbc-h2 (excludes test scope)
+description: Migrates `com.h2database:h2` to `io.quarkus:quarkus-jdbc-h2` (excludes test scope)
 tags:
   - spring
   - quarkus
@@ -155,7 +155,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.H2TestDriverToQuarkus
 displayName: Replace H2 test driver with Quarkus JDBC H2 (test scope)
-description: Migrates com.h2database:h2 with test scope to io.quarkus:quarkus-jdbc-h2 with test scope
+description: Migrates `com.h2database:h2` with test scope to `io.quarkus:quarkus-jdbc-h2` with test scope
 tags:
   - spring
   - quarkus
@@ -183,7 +183,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.DerbyDriverToQuarkus
 displayName: Replace Derby driver with Quarkus JDBC Derby
-description: Migrates org.apache.derby:derby or derbyclient to io.quarkus:quarkus-jdbc-derby (excludes test scope)
+description: Migrates `org.apache.derby:derby` or `derbyclient` to `io.quarkus:quarkus-jdbc-derby` (excludes test scope)
 tags:
   - spring
   - quarkus
@@ -215,7 +215,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.DerbyTestDriverToQuarkus
 displayName: Replace Derby test driver with Quarkus JDBC Derby (test scope)
-description: Migrates org.apache.derby:derby with test scope to io.quarkus:quarkus-jdbc-derby with test scope
+description: Migrates `org.apache.derby:derby` with test scope to `io.quarkus:quarkus-jdbc-derby` with test scope
 tags:
   - spring
   - quarkus

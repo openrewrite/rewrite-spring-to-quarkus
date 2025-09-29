@@ -24,13 +24,13 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class SpringBootDatabaseDriversToQuarkusTest implements RewriteTest {
+class MigrateDatabaseDriversTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResource(
           "/META-INF/rewrite/database-drivers.yml",
-          "org.openrewrite.quarkus.spring.SpringBootDatabaseDriversToQuarkus");
+          "org.openrewrite.quarkus.spring.MigrateDatabaseDrivers");
     }
 
     @DocumentExample
@@ -95,16 +95,16 @@ class SpringBootDatabaseDriversToQuarkusTest implements RewriteTest {
         );
     }
 
-    @CsvSource({
-      "com.h2database,h2,2.2.224,quarkus-jdbc-h2",
-      "com.mysql,mysql-connector-j,8.3.0,quarkus-jdbc-mysql",
-      "mysql,mysql-connector-java,8.0.33,quarkus-jdbc-mysql",
-      "org.mariadb.jdbc,mariadb-java-client,3.5.6,quarkus-jdbc-mariadb",
-      "com.oracle.database.jdbc,ojdbc11,23.6.0.24.10,quarkus-jdbc-oracle",
-      "com.microsoft.sqlserver,mssql-jdbc,13.2.0.jre11,quarkus-jdbc-mssql",
-      "org.apache.derby,derby,10.16.1.1,quarkus-jdbc-derby",
-      "com.ibm.db2,jcc,12.1.0.0,quarkus-jdbc-db2"
-    })
+    @CsvSource(textBlock = """
+      com.h2database,h2,2.2.224,quarkus-jdbc-h2
+      com.mysql,mysql-connector-j,8.3.0,quarkus-jdbc-mysql
+      mysql,mysql-connector-java,8.0.33,quarkus-jdbc-mysql
+      org.mariadb.jdbc,mariadb-java-client,3.5.6,quarkus-jdbc-mariadb
+      com.oracle.database.jdbc,ojdbc11,23.6.0.24.10,quarkus-jdbc-oracle
+      com.microsoft.sqlserver,mssql-jdbc,13.2.0.jre11,quarkus-jdbc-mssql
+      org.apache.derby,derby,10.16.1.1,quarkus-jdbc-derby
+      com.ibm.db2,jcc,12.1.0.0,quarkus-jdbc-db2
+      """)
     @ParameterizedTest
     void migrateDatabaseDriver(String groupId, String artifactId, String version, String quarkusArtifactId) {
         rewriteRun(
