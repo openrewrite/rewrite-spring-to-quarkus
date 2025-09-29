@@ -1,0 +1,746 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateBootStarters
+displayName: Replace Spring Boot starter dependencies with Quarkus equivalents
+description: Migrates Spring Boot starter dependencies to their Quarkus equivalents, removing version tags as Quarkus manages versions through its BOM.
+tags:
+  - spring
+  - quarkus
+  - migration
+  - dependencies
+recipeList:
+  # Web dependencies - choose reactive or classic based on reactor presence
+  - org.openrewrite.quarkus.spring.SpringBootWebToQuarkusReactive
+  - org.openrewrite.quarkus.spring.SpringBootWebToQuarkusClassic
+  # JPA/Database dependencies
+  - org.openrewrite.quarkus.spring.SpringBootDataJpaToQuarkus
+  # Security dependencies
+  - org.openrewrite.quarkus.spring.SpringBootSecurityToQuarkus
+  # Validation dependencies
+  - org.openrewrite.quarkus.spring.SpringBootValidationToQuarkus
+  # Test dependencies
+  - org.openrewrite.quarkus.spring.SpringBootTestToQuarkus
+  # Other common starters
+  - org.openrewrite.quarkus.spring.SpringBootActuatorToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootWebSocketToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootCacheToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootDataMongoToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootDataRedisToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootAmqpToQuarkusReactive
+  - org.openrewrite.quarkus.spring.SpringBootAmqpToQuarkusClassic
+  - org.openrewrite.quarkus.spring.SpringKafkaToQuarkusReactive
+  - org.openrewrite.quarkus.spring.SpringKafkaToQuarkusClassic
+  - org.openrewrite.quarkus.spring.SpringBootOAuth2ResourceServerToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootOAuth2ClientToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootJdbcToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootMailToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootBatchToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootThymeleafToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootQuartzToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootIntegrationToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootActiveMQToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootArtemisToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootElasticsearchToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootDataRestToQuarkus
+  - org.openrewrite.quarkus.spring.SpringBootWebFluxToQuarkusReactive
+  # Remove redundant versions that are managed by BOM
+  - org.openrewrite.maven.RemoveRedundantDependencyVersions:
+      onlyIfManagedVersionIs: ANY
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootWebToQuarkusReactive
+displayName: Replace Spring Boot Web with Quarkus REST
+description: Migrates `spring-boot-starter-web` to `quarkus-rest-jackson` when reactor dependencies are present.
+tags:
+  - spring
+  - quarkus
+  - web
+  - reactive
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-web
+      onlyDirect: true
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: io.projectreactor
+      artifactIdPattern: "*"
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-web
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-rest-jackson
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootWebToQuarkusClassic
+displayName: Replace Spring Boot Web with Quarkus RESTEasy Classic
+description: Migrates `spring-boot-starter-web` to `quarkus-resteasy-jackson` when no reactor dependencies are present.
+tags:
+  - spring
+  - quarkus
+  - web
+  - classic
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-web
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-web
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-resteasy-jackson
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootDataJpaToQuarkus
+displayName: Replace Spring Boot Data JPA with Quarkus Hibernate ORM Panache
+description: Migrates `spring-boot-starter-data-jpa` to `quarkus-hibernate-orm-panache`.
+tags:
+  - spring
+  - quarkus
+  - jpa
+  - data
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-data-jpa
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-jpa
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-hibernate-orm-panache
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootSecurityToQuarkus
+displayName: Replace Spring Boot Security with Quarkus Security
+description: Migrates `spring-boot-starter-security` to `quarkus-security`.
+tags:
+  - spring
+  - quarkus
+  - security
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-security
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-security
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-security
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootValidationToQuarkus
+displayName: Replace Spring Boot Validation with Quarkus Hibernate Validator
+description: Migrates `spring-boot-starter-validation` to `quarkus-hibernate-validator`.
+tags:
+  - spring
+  - quarkus
+  - validation
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-validation
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-validation
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-hibernate-validator
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootTestToQuarkus
+displayName: Replace Spring Boot Test with Quarkus JUnit 5
+description: Migrates `spring-boot-starter-test` to `quarkus-junit5`.
+tags:
+  - spring
+  - quarkus
+  - test
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-test
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-test
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-junit5
+      version: x
+      scope: test
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootActuatorToQuarkus
+displayName: Replace Spring Boot Actuator with Quarkus SmallRye Health
+description: Migrates `spring-boot-starter-actuator` to `quarkus-smallrye-health`.
+tags:
+  - spring
+  - quarkus
+  - actuator
+  - health
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-actuator
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-actuator
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-smallrye-health
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootWebSocketToQuarkus
+displayName: Replace Spring Boot WebSocket with Quarkus WebSockets
+description: Migrates `spring-boot-starter-websocket` to `quarkus-websockets`.
+tags:
+  - spring
+  - quarkus
+  - websocket
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-websocket
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-websocket
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-websockets
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootCacheToQuarkus
+displayName: Replace Spring Boot Cache with Quarkus Cache
+description: Migrates `spring-boot-starter-cache` to `quarkus-cache`.
+tags:
+  - spring
+  - quarkus
+  - cache
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-cache
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-cache
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-cache
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootWebFluxToQuarkusReactive
+displayName: Replace Spring Boot WebFlux with Quarkus REST Client
+description: Migrates `spring-boot-starter-webflux` to `quarkus-rest-client-jackson` when reactor dependencies are present.
+tags:
+  - spring
+  - quarkus
+  - webflux
+  - reactive
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-webflux
+      onlyDirect: true
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: io.projectreactor
+      artifactIdPattern: "*"
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webflux
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-rest-client-jackson
+      version: x
+
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootDataMongoToQuarkus
+displayName: Replace Spring Boot Data MongoDB with Quarkus MongoDB Panache
+description: Migrates `spring-boot-starter-data-mongodb` to `quarkus-mongodb-panache`.
+tags:
+  - spring
+  - quarkus
+  - mongodb
+  - data
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-data-mongodb
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-mongodb-panache
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootDataRedisToQuarkus
+displayName: Replace Spring Boot Data Redis with Quarkus Redis Client
+description: Migrates `spring-boot-starter-data-redis` to `quarkus-redis-client`.
+tags:
+  - spring
+  - quarkus
+  - redis
+  - data
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-data-redis
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-redis
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-redis-client
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootAmqpToQuarkusReactive
+displayName: Replace Spring Boot AMQP with Quarkus Messaging AMQP
+description: Migrates `spring-boot-starter-amqp` to `quarkus-messaging-amqp` when reactor dependencies are present.
+tags:
+  - spring
+  - quarkus
+  - amqp
+  - messaging
+  - reactive
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-amqp
+      onlyDirect: true
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: io.projectreactor
+      artifactIdPattern: "*"
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-amqp
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-messaging-amqp
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootAmqpToQuarkusClassic
+displayName: Replace Spring Boot AMQP with Quarkus Messaging RabbitMQ
+description: Migrates `spring-boot-starter-amqp` to `quarkus-messaging-rabbitmq` when no reactor dependencies are present.
+tags:
+  - spring
+  - quarkus
+  - amqp
+  - rabbitmq
+  - classic
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-amqp
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-amqp
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-messaging-rabbitmq
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringKafkaToQuarkusReactive
+displayName: Replace Spring Kafka with Quarkus Messaging Kafka
+description: Migrates `spring-kafka` to `quarkus-messaging-kafka` when reactor dependencies are present.
+tags:
+  - spring
+  - quarkus
+  - kafka
+  - messaging
+  - reactive
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.kafka
+      artifactIdPattern: spring-kafka
+      onlyDirect: true
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: io.projectreactor
+      artifactIdPattern: "*"
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.kafka
+      artifactId: spring-kafka
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-messaging-kafka
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringKafkaToQuarkusClassic
+displayName: Replace Spring Kafka with Quarkus Kafka Client
+description: Migrates `spring-kafka` to `quarkus-kafka-client` when no reactor dependencies are present.
+tags:
+  - spring
+  - quarkus
+  - kafka
+  - classic
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.kafka
+      artifactIdPattern: spring-kafka
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.kafka
+      artifactId: spring-kafka
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-kafka-client
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootOAuth2ResourceServerToQuarkus
+displayName: Replace Spring Boot OAuth2 Resource Server with Quarkus OIDC
+description: Migrates `spring-boot-starter-oauth2-resource-server` to `quarkus-oidc`.
+tags:
+  - spring
+  - quarkus
+  - oauth2
+  - security
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-oauth2-resource-server
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-oauth2-resource-server
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-oidc
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootOAuth2ClientToQuarkus
+displayName: Replace Spring Boot OAuth2 Client with Quarkus OIDC Client
+description: Migrates spring-boot-starter-oauth2-client` to `quarkus-oidc-client`.
+tags:
+  - spring
+  - quarkus
+  - oauth2
+  - security
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-oauth2-client
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-oauth2-client
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-oidc-client
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootJdbcToQuarkus
+displayName: Replace Spring Boot JDBC with Quarkus Agroal
+description: Migrates `spring-boot-starter-jdbc` to `quarkus-agroal`.
+tags:
+  - spring
+  - quarkus
+  - jdbc
+  - datasource
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-jdbc
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-jdbc
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-agroal
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootMailToQuarkus
+displayName: Replace Spring Boot Mail with Quarkus Mailer
+description: Migrates `spring-boot-starter-mail` to `quarkus-mailer`.
+tags:
+  - spring
+  - quarkus
+  - mail
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-mail
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-mail
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-mailer
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootBatchToQuarkus
+displayName: Replace Spring Boot Batch with Quarkus Scheduler
+description: Migrates `spring-boot-starter-batch` to `quarkus-scheduler`.
+tags:
+  - spring
+  - quarkus
+  - batch
+  - scheduler
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-batch
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-batch
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-scheduler
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootThymeleafToQuarkus
+displayName: Replace Spring Boot Thymeleaf with Quarkus Qute
+description: Migrates `spring-boot-starter-thymeleaf` to `quarkus-qute`.
+tags:
+  - spring
+  - quarkus
+  - templating
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-thymeleaf
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-thymeleaf
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-qute
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootQuartzToQuarkus
+displayName: Replace Spring Boot Quartz with Quarkus Quartz
+description: Migrates `spring-boot-starter-quartz` to `quarkus-quartz`.
+tags:
+  - spring
+  - quarkus
+  - scheduler
+  - quartz
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-quartz
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-quartz
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-quartz
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootIntegrationToQuarkus
+displayName: Replace Spring Boot Integration with Camel Quarkus
+description: Migrates `spring-boot-starter-integration` to `camel-quarkus-core`.
+tags:
+  - spring
+  - quarkus
+  - integration
+  - camel
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-integration
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-integration
+  - org.openrewrite.maven.AddDependency:
+      groupId: org.apache.camel.quarkus
+      artifactId: camel-quarkus-core
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootActiveMQToQuarkus
+displayName: Replace Spring Boot ActiveMQ with Quarkus Artemis JMS
+description: Migrates `spring-boot-starter-activemq` to `quarkus-artemis-jms`.
+tags:
+  - spring
+  - quarkus
+  - jms
+  - activemq
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-activemq
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-activemq
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-artemis-jms
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootArtemisToQuarkus
+displayName: Replace Spring Boot Artemis with Quarkus Artemis JMS
+description: Migrates `spring-boot-starter-artemis` to `quarkus-artemis-jms`.
+tags:
+  - spring
+  - quarkus
+  - jms
+  - artemis
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-artemis
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-artemis
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-artemis-jms
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootElasticsearchToQuarkus
+displayName: Replace Spring Boot Elasticsearch with Quarkus Elasticsearch REST Client
+description: Migrates `spring-boot-starter-data-elasticsearch` to `quarkus-elasticsearch-rest-client`.
+tags:
+  - spring
+  - quarkus
+  - elasticsearch
+  - data
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-data-elasticsearch
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-elasticsearch
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-elasticsearch-rest-client
+      version: x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBootDataRestToQuarkus
+displayName: Replace Spring Boot Data REST with Quarkus REST
+description: Migrates `spring-boot-starter-data-rest` to `quarkus-rest-jackson`.
+tags:
+  - spring
+  - quarkus
+  - rest
+  - data
+preconditions:
+  - org.openrewrite.maven.search.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-data-rest
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-rest
+  - org.openrewrite.maven.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-rest-jackson
+      version: x
