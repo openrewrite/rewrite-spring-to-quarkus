@@ -24,381 +24,335 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 
 class SpringAnnotationsToCdiTest implements RewriteTest {
-
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringAnnotationsToCdi")
-            .parser(JavaParser.fromJavaVersion()
-                .classpath("spring-context", "spring-beans", "javax.persistence-api", "validation-api"));
+          .parser(JavaParser.fromJavaVersion()
+            .classpath("spring-context", "spring-beans", "javax.persistence-api", "validation-api"));
     }
 
     @DocumentExample
     @Test
     void migrateServiceToApplicationScoped() {
         rewriteRun(
-            //language=java
-            java(
-                """
-                package com.example.demo;
+          //language=java
+          java(
+            """
+              import org.springframework.stereotype.Service;
 
-                import org.springframework.stereotype.Service;
+              @Service
+              class UserService {
+                  void doSomething() {
+                      // business logic
+                  }
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
 
-                @Service
-                public class UserService {
-                    
-                    public void doSomething() {
-                        // business logic
-                    }
-                }
-                """,
-                """
-                package com.example.demo;
-
-                import jakarta.enterprise.context.ApplicationScoped;
-
-                @ApplicationScoped
-                public class UserService {
-                    
-                    public void doSomething() {
-                        // business logic
-                    }
-                }
-                """
-            )
+              @ApplicationScoped
+              class UserService {
+                  void doSomething() {
+                      // business logic
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void migrateComponentToApplicationScoped() {
         rewriteRun(
-            //language=java
-            java(
-                """
-                package com.example.demo;
+          //language=java
+          java(
+            """
+              import org.springframework.stereotype.Component;
 
-                import org.springframework.stereotype.Component;
+              @Component
+              class UtilityComponent {
+                  void utility() {
+                      // utility logic
+                  }
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
 
-                @Component
-                public class UtilityComponent {
-                    
-                    public void utility() {
-                        // utility logic
-                    }
-                }
-                """,
-                """
-                package com.example.demo;
-
-                import jakarta.enterprise.context.ApplicationScoped;
-
-                @ApplicationScoped
-                public class UtilityComponent {
-                    
-                    public void utility() {
-                        // utility logic
-                    }
-                }
-                """
-            )
+              @ApplicationScoped
+              class UtilityComponent {
+                  void utility() {
+                      // utility logic
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void migrateRepositoryToApplicationScoped() {
         rewriteRun(
-            //language=java
-            java(
-                """
-                package com.example.demo;
+          //language=java
+          java(
+            """
+              import org.springframework.stereotype.Repository;
 
-                import org.springframework.stereotype.Repository;
+              @Repository
+              class UserRepository {
+                  void save() {
+                      // repository logic
+                  }
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
 
-                @Repository
-                public class UserRepository {
-                    
-                    public void save() {
-                        // repository logic
-                    }
-                }
-                """,
-                """
-                package com.example.demo;
-
-                import jakarta.enterprise.context.ApplicationScoped;
-
-                @ApplicationScoped
-                public class UserRepository {
-                    
-                    public void save() {
-                        // repository logic
-                    }
-                }
-                """
-            )
+              @ApplicationScoped
+              class UserRepository {
+                  void save() {
+                      // repository logic
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void migrateAutowiredToInject() {
         rewriteRun(
-            //language=java
-            java(
-                """
-                package com.example.demo;
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.stereotype.Service;
 
-                import org.springframework.beans.factory.annotation.Autowired;
-                import org.springframework.stereotype.Service;
+              @Service
+              class UserService {
+                  @Autowired
+                  private UserRepository userRepository;
 
-                @Service
-                public class UserService {
-                    
-                    @Autowired
-                    private UserRepository userRepository;
-                    
-                    public void doSomething() {
-                        userRepository.save();
-                    }
-                }
+                  void doSomething() {
+                      userRepository.save();
+                  }
+              }
 
-                class UserRepository {
-                    public void save() {}
-                }
-                """,
-                """
-                package com.example.demo;
+              class UserRepository {
+                  void save() {}
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
+              import jakarta.inject.Inject;
 
-                import jakarta.enterprise.context.ApplicationScoped;
-                import jakarta.inject.Inject;
+              @ApplicationScoped
+              class UserService {
+                  @Inject
+                  private UserRepository userRepository;
 
-                @ApplicationScoped
-                public class UserService {
-                    
-                    @Inject
-                    private UserRepository userRepository;
-                    
-                    public void doSomething() {
-                        userRepository.save();
-                    }
-                }
+                  void doSomething() {
+                      userRepository.save();
+                  }
+              }
 
-                class UserRepository {
-                    public void save() {}
-                }
-                """
-            )
+              class UserRepository {
+                  void save() {}
+              }
+              """
+          )
         );
     }
 
     @Test
     void migrateValueToConfigProperty() {
         rewriteRun(
-            //language=java
-            java(
-                """
-                package com.example.demo;
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Value;
+              import org.springframework.stereotype.Service;
 
-                import org.springframework.beans.factory.annotation.Value;
-                import org.springframework.stereotype.Service;
+              @Service
+              class ConfigService {
+                  @Value("${app.name}")
+                  private String appName;
 
-                @Service
-                public class ConfigService {
-                    
-                    @Value("${app.name}")
-                    private String appName;
-                    
-                    @Value("${app.timeout:30}")
-                    private int timeout;
-                    
-                    public void printConfig() {
-                        System.out.println(appName + " - " + timeout);
-                    }
-                }
-                """,
-                """
-                package com.example.demo;
+                  @Value("${app.timeout:30}")
+                  private int timeout;
 
-                import jakarta.enterprise.context.ApplicationScoped;
-                import org.eclipse.microprofile.config.inject.ConfigProperty;
+                  void printConfig() {
+                      System.out.println(appName + " - " + timeout);
+                  }
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
+              import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-                @ApplicationScoped
-                public class ConfigService {
-                    
-                    @ConfigProperty(name = "app.name")
-                    private String appName;
-                    
-                    @ConfigProperty(name = "app.timeout", defaultValue = "30")
-                    private int timeout;
-                    
-                    public void printConfig() {
-                        System.out.println(appName + " - " + timeout);
-                    }
-                }
-                """
-            )
+              @ApplicationScoped
+              class ConfigService {
+                  @ConfigProperty(name = "app.name")
+                  private String appName;
+
+                  @ConfigProperty(name = "app.timeout", defaultValue = "30")
+                  private int timeout;
+
+                  void printConfig() {
+                      System.out.println(appName + " - " + timeout);
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void migrateConstructorInjection() {
         rewriteRun(
-            //language=java
-            java(
-                """
-                package com.example.demo;
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.beans.factory.annotation.Value;
+              import org.springframework.stereotype.Service;
 
-                import org.springframework.beans.factory.annotation.Autowired;
-                import org.springframework.beans.factory.annotation.Value;
-                import org.springframework.stereotype.Service;
+              @Service
+              class OrderService {
+                  private final UserRepository userRepository;
+                  private final String serviceName;
 
-                @Service
-                public class OrderService {
-                    
-                    private final UserRepository userRepository;
-                    private final String serviceName;
-                    
-                    @Autowired
-                    public OrderService(UserRepository userRepository, @Value("${service.name}") String serviceName) {
-                        this.userRepository = userRepository;
-                        this.serviceName = serviceName;
-                    }
-                    
-                    public void processOrder() {
-                        userRepository.save();
-                    }
-                }
+                  @Autowired
+                  OrderService(UserRepository userRepository, @Value("${service.name}") String serviceName) {
+                      this.userRepository = userRepository;
+                      this.serviceName = serviceName;
+                  }
 
-                class UserRepository {
-                    public void save() {}
-                }
-                """,
-                """
-                package com.example.demo;
+                  void processOrder() {
+                      userRepository.save();
+                  }
+              }
 
-                import jakarta.enterprise.context.ApplicationScoped;
-                import jakarta.inject.Inject;
-                import org.eclipse.microprofile.config.inject.ConfigProperty;
+              class UserRepository {
+                  void save() {}
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
+              import jakarta.inject.Inject;
+              import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-                @ApplicationScoped
-                public class OrderService {
-                    
-                    private final UserRepository userRepository;
-                    private final String serviceName;
-                    
-                    @Inject
-                    public OrderService(UserRepository userRepository, @ConfigProperty(name = "service.name") String serviceName) {
-                        this.userRepository = userRepository;
-                        this.serviceName = serviceName;
-                    }
-                    
-                    public void processOrder() {
-                        userRepository.save();
-                    }
-                }
+              @ApplicationScoped
+              class OrderService {
+                  private final UserRepository userRepository;
+                  private final String serviceName;
 
-                class UserRepository {
-                    public void save() {}
-                }
-                """
-            )
+                  @Inject
+                  OrderService(UserRepository userRepository, @ConfigProperty(name = "service.name") String serviceName) {
+                      this.userRepository = userRepository;
+                      this.serviceName = serviceName;
+                  }
+
+                  void processOrder() {
+                      userRepository.save();
+                  }
+              }
+
+              class UserRepository {
+                  void save() {}
+              }
+              """
+          )
         );
     }
 
     @Test
     void migrateMultipleSpringAnnotationsInSameClass() {
         rewriteRun(
-            //language=java
-            java(
-                """
-                package com.example.demo;
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.beans.factory.annotation.Value;
+              import org.springframework.stereotype.Service;
 
-                import org.springframework.beans.factory.annotation.Autowired;
-                import org.springframework.beans.factory.annotation.Value;
-                import org.springframework.stereotype.Service;
+              @Service
+              class ComplexService {
+                  @Autowired
+                  private UserRepository userRepository;
 
-                @Service
-                public class ComplexService {
-                    
-                    @Autowired
-                    private UserRepository userRepository;
-                    
-                    @Value("${app.environment:dev}")
-                    private String environment;
-                    
-                    @Autowired
-                    private ConfigService configService;
-                    
-                    public void execute() {
-                        // business logic
-                    }
-                }
+                  @Value("${app.environment:dev}")
+                  private String environment;
 
-                interface UserRepository {
-                    void save();
-                }
+                  @Autowired
+                  private ConfigService configService;
 
-                interface ConfigService {
-                    void configure();
-                }
-                """,
-                """
-                package com.example.demo;
+                  void execute() {
+                      // business logic
+                  }
+              }
 
-                import jakarta.enterprise.context.ApplicationScoped;
-                import jakarta.inject.Inject;
-                import org.eclipse.microprofile.config.inject.ConfigProperty;
+              interface UserRepository {
+                  void save();
+              }
 
-                @ApplicationScoped
-                public class ComplexService {
-                    
-                    @Inject
-                    private UserRepository userRepository;
-                    
-                    @ConfigProperty(name = "app.environment", defaultValue = "dev")
-                    private String environment;
-                    
-                    @Inject
-                    private ConfigService configService;
-                    
-                    public void execute() {
-                        // business logic
-                    }
-                }
+              interface ConfigService {
+                  void configure();
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
+              import jakarta.inject.Inject;
+              import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-                interface UserRepository {
-                    void save();
-                }
+              @ApplicationScoped
+              class ComplexService {
+                  @Inject
+                  private UserRepository userRepository;
 
-                interface ConfigService {
-                    void configure();
-                }
-                """
-            )
+                  @ConfigProperty(name = "app.environment", defaultValue = "dev")
+                  private String environment;
+
+                  @Inject
+                  private ConfigService configService;
+
+                  void execute() {
+                      // business logic
+                  }
+              }
+
+              interface UserRepository {
+                  void save();
+              }
+
+              interface ConfigService {
+                  void configure();
+              }
+              """
+          )
         );
     }
 
     @Test
     void doNotChangeNonSpringAnnotations() {
         rewriteRun(
-            //language=java
-            java(
-                """
-                package com.example.demo;
+          //language=java
+          java(
+            """
+              import javax.persistence.Entity;
+              import javax.validation.constraints.NotNull;
 
-                import javax.persistence.Entity;
-                import javax.validation.constraints.NotNull;
+              @Entity
+              class User {
+                  @NotNull
+                  private String name;
 
-                @Entity
-                public class User {
-                    
-                    @NotNull
-                    private String name;
-                    
-                    public String getName() {
-                        return name;
-                    }
-                }
-                """
-            )
+                  String getName() {
+                      return name;
+                  }
+              }
+              """
+          )
         );
     }
 }
