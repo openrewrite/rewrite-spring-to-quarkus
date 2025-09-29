@@ -266,6 +266,52 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI
+examples:
+- description: ''
+  sources:
+  - before: |
+      import org.springframework.stereotype.Service;
+
+      @Service
+      class UserService {
+      }
+    after: |
+      import jakarta.enterprise.context.ApplicationScoped;
+
+      @ApplicationScoped
+      class UserService {
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.ValueToCdiConfigProperty
+examples:
+- description: ''
+  sources:
+  - before: |
+      import org.springframework.beans.factory.annotation.Value;
+
+      class ConfigService {
+          @Value("${app.name}")
+          private String appName;
+
+          @Value("${app.timeout:30}")
+          private int timeout;
+      }
+    after: |
+      import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+      class ConfigService {
+          @ConfigProperty(name = "app.name")
+          private String appName;
+
+          @ConfigProperty(name = "app.timeout", defaultValue = "30")
+          private int timeout;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.WebToJaxRs
 examples:
 - description: ''
