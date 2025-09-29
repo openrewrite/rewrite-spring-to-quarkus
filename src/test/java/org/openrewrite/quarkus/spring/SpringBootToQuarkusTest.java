@@ -27,7 +27,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class SpringBootToQuarkusTest implements RewriteTest {
-
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringBootToQuarkus");
@@ -41,18 +40,14 @@ class SpringBootToQuarkusTest implements RewriteTest {
           pomXml(
             """
               <project>
-                  <modelVersion>4.0.0</modelVersion>
-
                   <parent>
                       <groupId>org.springframework.boot</groupId>
                       <artifactId>spring-boot-starter-parent</artifactId>
                       <version>3.1.0</version>
                   </parent>
-
                   <groupId>com.example</groupId>
                   <artifactId>demo</artifactId>
                   <version>0.0.1-SNAPSHOT</version>
-
                   <properties>
                       <java.version>17</java.version>
                   </properties>
@@ -64,12 +59,9 @@ class SpringBootToQuarkusTest implements RewriteTest {
                 String quarkusVersion = versionMatcher.group(1);
                 return """
                   <project>
-                      <modelVersion>4.0.0</modelVersion>
-
                       <groupId>com.example</groupId>
                       <artifactId>demo</artifactId>
                       <version>0.0.1-SNAPSHOT</version>
-
                       <properties>
                           <java.version>17</java.version>
                       </properties>
@@ -107,18 +99,14 @@ class SpringBootToQuarkusTest implements RewriteTest {
           pomXml(
             """
               <project>
-                  <modelVersion>4.0.0</modelVersion>
-
                   <parent>
                       <groupId>org.springframework.boot</groupId>
                       <artifactId>spring-boot-starter-parent</artifactId>
                       <version>3.1.0</version>
                   </parent>
-
                   <groupId>com.example</groupId>
                   <artifactId>demo</artifactId>
                   <version>0.0.1-SNAPSHOT</version>
-
                   <dependencyManagement>
                       <dependencies>
                           <dependency>
@@ -138,12 +126,9 @@ class SpringBootToQuarkusTest implements RewriteTest {
                 String quarkusVersion = versionMatcher.group(1);
                 return """
                   <project>
-                      <modelVersion>4.0.0</modelVersion>
-
                       <groupId>com.example</groupId>
                       <artifactId>demo</artifactId>
                       <version>0.0.1-SNAPSHOT</version>
-
                       <dependencyManagement>
                           <dependencies>
                               <dependency>
@@ -185,14 +170,11 @@ class SpringBootToQuarkusTest implements RewriteTest {
           pomXml(
             """
               <project>
-                  <modelVersion>4.0.0</modelVersion>
-
                   <parent>
                       <groupId>org.springframework.boot</groupId>
                       <artifactId>spring-boot-starter-parent</artifactId>
                       <version>2.7.18</version>
                   </parent>
-
                   <groupId>com.example</groupId>
                   <artifactId>demo</artifactId>
                   <version>0.0.1-SNAPSHOT</version>
@@ -209,8 +191,6 @@ class SpringBootToQuarkusTest implements RewriteTest {
           pomXml(
             """
               <project>
-                  <modelVersion>4.0.0</modelVersion>
-
                   <groupId>com.example</groupId>
                   <artifactId>demo</artifactId>
                   <version>0.0.1-SNAPSHOT</version>
