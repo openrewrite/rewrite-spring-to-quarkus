@@ -23,7 +23,6 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.maven.AddPlugin;
 import org.openrewrite.maven.MavenIsoVisitor;
 import org.openrewrite.maven.tree.ManagedDependency;
-import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.xml.tree.Xml;
 
 import java.util.Optional;
@@ -47,20 +46,24 @@ public class AddQuarkusMavenPlugin extends Recipe {
         return new MavenIsoVisitor<ExecutionContext>() {
             @Override
             public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
-                MavenResolutionResult mrr = getResolutionResult();
-                Optional<String> quarkusVersion = mrr.getPom().getRequested().getDependencyManagement().stream()
-                        .filter(dep -> "io.quarkus.platform".equals(dep.getGroupId()) &&
-                                "quarkus-bom".equals(dep.getArtifactId()))
+                Optional<String> quarkusVersion = getResolutionResult().getPom().getRequested().getDependencyManagement().stream()
+                        .filter(dep -> "io.quarkus.platform".equals(dep.getGroupId()) && "quarkus-bom".equals(dep.getArtifactId()))
                         .map(ManagedDependency::getVersion)
                         .findFirst();
-
-                return quarkusVersion
-                        .map(version -> addQuarkusPluginWithVersion(document, ctx, version))
-                        .orElse(document);
-            }
-
-            private Xml.Document addQuarkusPluginWithVersion(Xml.Document document, ExecutionContext ctx, String version) {
-                return (Xml.Document) new AddPlugin("io.quarkus.platform", "quarkus-maven-plugin", version, null, null, null, null).getVisitor().visitNonNull(document, ctx);
+                //noinspection OptionalIsPresent
+                if (!quarkusVersion.isPresent()) {
+                    return document;
+                }
+                return (Xml.Document) new AddPlugin(
+                        "io.quarkus.platform",
+                        "quarkus-maven-plugin",
+                        quarkusVersion.get(),
+                        null,
+                        null,
+                        null,
+                        null)
+                        .getVisitor()
+                        .visitNonNull(document, ctx);
             }
         };
     }
