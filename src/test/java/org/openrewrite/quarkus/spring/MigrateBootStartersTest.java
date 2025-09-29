@@ -22,11 +22,13 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class SpringBootStartersToQuarkusDependenciesTest implements RewriteTest {
+class MigrateBootStartersTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringBootStartersToQuarkusDependencies");
+        spec.recipeFromResource(
+          "/META-INF/rewrite/boot-starters.yml",
+          "org.openrewrite.quarkus.spring.MigrateBootStarters");
     }
 
     @DocumentExample
