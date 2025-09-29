@@ -37,14 +37,14 @@ recipeList:
       type: pom
       scope: import
       addToRootPom: false
-  - org.openrewrite.quarkus.spring.SpringBootToQuarkusBuildPlugin
+  - org.openrewrite.quarkus.spring.MigrateMavenPlugin
   - org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
   - org.openrewrite.quarkus.spring.MigrateBootStarters
   - org.openrewrite.quarkus.spring.RemoveSpringBootParent
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.SpringBootToQuarkusBuildPlugin
+name: org.openrewrite.quarkus.spring.MigrateMavenPlugin
 displayName: Add or replace Spring Boot build plugin with Quarkus build plugin
 description: Remove Spring Boot Maven plugin if present and add Quarkus Maven plugin using the same version as the quarkus-bom.
 tags:
