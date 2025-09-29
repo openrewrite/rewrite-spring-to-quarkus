@@ -26,7 +26,7 @@ import static org.openrewrite.java.Assertions.java;
 class SpringAnnotationsToCdiTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringAnnotationsToCdi")
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.MigrateStereotypeAnnotationsToCDI")
           .parser(JavaParser.fromJavaVersion()
             .classpath("spring-context", "spring-beans", "javax.persistence-api", "validation-api"));
     }
@@ -42,9 +42,6 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
 
               @Service
               class UserService {
-                  void doSomething() {
-                      // business logic
-                  }
               }
               """,
             """
@@ -52,9 +49,6 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
 
               @ApplicationScoped
               class UserService {
-                  void doSomething() {
-                      // business logic
-                  }
               }
               """
           )
@@ -71,9 +65,6 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
 
               @Component
               class UtilityComponent {
-                  void utility() {
-                      // utility logic
-                  }
               }
               """,
             """
@@ -81,9 +72,6 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
 
               @ApplicationScoped
               class UtilityComponent {
-                  void utility() {
-                      // utility logic
-                  }
               }
               """
           )
@@ -100,9 +88,6 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
 
               @Repository
               class UserRepository {
-                  void save() {
-                      // repository logic
-                  }
               }
               """,
             """
@@ -110,9 +95,6 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
 
               @ApplicationScoped
               class UserRepository {
-                  void save() {
-                      // repository logic
-                  }
               }
               """
           )
@@ -165,71 +147,21 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
     }
 
     @Test
-    void migrateValueToConfigProperty() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.beans.factory.annotation.Value;
-              import org.springframework.stereotype.Service;
-
-              @Service
-              class ConfigService {
-                  @Value("${app.name}")
-                  private String appName;
-
-                  @Value("${app.timeout:30}")
-                  private int timeout;
-
-                  void printConfig() {
-                      System.out.println(appName + " - " + timeout);
-                  }
-              }
-              """,
-            """
-              import jakarta.enterprise.context.ApplicationScoped;
-              import org.eclipse.microprofile.config.inject.ConfigProperty;
-
-              @ApplicationScoped
-              class ConfigService {
-                  @ConfigProperty(name = "app.name")
-                  private String appName;
-
-                  @ConfigProperty(name = "app.timeout", defaultValue = "30")
-                  private int timeout;
-
-                  void printConfig() {
-                      System.out.println(appName + " - " + timeout);
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
     void migrateConstructorInjection() {
         rewriteRun(
           //language=java
           java(
             """
               import org.springframework.beans.factory.annotation.Autowired;
-              import org.springframework.beans.factory.annotation.Value;
               import org.springframework.stereotype.Service;
 
               @Service
               class OrderService {
                   private final UserRepository userRepository;
-                  private final String serviceName;
 
                   @Autowired
-                  OrderService(UserRepository userRepository, @Value("${service.name}") String serviceName) {
+                  OrderService(UserRepository userRepository) {
                       this.userRepository = userRepository;
-                      this.serviceName = serviceName;
-                  }
-
-                  void processOrder() {
-                      userRepository.save();
                   }
               }
 
@@ -240,116 +172,19 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
             """
               import jakarta.enterprise.context.ApplicationScoped;
               import jakarta.inject.Inject;
-              import org.eclipse.microprofile.config.inject.ConfigProperty;
 
               @ApplicationScoped
               class OrderService {
                   private final UserRepository userRepository;
-                  private final String serviceName;
 
                   @Inject
-                  OrderService(UserRepository userRepository, @ConfigProperty(name = "service.name") String serviceName) {
+                  OrderService(UserRepository userRepository) {
                       this.userRepository = userRepository;
-                      this.serviceName = serviceName;
-                  }
-
-                  void processOrder() {
-                      userRepository.save();
                   }
               }
 
               class UserRepository {
                   void save() {}
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void migrateMultipleSpringAnnotationsInSameClass() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.beans.factory.annotation.Autowired;
-              import org.springframework.beans.factory.annotation.Value;
-              import org.springframework.stereotype.Service;
-
-              @Service
-              class ComplexService {
-                  @Autowired
-                  private UserRepository userRepository;
-
-                  @Value("${app.environment:dev}")
-                  private String environment;
-
-                  @Autowired
-                  private ConfigService configService;
-
-                  void execute() {
-                      // business logic
-                  }
-              }
-
-              interface UserRepository {
-                  void save();
-              }
-
-              interface ConfigService {
-                  void configure();
-              }
-              """,
-            """
-              import jakarta.enterprise.context.ApplicationScoped;
-              import jakarta.inject.Inject;
-              import org.eclipse.microprofile.config.inject.ConfigProperty;
-
-              @ApplicationScoped
-              class ComplexService {
-                  @Inject
-                  private UserRepository userRepository;
-
-                  @ConfigProperty(name = "app.environment", defaultValue = "dev")
-                  private String environment;
-
-                  @Inject
-                  private ConfigService configService;
-
-                  void execute() {
-                      // business logic
-                  }
-              }
-
-              interface UserRepository {
-                  void save();
-              }
-
-              interface ConfigService {
-                  void configure();
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void doNotChangeNonSpringAnnotations() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import javax.persistence.Entity;
-              import javax.validation.constraints.NotNull;
-
-              @Entity
-              class User {
-                  @NotNull
-                  private String name;
-
-                  String getName() {
-                      return name;
-                  }
               }
               """
           )

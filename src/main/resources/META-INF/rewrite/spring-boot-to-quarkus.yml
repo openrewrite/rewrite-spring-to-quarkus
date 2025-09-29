@@ -40,7 +40,8 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateMavenPlugin
   - org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
   - org.openrewrite.quarkus.spring.MigrateBootStarters
-  - org.openrewrite.quarkus.spring.SpringAnnotationsToCdi
+  - org.openrewrite.quarkus.spring.MigrateStereotypeAnnotationsToCDI
+  - org.openrewrite.quarkus.spring.SpringValueToCdiConfigProperty
   - org.openrewrite.quarkus.spring.SpringWebToJaxRs
   - org.openrewrite.quarkus.spring.RemoveSpringBootParent
 
@@ -63,8 +64,8 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.SpringAnnotationsToCdiDeclarative
-displayName: Migrate simple Spring annotations to CDI (Declarative)
+name: org.openrewrite.quarkus.spring.MigrateStereotypeAnnotationsToCDI
+displayName: Migrate simple Spring annotations to CDI
 description: Replace Spring stereotype and injection annotations with CDI equivalents using declarative recipes.
 recipeList:
   - org.openrewrite.java.ReplaceAnnotation:
@@ -79,12 +80,3 @@ recipeList:
   - org.openrewrite.java.ReplaceAnnotation:
       annotationPatternToReplace: '@org.springframework.beans.factory.annotation.Autowired'
       annotationTemplateToInsert: '@jakarta.inject.Inject'
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.SpringAnnotationsToCdi
-displayName: Migrate Spring annotations to CDI (Hybrid)
-description: Replace Spring annotations with CDI equivalents using both declarative and imperative approaches.
-recipeList:
-  - org.openrewrite.quarkus.spring.SpringAnnotationsToCdiDeclarative
-  - org.openrewrite.quarkus.spring.SpringValueToCdiConfigProperty
