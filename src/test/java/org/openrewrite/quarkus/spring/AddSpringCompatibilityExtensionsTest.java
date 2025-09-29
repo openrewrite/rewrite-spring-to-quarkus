@@ -21,52 +21,58 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.*;
+import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class EnableSchedulingToQuarkusTest implements RewriteTest {
+class AddSpringCompatibilityExtensionsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResource(
-            "/META-INF/rewrite/autoconfig.yml",
-            "org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies")
-          .parser(org.openrewrite.java.JavaParser.fromJavaVersion()
-            //language=java
-            .dependsOn(
-              """
-                package org.springframework.scheduling.annotation;
-                import java.lang.annotation.*;
-                @Target(ElementType.TYPE)
-                @Retention(RetentionPolicy.RUNTIME)
-                @Documented
-                public @interface EnableScheduling {
-                }
-                """
-            )
-          );
+          "/META-INF/rewrite/autoconfig.yml",
+          "org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions"
+        );
     }
 
     @DocumentExample
     @Test
-    void convertEnableSchedulingToQuarkusScheduler() {
+    void addSpringCompatibilityExtensionsForCommonAnnotations() {
         rewriteRun(
           mavenProject("project",
             srcMainJava(
               //language=java
               java(
                 """
-                  package com.example.demo;
+                  import org.springframework.stereotype.Service;
+                  import org.springframework.web.bind.annotation.RestController;
+                  import org.springframework.web.bind.annotation.GetMapping;
 
-                  import org.springframework.scheduling.annotation.EnableScheduling;
+                  @RestController
+                  class DemoController {
 
-                  @EnableScheduling
-                  public class SchedulingConfig {
+                      @GetMapping("/hello")
+                      public String hello() {
+                          return "Hello World";
+                      }
                   }
-                  """,
+                  """
+              ),
+              //language=java
+              java(
                 """
-                  package com.example.demo;
+                  import org.springframework.stereotype.Service;
+                  import org.springframework.beans.factory.annotation.Autowired;
+                  import org.springframework.data.repository.Repository;
 
-                  public class SchedulingConfig {
+                  @Service
+                  class DemoService {
+
+                      @Autowired
+                      private Repository<?,?> repository;
+
+                      public void doSomething() {
+                          // business logic
+                      }
                   }
                   """
               )
@@ -112,7 +118,11 @@ class EnableSchedulingToQuarkusTest implements RewriteTest {
                     <dependencies>
                         <dependency>
                             <groupId>io.quarkus</groupId>
-                            <artifactId>quarkus-scheduler</artifactId>
+                            <artifactId>quarkus-spring-di</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>io.quarkus</groupId>
+                            <artifactId>quarkus-spring-web</artifactId>
                         </dependency>
                     </dependencies>
                 </project>

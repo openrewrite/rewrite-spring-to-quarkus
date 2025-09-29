@@ -42,7 +42,6 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateBootStarters
   - org.openrewrite.quarkus.spring.RemoveSpringBootApplication
   - org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
-  - org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies
   - org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI
   - org.openrewrite.quarkus.spring.ValueToCdiConfigProperty
   - org.openrewrite.quarkus.spring.WebToJaxRs
@@ -60,26 +59,23 @@ tags:
   - build
   - maven
 recipeList:
-  - org.openrewrite.maven.AddManagedDependency:
-      groupId: io.quarkus.platform
-      artifactId: quarkus-bom
-      version: 3.x
-      type: pom
-      scope: import
-      addToRootPom: false
+  - org.openrewrite.maven.RemovePlugin:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-maven-plugin
   - org.openrewrite.quarkus.spring.AddQuarkusMavenPlugin
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.RemoveSpringBootApplication
 displayName: Remove Spring Boot application artifacts
-description: Removes @SpringBootApplication annotation, SpringApplication.run() calls, and empty main methods from Spring Boot application classes.
+description: Removes `@SpringBootApplication` annotation, SpringApplication.run() calls, and empty main methods from Spring Boot application classes.
 recipeList:
   - org.openrewrite.java.RemoveAnnotation:
       annotationPattern: org.springframework.boot.autoconfigure.SpringBootApplication
   - org.openrewrite.java.RemoveMethodInvocations:
       methodPattern: org.springframework.boot.SpringApplication run(..)
   - org.openrewrite.quarkus.spring.RemoveEmptyMainMethod
+  - org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
