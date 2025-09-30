@@ -39,7 +39,6 @@ public class ResponseEntityToJaxRsResponse extends Recipe {
     private static final MethodMatcher RESPONSE_ENTITY_NOT_FOUND = new MethodMatcher("org.springframework.http.ResponseEntity notFound()");
     private static final MethodMatcher RESPONSE_ENTITY_STATUS = new MethodMatcher("org.springframework.http.ResponseEntity status(..)");
     private static final MethodMatcher BODY_METHOD = new MethodMatcher("org.springframework.http.ResponseEntity$* body(..)");
-    private static final MethodMatcher BUILD_METHOD = new MethodMatcher("org.springframework.http.ResponseEntity$* build()");
 
     @Override
     public String getDisplayName() {
@@ -73,14 +72,12 @@ public class ResponseEntityToJaxRsResponse extends Recipe {
                     if (m.getArguments().isEmpty()) {
                         return JavaTemplate.builder("Response.ok()")
                                 .imports(RESPONSE_FQN)
-                                .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                                 .build()
                                 .apply(getCursor(), m.getCoordinates().replace());
                     }
                     return JavaTemplate.builder("Response.ok(#{any()})")
                             .imports(RESPONSE_FQN)
-                            .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
@@ -89,7 +86,6 @@ public class ResponseEntityToJaxRsResponse extends Recipe {
                 if (RESPONSE_ENTITY_NOT_FOUND.matches(m)) {
                     return JavaTemplate.builder("Response.status(Response.Status.NOT_FOUND)")
                             .imports(RESPONSE_FQN)
-                            .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .build()
                             .apply(getCursor(), m.getCoordinates().replace());
@@ -100,7 +96,6 @@ public class ResponseEntityToJaxRsResponse extends Recipe {
                     if (statusMapping != null) {
                         return JavaTemplate.builder("Response.status(" + statusMapping + ")")
                                 .imports(RESPONSE_FQN)
-                                .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                                 .build()
                                 .apply(getCursor(), m.getCoordinates().replace());
@@ -109,7 +104,6 @@ public class ResponseEntityToJaxRsResponse extends Recipe {
 
                 if (BODY_METHOD.matches(m)) {
                     return JavaTemplate.builder("#{any()}.entity(#{any()})")
-                            .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .build()
                             .apply(getCursor(),
