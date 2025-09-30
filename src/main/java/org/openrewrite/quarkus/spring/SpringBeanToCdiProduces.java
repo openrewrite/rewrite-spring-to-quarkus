@@ -26,9 +26,12 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.trait.Annotated;
+import org.openrewrite.java.trait.Literal;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.Optional;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -63,18 +66,14 @@ public class SpringBeanToCdiProduces extends Recipe {
                     @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-                        J.Annotation beanAnnotation = null;
-                        J.Annotation scopeAnnotation = null;
-                        for (J.Annotation annotation : m.getLeadingAnnotations()) {
-                            if (TypeUtils.isOfClassType(annotation.getType(), BEAN_FQN)) {
-                                beanAnnotation = annotation;
-                            } else if (TypeUtils.isOfClassType(annotation.getType(), SCOPE_FQN)) {
-                                scopeAnnotation = annotation;
-                            }
-                        }
-                        if (beanAnnotation == null) {
+
+                        Optional<Annotated> annotated = new Annotated.Matcher("@" + BEAN_FQN).lower(getCursor()).findFirst();
+                        if (!annotated.isPresent()) {
                             return m;
                         }
+                        Annotated beanAnnotation = annotated.get();
+                        Optional<Annotated> annotatedScope = new Annotated.Matcher("@" + SCOPE_FQN).lower(getCursor()).findFirst();
+                        Annotated scopeAnnotation = annotatedScope.orElse(null);
 
                         maybeRemoveImport(BEAN_FQN);
                         maybeRemoveImport(SCOPE_FQN);
@@ -84,8 +83,8 @@ public class SpringBeanToCdiProduces extends Recipe {
                         maybeAddImport(NAMED_FQN);
                         maybeAddImport(DEPENDENT_FQN);
 
-                        String beanName = extractBeanName(beanAnnotation);
-                        String scopeToAdd = determineCdiScope(scopeAnnotation);
+                        String beanName = beanAnnotation.getDefaultAttribute("name").map(Literal::getString).orElse(null);
+                        String scopeToAdd = determineCdiScope(scopeAnnotation == null ? null : scopeAnnotation.getTree());
                         return JavaTemplate.builder(createTemplate(beanName, scopeToAdd))
                                 .imports(PRODUCES_FQN, APPLICATION_SCOPED_FQN, DEPENDENT_FQN, NAMED_FQN)
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.enterprise.cdi-api", "jakarta.inject-api"))
@@ -122,28 +121,6 @@ public class SpringBeanToCdiProduces extends Recipe {
 
                         return (scopeValue != null && scopeValue.toLowerCase().contains("prototype"))
                                 ? DEPENDENT : APPLICATION_SCOPED;
-                    }
-
-                    private @Nullable String extractBeanName(J.Annotation beanAnnotation) {
-                        if (beanAnnotation.getArguments() == null || beanAnnotation.getArguments().isEmpty()) {
-                            return null;
-                        }
-
-                        for (Expression arg : beanAnnotation.getArguments()) {
-                            if (arg instanceof J.Literal) {
-                                return (String) ((J.Literal) arg).getValue();
-                            } else if (arg instanceof J.Assignment) {
-                                J.Assignment assignment = (J.Assignment) arg;
-                                if (assignment.getVariable() instanceof J.Identifier) {
-                                    String varName = ((J.Identifier) assignment.getVariable()).getSimpleName();
-                                    if (("name".equals(varName) || "value".equals(varName)) &&
-                                        assignment.getAssignment() instanceof J.Literal) {
-                                        return (String) ((J.Literal) assignment.getAssignment()).getValue();
-                                    }
-                                }
-                            }
-                        }
-                        return null;
                     }
                 });
     }
