@@ -292,19 +292,16 @@ public class WebToJaxRs extends Recipe {
 
                     // Keep arguments if present
                     String newAnn = "@PathParam";
+                    Object[] args = new Object[0];
                     if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
-                        // Extract the argument value
-                        String args = ann.getArguments().stream()
-                                .map(arg -> arg.printTrimmed(getCursor()))
-                                .reduce((a, b) -> a + ", " + b)
-                                .orElse("");
-                        newAnn = "@PathParam(" + args + ")";
+                        newAnn = "@PathParam(#{})";
+                        args = ann.getArguments().toArray();
                     }
                     return JavaTemplate.builder(newAnn)
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.PathParam")
                             .build()
-                            .apply(getCursor(), ann.getCoordinates().replace());
+                            .apply(getCursor(), ann.getCoordinates().replace(), args);
                 }
                 if (REQUEST_PARAM_MATCHER.matches(ann)) {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestParam");
@@ -312,19 +309,16 @@ public class WebToJaxRs extends Recipe {
 
                     // Keep arguments if present
                     String newAnn = "@QueryParam";
+                    Object[] args = new Object[0];
                     if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
-                        // Extract the argument value
-                        String args = ann.getArguments().stream()
-                                .map(arg -> arg.printTrimmed(getCursor()))
-                                .reduce((a, b) -> a + ", " + b)
-                                .orElse("");
-                        newAnn = "@QueryParam(" + args + ")";
+                        newAnn = "@QueryParam(#{})";
+                        args = ann.getArguments().toArray();
                     }
                     return JavaTemplate.builder(newAnn)
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.QueryParam")
                             .build()
-                            .apply(getCursor(), ann.getCoordinates().replace());
+                            .apply(getCursor(), ann.getCoordinates().replace(), args);
                 }
                 if (REQUEST_HEADER_MATCHER.matches(ann)) {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestHeader");
@@ -332,19 +326,16 @@ public class WebToJaxRs extends Recipe {
 
                     // Keep arguments if present
                     String newAnn = "@HeaderParam";
+                    Object[] args = new Object[0];
                     if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
-                        // Extract the argument value
-                        String args = ann.getArguments().stream()
-                                .map(arg -> arg.printTrimmed(getCursor()))
-                                .reduce((a, b) -> a + ", " + b)
-                                .orElse("");
-                        newAnn = "@HeaderParam(" + args + ")";
+                        newAnn = "@HeaderParam(#{})";
+                        args = ann.getArguments().toArray();
                     }
                     return JavaTemplate.builder(newAnn)
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.HeaderParam")
                             .build()
-                            .apply(getCursor(), ann.getCoordinates().replace());
+                            .apply(getCursor(), ann.getCoordinates().replace(), args);
                 }
             }
 
