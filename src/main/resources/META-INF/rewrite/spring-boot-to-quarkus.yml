@@ -40,6 +40,7 @@ recipeList:
   - org.openrewrite.quarkus.spring.RemoveSpringBootApplication
   - org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies
   - org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
+  - org.openrewrite.quarkus.spring.ResponseEntityToJaxRsResponse
   - org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI
   - org.openrewrite.quarkus.spring.ValueToCdiConfigProperty
   - org.openrewrite.quarkus.spring.WebToJaxRs
