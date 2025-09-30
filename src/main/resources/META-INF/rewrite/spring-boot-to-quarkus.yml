@@ -41,6 +41,7 @@ recipeList:
   - org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies
   - org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
   - org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI
+  - org.openrewrite.quarkus.spring.SpringBeanConfigurationToCdi
   - org.openrewrite.quarkus.spring.ValueToCdiConfigProperty
   - org.openrewrite.quarkus.spring.WebToJaxRs
   - org.openrewrite.quarkus.spring.RemoveSpringBootParent
@@ -114,3 +115,21 @@ recipeList:
       annotationPatternToReplace: '@org.springframework.beans.factory.annotation.Autowired'
       annotationTemplateToInsert: '@jakarta.inject.Inject'
       classpathResourceName: 'jakarta.inject-api'
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.SpringBeanConfigurationToCdi
+displayName: Migrate Spring Bean configuration to CDI
+description: Transform Spring `@Bean` methods to CDI `@Produces` methods and `@Configuration` classes to `@ApplicationScoped`.
+tags:
+  - spring
+  - quarkus
+  - cdi
+  - migration
+  - configuration
+recipeList:
+  - org.openrewrite.java.ReplaceAnnotation:
+      annotationPatternToReplace: '@org.springframework.context.annotation.Configuration'
+      annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
+      classpathResourceName: 'jakarta.enterprise.cdi-api'
+  - org.openrewrite.quarkus.spring.SpringBeanToCdiProduces
