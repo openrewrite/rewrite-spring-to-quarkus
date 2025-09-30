@@ -38,7 +38,10 @@ import java.util.Optional;
 public class SpringBeanToCdiProduces extends Recipe {
 
     public static final String BEAN_FQN = "org.springframework.context.annotation.Bean";
+    private static final Annotated.Matcher BEAN_MATCHER = new Annotated.Matcher("@" + BEAN_FQN);
     public static final String SCOPE_FQN = "org.springframework.context.annotation.Scope";
+    private static final Annotated.Matcher SCOPE_MATCHER = new Annotated.Matcher("@" + SCOPE_FQN);
+
     public static final String PRODUCES_FQN = "jakarta.enterprise.inject.Produces";
     public static final String APPLICATION_SCOPED_FQN = "jakarta.enterprise.context.ApplicationScoped";
     public static final String CONFIGURABLE_BEAN_FACTORY_FQN = "org.springframework.beans.factory.config.ConfigurableBeanFactory";
@@ -67,13 +70,11 @@ public class SpringBeanToCdiProduces extends Recipe {
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
-                        Optional<Annotated> annotated = new Annotated.Matcher("@" + BEAN_FQN).lower(getCursor()).findFirst();
+                        Optional<Annotated> annotated = BEAN_MATCHER.lower(getCursor()).findFirst();
                         if (!annotated.isPresent()) {
                             return m;
                         }
                         Annotated beanAnnotation = annotated.get();
-                        Optional<Annotated> annotatedScope = new Annotated.Matcher("@" + SCOPE_FQN).lower(getCursor()).findFirst();
-                        Annotated scopeAnnotation = annotatedScope.orElse(null);
 
                         maybeRemoveImport(BEAN_FQN);
                         maybeRemoveImport(SCOPE_FQN);
@@ -83,9 +84,10 @@ public class SpringBeanToCdiProduces extends Recipe {
                         maybeAddImport(NAMED_FQN);
                         maybeAddImport(DEPENDENT_FQN);
 
-                        String beanName = beanAnnotation.getDefaultAttribute("name").map(Literal::getString).orElse(null);
-                        String scopeToAdd = determineCdiScope(scopeAnnotation == null ? null : scopeAnnotation.getTree());
-                        return JavaTemplate.builder(createTemplate(beanName, scopeToAdd))
+                        String template = createTemplate(
+                                beanAnnotation.getDefaultAttribute("name").map(Literal::getString).orElse(null),
+                                determineCdiScope(SCOPE_MATCHER.lower(getCursor()).findFirst().map(Annotated::getTree).orElse(null)));
+                        return JavaTemplate.builder(template)
                                 .imports(PRODUCES_FQN, APPLICATION_SCOPED_FQN, DEPENDENT_FQN, NAMED_FQN)
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.enterprise.cdi-api", "jakarta.inject-api"))
                                 .build()
@@ -112,15 +114,13 @@ public class SpringBeanToCdiProduces extends Recipe {
 
                         Expression arg = scopeAnnotation.getArguments().get(0);
                         String scopeValue = null;
-
                         if (arg instanceof J.Literal) {
                             scopeValue = (String) ((J.Literal) arg).getValue();
                         } else if (arg instanceof J.FieldAccess) {
                             scopeValue = ((J.FieldAccess) arg).getSimpleName();
                         }
 
-                        return (scopeValue != null && scopeValue.toLowerCase().contains("prototype"))
-                                ? DEPENDENT : APPLICATION_SCOPED;
+                        return (scopeValue != null && scopeValue.toLowerCase().contains("prototype")) ? DEPENDENT : APPLICATION_SCOPED;
                     }
                 });
     }
