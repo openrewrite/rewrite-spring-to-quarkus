@@ -34,7 +34,7 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    void convertResponseEntityOk() {
+    void ok() {
         rewriteRun(
           //language=java
           java(
@@ -44,9 +44,9 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
               import org.springframework.web.bind.annotation.RestController;
 
               @RestController
-              public class ProductController {
+              class ProductController {
                   @GetMapping("/products/{id}")
-                  public ResponseEntity<Product> getProduct() {
+                  ResponseEntity<Product> getProduct() {
                       Product product = new Product();
                       return ResponseEntity.ok(product);
                   }
@@ -62,9 +62,9 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
               import org.springframework.web.bind.annotation.RestController;
 
               @RestController
-              public class ProductController {
+              class ProductController {
                   @GetMapping("/products/{id}")
-                  public Response<Product> getProduct() {
+                  Response<Product> getProduct() {
                       Product product = new Product();
                       return Response.ok(product);
                   }
@@ -79,7 +79,7 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
     }
 
     @Test
-    void convertResponseEntityNotFound() {
+    void notFound() {
         rewriteRun(
           //language=java
           java(
@@ -89,9 +89,9 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
               import org.springframework.web.bind.annotation.RestController;
 
               @RestController
-              public class ProductController {
+              class ProductController {
                   @GetMapping("/products/{id}")
-                  public ResponseEntity<Product> getProduct() {
+                  ResponseEntity<Product> getProduct() {
                       return ResponseEntity.notFound().build();
                   }
               }
@@ -106,9 +106,9 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
               import org.springframework.web.bind.annotation.RestController;
 
               @RestController
-              public class ProductController {
+              class ProductController {
                   @GetMapping("/products/{id}")
-                  public Response<Product> getProduct() {
+                  Response<Product> getProduct() {
                       return Response.status(Response.Status.NOT_FOUND).build();
                   }
               }
@@ -122,7 +122,7 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
     }
 
     @Test
-    void convertResponseEntityStatus() {
+    void status() {
         rewriteRun(
           //language=java
           java(
@@ -133,9 +133,9 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
               import org.springframework.web.bind.annotation.RestController;
 
               @RestController
-              public class ProductController {
+              class ProductController {
                   @PostMapping("/products")
-                  public ResponseEntity<Product> createProduct() {
+                  ResponseEntity<Product> createProduct() {
                       Product product = new Product();
                       return ResponseEntity.status(HttpStatus.CREATED).body(product);
                   }
@@ -151,9 +151,9 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
               import org.springframework.web.bind.annotation.RestController;
 
               @RestController
-              public class ProductController {
+              class ProductController {
                   @PostMapping("/products")
-                  public Response<Product> createProduct() {
+                  Response<Product> createProduct() {
                       Product product = new Product();
                       return Response.status(Response.Status.CREATED).entity(product);
                   }
@@ -168,7 +168,7 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
     }
 
     @Test
-    void convertResponseEntityEmptyOk() {
+    void emptyOk() {
         rewriteRun(
           spec -> spec.afterTypeValidationOptions(TypeValidation.none()),
           //language=java
@@ -179,9 +179,9 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
               import org.springframework.web.bind.annotation.RestController;
 
               @RestController
-              public class ProductController {
+              class ProductController {
                   @GetMapping("/products")
-                  public ResponseEntity<Void> getProducts() {
+                  ResponseEntity<Void> getProducts() {
                       return ResponseEntity.ok().build();
                   }
               }
@@ -192,9 +192,9 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
               import org.springframework.web.bind.annotation.RestController;
 
               @RestController
-              public class ProductController {
+              class ProductController {
                   @GetMapping("/products")
-                  public Response<Void> getProducts() {
+                  Response<Void> getProducts() {
                       return Response.ok().build();
                   }
               }
@@ -204,7 +204,7 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
     }
 
     @Test
-    void convertMultipleStatusCodes() {
+    void badRequestAndNoContent() {
         rewriteRun(
           //language=java
           java(
@@ -214,12 +214,12 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
               import org.springframework.web.bind.annotation.RestController;
 
               @RestController
-              public class ProductController {
-                  public ResponseEntity<String> badRequest() {
+              class ProductController {
+                  ResponseEntity<String> badRequest() {
                       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("error");
                   }
 
-                  public ResponseEntity<Void> noContent() {
+                  ResponseEntity<Void> noContent() {
                       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
                   }
               }
@@ -229,12 +229,12 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
               import org.springframework.web.bind.annotation.RestController;
 
               @RestController
-              public class ProductController {
-                  public Response<String> badRequest() {
+              class ProductController {
+                  Response<String> badRequest() {
                       return Response.status(Response.Status.BAD_REQUEST).entity("error");
                   }
 
-                  public Response<Void> noContent() {
+                  Response<Void> noContent() {
                       return Response.status(Response.Status.NO_CONTENT).build();
                   }
               }
