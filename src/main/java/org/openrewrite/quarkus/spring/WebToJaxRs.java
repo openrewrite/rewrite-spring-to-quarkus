@@ -48,6 +48,7 @@ public class WebToJaxRs extends Recipe {
                         new UsesType<>("org.springframework.web.bind.annotation.PatchMapping", false),
                         new UsesType<>("org.springframework.web.bind.annotation.PathVariable", false),
                         new UsesType<>("org.springframework.web.bind.annotation.RequestParam", false),
+                        new UsesType<>("org.springframework.web.bind.annotation.RequestHeader", false),
                         new UsesType<>("org.springframework.web.bind.annotation.RequestBody", false),
                         new UsesType<>("org.springframework.web.bind.annotation.ResponseBody", false)
                 ),
@@ -63,6 +64,7 @@ public class WebToJaxRs extends Recipe {
         private static final AnnotationMatcher REQUEST_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestMapping");
         private static final AnnotationMatcher PATH_VARIABLE_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PathVariable");
         private static final AnnotationMatcher REQUEST_PARAM_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestParam");
+        private static final AnnotationMatcher REQUEST_HEADER_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestHeader");
         private static final AnnotationMatcher REQUEST_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestBody");
 
         // HTTP method matchers
@@ -290,19 +292,16 @@ public class WebToJaxRs extends Recipe {
 
                     // Keep arguments if present
                     String newAnn = "@PathParam";
+                    Object[] args = new Object[0];
                     if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
-                        // Extract the argument value
-                        String args = ann.getArguments().stream()
-                                .map(arg -> arg.printTrimmed(getCursor()))
-                                .reduce((a, b) -> a + ", " + b)
-                                .orElse("");
-                        newAnn = "@PathParam(" + args + ")";
+                        newAnn = "@PathParam(#{})";
+                        args = ann.getArguments().toArray();
                     }
                     return JavaTemplate.builder(newAnn)
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.PathParam")
                             .build()
-                            .apply(getCursor(), ann.getCoordinates().replace());
+                            .apply(getCursor(), ann.getCoordinates().replace(), args);
                 }
                 if (REQUEST_PARAM_MATCHER.matches(ann)) {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestParam");
@@ -310,19 +309,33 @@ public class WebToJaxRs extends Recipe {
 
                     // Keep arguments if present
                     String newAnn = "@QueryParam";
+                    Object[] args = new Object[0];
                     if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
-                        // Extract the argument value
-                        String args = ann.getArguments().stream()
-                                .map(arg -> arg.printTrimmed(getCursor()))
-                                .reduce((a, b) -> a + ", " + b)
-                                .orElse("");
-                        newAnn = "@QueryParam(" + args + ")";
+                        newAnn = "@QueryParam(#{})";
+                        args = ann.getArguments().toArray();
                     }
                     return JavaTemplate.builder(newAnn)
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
                             .imports("jakarta.ws.rs.QueryParam")
                             .build()
-                            .apply(getCursor(), ann.getCoordinates().replace());
+                            .apply(getCursor(), ann.getCoordinates().replace(), args);
+                }
+                if (REQUEST_HEADER_MATCHER.matches(ann)) {
+                    maybeRemoveImport("org.springframework.web.bind.annotation.RequestHeader");
+                    maybeAddImport("jakarta.ws.rs.HeaderParam");
+
+                    // Keep arguments if present
+                    String newAnn = "@HeaderParam";
+                    Object[] args = new Object[0];
+                    if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
+                        newAnn = "@HeaderParam(#{})";
+                        args = ann.getArguments().toArray();
+                    }
+                    return JavaTemplate.builder(newAnn)
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
+                            .imports("jakarta.ws.rs.HeaderParam")
+                            .build()
+                            .apply(getCursor(), ann.getCoordinates().replace(), args);
                 }
             }
 
