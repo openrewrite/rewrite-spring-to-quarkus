@@ -41,9 +41,9 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import org.springframework.context.annotation.Bean;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Bean
-                  public RestTemplate restTemplate() {
+                  RestTemplate restTemplate() {
                       return new RestTemplate();
                   }
               }
@@ -53,10 +53,10 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import jakarta.enterprise.inject.Produces;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Produces
                   @ApplicationScoped
-                  public RestTemplate restTemplate() {
+                  RestTemplate restTemplate() {
                       return new RestTemplate();
                   }
               }
@@ -75,10 +75,10 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import org.springframework.context.annotation.Scope;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Bean
                   @Scope("singleton")
-                  public RestTemplate restTemplate() {
+                  RestTemplate restTemplate() {
                       return new RestTemplate();
                   }
               }
@@ -88,10 +88,10 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import jakarta.enterprise.inject.Produces;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Produces
                   @ApplicationScoped
-                  public RestTemplate restTemplate() {
+                  RestTemplate restTemplate() {
                       return new RestTemplate();
                   }
               }
@@ -110,10 +110,10 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import org.springframework.context.annotation.Scope;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Bean
                   @Scope("prototype")
-                  public RestTemplate restTemplate() {
+                  RestTemplate restTemplate() {
                       return new RestTemplate();
                   }
               }
@@ -123,10 +123,10 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import jakarta.enterprise.inject.Produces;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Produces
                   @Dependent
-                  public RestTemplate restTemplate() {
+                  RestTemplate restTemplate() {
                       return new RestTemplate();
                   }
               }
@@ -145,15 +145,15 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import org.springframework.context.annotation.Scope;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Bean
-                  public RestTemplate restTemplate() {
+                  RestTemplate restTemplate() {
                       return new RestTemplate();
                   }
 
                   @Bean
                   @Scope("prototype")
-                  public RestTemplate restTemplate2() {
+                  RestTemplate restTemplate2() {
                       return new RestTemplate();
                   }
               }
@@ -164,16 +164,16 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import jakarta.enterprise.inject.Produces;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Produces
                   @ApplicationScoped
-                  public RestTemplate restTemplate() {
+                  RestTemplate restTemplate() {
                       return new RestTemplate();
                   }
 
                   @Produces
                   @Dependent
-                  public RestTemplate restTemplate2() {
+                  RestTemplate restTemplate2() {
                       return new RestTemplate();
                   }
               }
@@ -191,9 +191,9 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import org.springframework.context.annotation.Bean;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Bean("customRestTemplate")
-                  public RestTemplate restTemplate() {
+                  RestTemplate restTemplate() {
                       return new RestTemplate();
                   }
               }
@@ -204,11 +204,11 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import jakarta.inject.Named;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Produces
                   @Named("customRestTemplate")
                   @ApplicationScoped
-                  public RestTemplate restTemplate() {
+                  RestTemplate restTemplate() {
                       return new RestTemplate();
                   }
               }
@@ -228,10 +228,10 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import org.springframework.context.annotation.Scope;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Bean
                   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-                  public RestTemplate prototypeTemplate() {
+                  RestTemplate prototypeTemplate() {
                       return new RestTemplate();
                   }
               }
@@ -241,10 +241,10 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
               import jakarta.enterprise.inject.Produces;
               import org.springframework.web.client.RestTemplate;
 
-              public class AppConfig {
+              class AppConfig {
                   @Produces
                   @Dependent
-                  public RestTemplate prototypeTemplate() {
+                  RestTemplate prototypeTemplate() {
                       return new RestTemplate();
                   }
               }

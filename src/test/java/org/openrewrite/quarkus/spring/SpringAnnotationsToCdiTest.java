@@ -28,10 +28,47 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI")
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-context", "spring-beans", "javax.persistence-api", "validation-api"));
+            .classpath("spring-context", "spring-beans", "spring-web",
+              "javax.persistence-api", "validation-api"));
     }
 
     @DocumentExample
+    @Test
+    void migrateConfigurationWithBeans() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.client.RestTemplate;
+
+              @Configuration
+              public class AppConfig {
+                  @Bean
+                  public RestTemplate restTemplate() {
+                      return new RestTemplate();
+                  }
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
+              import jakarta.enterprise.inject.Produces;
+              import org.springframework.web.client.RestTemplate;
+
+              @ApplicationScoped
+              public class AppConfig {
+                  @Produces
+                  @ApplicationScoped
+                  public RestTemplate restTemplate() {
+                      return new RestTemplate();
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @Test
     void migrateServiceToApplicationScoped() {
         rewriteRun(
