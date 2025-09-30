@@ -378,6 +378,42 @@ class WebToJaxRsTest implements RewriteTest {
     }
 
     @Test
+    void convertRequestHeader() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.bind.annotation.RestController;
+              import org.springframework.web.bind.annotation.GetMapping;
+              import org.springframework.web.bind.annotation.RequestHeader;
+
+              @RestController
+              public class UserController {
+                  @GetMapping("/users")
+                  public String getUsers(@RequestHeader("Authorization") String auth) {
+                      return "users";
+                  }
+              }
+              """,
+            """
+              import jakarta.ws.rs.GET;
+              import jakarta.ws.rs.HeaderParam;
+              import jakarta.ws.rs.Path;
+
+              @Path("")
+              public class UserController {
+                  @GET
+                  @Path("/users")
+                  public String getUsers(@HeaderParam("Authorization") String auth) {
+                      return "users";
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void convertComplexExample() {
         rewriteRun(
           //language=java
