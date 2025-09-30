@@ -76,10 +76,16 @@ public class SpringBeanToCdiProduces extends Recipe {
                             return m;
                         }
 
+                        maybeRemoveImport(BEAN_FQN);
+                        maybeRemoveImport(SCOPE_FQN);
+                        maybeRemoveImport(CONFIGURABLE_BEAN_FACTORY_FQN);
+                        maybeAddImport(PRODUCES_FQN);
+                        maybeAddImport(APPLICATION_SCOPED_FQN);
+                        maybeAddImport(NAMED_FQN);
+                        maybeAddImport(DEPENDENT_FQN);
+
                         String beanName = extractBeanName(beanAnnotation);
                         String scopeToAdd = determineCdiScope(scopeAnnotation);
-                        manageImports(beanName, scopeAnnotation, scopeToAdd);
-
                         return JavaTemplate.builder(createTemplate(beanName, scopeToAdd))
                                 .imports(PRODUCES_FQN, APPLICATION_SCOPED_FQN, DEPENDENT_FQN, NAMED_FQN)
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.enterprise.cdi-api", "jakarta.inject-api"))
@@ -98,22 +104,6 @@ public class SpringBeanToCdiProduces extends Recipe {
                             templateBuilder.append(APPLICATION_SCOPED);
                         }
                         return templateBuilder.toString();
-                    }
-
-                    private void manageImports(@Nullable String beanName, J.@Nullable Annotation scopeAnnotation, @Nullable String scopeToAdd) {
-                        maybeRemoveImport(BEAN_FQN);
-                        maybeAddImport(PRODUCES_FQN);
-                        maybeAddImport(APPLICATION_SCOPED_FQN);
-                        if (beanName != null) {
-                            maybeAddImport(NAMED_FQN);
-                        }
-                        if (scopeAnnotation != null) {
-                            maybeRemoveImport(SCOPE_FQN);
-                            maybeRemoveImport(CONFIGURABLE_BEAN_FACTORY_FQN);
-                            if (DEPENDENT.equals(scopeToAdd)) {
-                                maybeAddImport(DEPENDENT_FQN);
-                            }
-                        }
                     }
 
                     private @Nullable String determineCdiScope(J.@Nullable Annotation scopeAnnotation) {
