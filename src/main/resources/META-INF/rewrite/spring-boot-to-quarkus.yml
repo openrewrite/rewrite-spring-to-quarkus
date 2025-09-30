@@ -96,9 +96,14 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI
-displayName: Migrate simple Spring annotations to CDI
-description: Replace Spring stereotype and injection annotations with CDI equivalents using declarative recipes.
+displayName: Migrate Spring annotations to CDI
+description: Replace Spring stereotype and injection annotations with CDI equivalents.
 recipeList:
+  - org.openrewrite.quarkus.spring.SpringBeanToCdiProduces
+  - org.openrewrite.java.ReplaceAnnotation:
+      annotationPatternToReplace: '@org.springframework.context.annotation.Configuration'
+      annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
+      classpathResourceName: 'jakarta.enterprise.cdi-api'
   - org.openrewrite.java.ReplaceAnnotation:
       annotationPatternToReplace: '@org.springframework.stereotype.Service'
       annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
