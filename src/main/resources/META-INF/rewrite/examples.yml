@@ -104,17 +104,13 @@ examples:
 - description: ''
   sources:
   - before: |
-      package com.example.demo;
-
       import org.springframework.scheduling.annotation.EnableScheduling;
 
       @EnableScheduling
-      public class SchedulingConfig {
+      class SchedulingConfig {
       }
     after: |
-      package com.example.demo;
-
-      public class SchedulingConfig {
+      class SchedulingConfig {
       }
     language: java
   - before: project
@@ -351,27 +347,13 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.quarkus.spring.RemoveEmptyMainMethod
-examples:
-- description: ''
-  sources:
-  - before: |
-      public class Application {
-          public static void main(String[] args) {
-              // This method will be removed
-          }
-      }
-    after: |
-      public class Application {
-      }
-    language: java
----
-type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.RemoveSpringBootApplication
 examples:
 - description: ''
   sources:
   - before: |
+      package com.example;
+
       import org.springframework.boot.SpringApplication;
       import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -382,46 +364,16 @@ examples:
           }
       }
     after: |
+      package com.example;
+
+      import io.quarkus.runtime.Quarkus;
+
       public class DemoApplication {
-      }
-    language: java
-- description: ''
-  sources:
-  - before: |
-      import org.springframework.boot.SpringApplication;
-      import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-      @SpringBootApplication
-      class DemoApplication {
-
           public static void main(String[] args) {
-              SpringApplication.run(DemoApplication.class, args);
+              Quarkus.run(args);
           }
       }
-    after: |
-      class DemoApplication {
-      }
     language: java
-  - before: |
-      <project>
-          <modelVersion>4.0.0</modelVersion>
-          <groupId>com.example</groupId>
-          <artifactId>demo</artifactId>
-          <version>0.0.1-SNAPSHOT</version>
-          <dependencyManagement>
-              <dependencies>
-                  <dependency>
-                      <groupId>io.quarkus.platform</groupId>
-                      <artifactId>quarkus-bom</artifactId>
-                      <version>3.26.4</version>
-                      <type>pom</type>
-                      <scope>import</scope>
-                  </dependency>
-              </dependencies>
-          </dependencyManagement>
-      </project>
-    path: pom.xml
-    language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.RemoveSpringBootParent
@@ -469,6 +421,107 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.ResponseEntityToJaxRsResponse
+examples:
+- description: ''
+  sources:
+  - before: |
+      import org.springframework.http.ResponseEntity;
+      import org.springframework.web.bind.annotation.GetMapping;
+      import org.springframework.web.bind.annotation.RestController;
+
+      @RestController
+      class ProductController {
+          @GetMapping("/products/{id}")
+          ResponseEntity<Product> getProduct() {
+              Product product = new Product();
+              return ResponseEntity.ok(product);
+          }
+      }
+
+      class Product {
+          String name;
+      }
+    after: |
+      import jakarta.ws.rs.core.Response;
+      import org.springframework.web.bind.annotation.GetMapping;
+      import org.springframework.web.bind.annotation.RestController;
+
+      @RestController
+      class ProductController {
+          @GetMapping("/products/{id}")
+          Response<Product> getProduct() {
+              Product product = new Product();
+              return Response.ok(product);
+          }
+      }
+
+      class Product {
+          String name;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.SpringApplicationRunToQuarkusRun
+examples:
+- description: ''
+  sources:
+  - before: |
+      package com.example;
+
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication
+      public class DemoApplication {
+          public static void main(String[] args) {
+              SpringApplication.run(DemoApplication.class, args);
+          }
+      }
+    after: |
+      package com.example;
+
+      import io.quarkus.runtime.Quarkus;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication
+      public class DemoApplication {
+          public static void main(String[] args) {
+              Quarkus.run(args);
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.SpringBeanToCdiProduces
+examples:
+- description: ''
+  sources:
+  - before: |
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.web.client.RestTemplate;
+
+      class AppConfig {
+          @Bean
+          RestTemplate restTemplate() {
+              return new RestTemplate();
+          }
+      }
+    after: |
+      import jakarta.enterprise.context.ApplicationScoped;
+      import jakarta.enterprise.inject.Produces;
+      import org.springframework.web.client.RestTemplate;
+
+      class AppConfig {
+          @Produces
+          @ApplicationScoped
+          RestTemplate restTemplate() {
+              return new RestTemplate();
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.SpringBootToQuarkus
 examples:
 - description: ''
@@ -496,16 +549,29 @@ examples:
 - description: ''
   sources:
   - before: |
-      import org.springframework.stereotype.Service;
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Configuration;
+      import org.springframework.web.client.RestTemplate;
 
-      @Service
-      class UserService {
+      @Configuration
+      public class AppConfig {
+          @Bean
+          public RestTemplate restTemplate() {
+              return new RestTemplate();
+          }
       }
     after: |
       import jakarta.enterprise.context.ApplicationScoped;
+      import jakarta.enterprise.inject.Produces;
+      import org.springframework.web.client.RestTemplate;
 
       @ApplicationScoped
-      class UserService {
+      public class AppConfig {
+          @Produces
+          @ApplicationScoped
+          public RestTemplate restTemplate() {
+              return new RestTemplate();
+          }
       }
     language: java
 ---
