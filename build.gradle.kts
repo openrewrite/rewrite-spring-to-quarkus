@@ -41,7 +41,6 @@ dependencies {
     testRuntimeOnly("org.springframework:spring-context:6.2.11")
     testRuntimeOnly("org.springframework:spring-beans:6.2.11")
     testRuntimeOnly("org.springframework:spring-web:6.2.11")
-    testRuntimeOnly("io.quarkus:quarkus-core:3.17.5")
     testRuntimeOnly("javax.persistence:javax.persistence-api:2.2")
     testRuntimeOnly("javax.validation:validation-api:2.0.1.Final")
     testRuntimeOnly(gradleApi())
