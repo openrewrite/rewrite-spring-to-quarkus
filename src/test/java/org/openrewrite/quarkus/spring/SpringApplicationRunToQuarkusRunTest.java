@@ -22,18 +22,17 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
-import static org.openrewrite.maven.Assertions.pomXml;
 
-class RemoveSpringBootApplicationTest implements RewriteTest {
+class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.RemoveSpringBootApplication")
+        spec.recipe(new SpringApplicationRunToQuarkusRun())
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot"));
     }
 
     @DocumentExample
     @Test
-    void removeSpringBootApplicationAndUpdateMainMethod() {
+    void replaceSpringApplicationRun() {
         rewriteRun(
           //language=java
           java(
@@ -54,7 +53,9 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
               package com.example;
 
               import io.quarkus.runtime.Quarkus;
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+              @SpringBootApplication
               public class DemoApplication {
                   public static void main(String[] args) {
                       Quarkus.run(args);
@@ -66,35 +67,7 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
     }
 
     @Test
-    void removeOnlySpringBootApplication() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-              @SpringBootApplication
-              public class DemoApplication {
-
-                  public void someOtherMethod() {
-                      System.out.println("Hello");
-                  }
-              }
-              """,
-            """
-              public class DemoApplication {
-
-                  public void someOtherMethod() {
-                      System.out.println("Hello");
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void migrateBasicSpringBootApplication() {
+    void replaceVarargs() {
         rewriteRun(
           //language=java
           java(
@@ -105,10 +78,9 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
               import org.springframework.boot.autoconfigure.SpringBootApplication;
 
               @SpringBootApplication
-              class DemoApplication {
-
+              public class DemoApplication {
                   public static void main(String[] args) {
-                      SpringApplication.run(DemoApplication.class, args);
+                      SpringApplication.run(DemoApplication.class, "one", "two", "three");
                   }
               }
               """,
@@ -116,49 +88,12 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
               package com.example;
 
               import io.quarkus.runtime.Quarkus;
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-              class DemoApplication {
-
+              @SpringBootApplication
+              public class DemoApplication {
                   public static void main(String[] args) {
-                      Quarkus.run(args);
-                  }
-              }
-              """
-          ),
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>com.example</groupId>
-                  <artifactId>demo</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <dependencyManagement>
-                      <dependencies>
-                          <dependency>
-                              <groupId>io.quarkus.platform</groupId>
-                              <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
-                              <type>pom</type>
-                              <scope>import</scope>
-                          </dependency>
-                      </dependencies>
-                  </dependencyManagement>
-              </project>
-              """
-          )
-        );
-    }
-
-    @Test
-    void doNotChangeNonSpringBootApplication() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              package com.example;
-              class RegularApplication {
-                  public static void main(String[] args) {
+                      Quarkus.run("one", "two", "three");
                   }
               }
               """

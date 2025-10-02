@@ -12,6 +12,7 @@ recipeDependencies {
     parserClasspath("jakarta.inject:jakarta.inject-api:2.0.1")
     parserClasspath("jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1")
     parserClasspath("org.eclipse.microprofile.config:microprofile-config-api:3.0.3")
+    parserClasspath("io.quarkus:quarkus-core:3.28.2")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()

@@ -130,7 +130,13 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
             """
               package com.example;
 
+              import io.quarkus.runtime.Quarkus;
+
               class DemoApplication {
+
+                  public static void main(String[] args) {
+                      Quarkus.run(args);
+                  }
               }
               """
           ),
@@ -189,7 +195,13 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
             """
               package com.example;
 
+              import io.quarkus.runtime.Quarkus;
+
               class DemoApplication {
+
+                  public static void main(String[] args) {
+                      Quarkus.run(args);
+                  }
               }
               """
           ),
@@ -248,7 +260,13 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
             """
               package com.example;
 
+              import io.quarkus.runtime.Quarkus;
+
               class DemoApplication {
+
+                  public static void main(String[] args) {
+                      Quarkus.run(args);
+                  }
               }
               """
           ),
@@ -311,7 +329,13 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
             """
               package com.example;
 
+              import io.quarkus.runtime.Quarkus;
+
               class DemoApplication {
+
+                  public static void main(String[] args) {
+                      Quarkus.run(args);
+                  }
               }
               """
           ),
