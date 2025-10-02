@@ -37,6 +37,7 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateMavenPlugin
   - org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
   - org.openrewrite.quarkus.spring.MigrateBootStarters
+  - org.openrewrite.quarkus.spring.SpringApplicationRunToQuarkusRun
   - org.openrewrite.quarkus.spring.RemoveSpringBootApplication
   - org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies
   - org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
@@ -89,9 +90,7 @@ preconditions:
 recipeList:
   - org.openrewrite.java.RemoveAnnotation:
       annotationPattern: org.springframework.boot.autoconfigure.SpringBootApplication
-  - org.openrewrite.java.RemoveMethodInvocations:
-      methodPattern: org.springframework.boot.SpringApplication run(..)
-  - org.openrewrite.quarkus.spring.RemoveEmptyMainMethod
+  - org.openrewrite.quarkus.spring.SpringApplicationRunToQuarkusRun
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
