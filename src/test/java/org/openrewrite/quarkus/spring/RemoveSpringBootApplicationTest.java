@@ -33,7 +33,7 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    void removeSpringBootApplicationAndMainMethod() {
+    void removeSpringBootApplicationAndUpdateMainMethod() {
         rewriteRun(
           //language=java
           java(
@@ -53,7 +53,13 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
             """
               package com.example;
 
+              import io.quarkus.runtime.Quarkus;
+
               public class DemoApplication {
+
+                  public static void main(String[] args) {
+                      Quarkus.run(args);
+                  }
               }
               """
           )
@@ -110,7 +116,13 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
             """
               package com.example;
 
+              import io.quarkus.runtime.Quarkus;
+
               class DemoApplication {
+
+                  public static void main(String[] args) {
+                      Quarkus.run(args);
+                  }
               }
               """
           ),
