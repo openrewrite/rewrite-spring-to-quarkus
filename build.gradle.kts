@@ -12,6 +12,7 @@ recipeDependencies {
     parserClasspath("jakarta.inject:jakarta.inject-api:2.0.1")
     parserClasspath("jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1")
     parserClasspath("org.eclipse.microprofile.config:microprofile-config-api:3.0.3")
+    parserClasspath("io.quarkus:quarkus-core:3.28.2")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -40,6 +41,7 @@ dependencies {
     testRuntimeOnly("org.springframework:spring-context:6.2.11")
     testRuntimeOnly("org.springframework:spring-beans:6.2.11")
     testRuntimeOnly("org.springframework:spring-web:6.2.11")
+    testRuntimeOnly("io.quarkus:quarkus-core:3.17.5")
     testRuntimeOnly("javax.persistence:javax.persistence-api:2.2")
     testRuntimeOnly("javax.validation:validation-api:2.0.1.Final")
     testRuntimeOnly(gradleApi())
