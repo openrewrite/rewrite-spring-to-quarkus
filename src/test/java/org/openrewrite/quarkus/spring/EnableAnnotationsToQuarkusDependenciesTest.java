@@ -27,8 +27,8 @@ import static org.openrewrite.maven.Assertions.pomXml;
 class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources(
-            "org.openrewrite.quarkus.spring.RemoveSpringBootApplication",
+        spec.recipeFromResource(
+            "/META-INF/rewrite/autoconfig.yml",
             "org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies")
           .parser(JavaParser.fromJavaVersion()
             .classpath("spring-boot", "spring-boot-autoconfigure", "spring-context", "spring-data-jpa"));
@@ -112,31 +112,14 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
           //language=java
           java(
             """
-              package com.example;
-
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
               import org.springframework.scheduling.annotation.EnableScheduling;
 
-              @SpringBootApplication
               @EnableScheduling
               class DemoApplication {
-
-                  public static void main(String[] args) {
-                      SpringApplication.run(DemoApplication.class, args);
-                  }
               }
               """,
             """
-              package com.example;
-
-              import io.quarkus.runtime.Quarkus;
-
               class DemoApplication {
-
-                  public static void main(String[] args) {
-                      Quarkus.run(args);
-                  }
               }
               """
           ),
@@ -177,31 +160,14 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
           //language=java
           java(
             """
-              package com.example;
-
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
               import org.springframework.cache.annotation.EnableCaching;
 
-              @SpringBootApplication
               @EnableCaching
               class DemoApplication {
-
-                  public static void main(String[] args) {
-                      SpringApplication.run(DemoApplication.class, args);
-                  }
               }
               """,
             """
-              package com.example;
-
-              import io.quarkus.runtime.Quarkus;
-
               class DemoApplication {
-
-                  public static void main(String[] args) {
-                      Quarkus.run(args);
-                  }
               }
               """
           ),
@@ -242,31 +208,14 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
           //language=java
           java(
             """
-              package com.example;
-
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
               import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-              @SpringBootApplication
               @EnableJpaRepositories
               class DemoApplication {
-
-                  public static void main(String[] args) {
-                      SpringApplication.run(DemoApplication.class, args);
-                  }
               }
               """,
             """
-              package com.example;
-
-              import io.quarkus.runtime.Quarkus;
-
               class DemoApplication {
-
-                  public static void main(String[] args) {
-                      Quarkus.run(args);
-                  }
               }
               """
           ),
@@ -307,35 +256,18 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
           //language=java
           java(
             """
-              package com.example;
-
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
               import org.springframework.scheduling.annotation.EnableScheduling;
               import org.springframework.cache.annotation.EnableCaching;
               import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-              @SpringBootApplication
               @EnableScheduling
               @EnableCaching
               @EnableJpaRepositories
               class DemoApplication {
-
-                  public static void main(String[] args) {
-                      SpringApplication.run(DemoApplication.class, args);
-                  }
               }
               """,
             """
-              package com.example;
-
-              import io.quarkus.runtime.Quarkus;
-
               class DemoApplication {
-
-                  public static void main(String[] args) {
-                      Quarkus.run(args);
-                  }
               }
               """
           ),

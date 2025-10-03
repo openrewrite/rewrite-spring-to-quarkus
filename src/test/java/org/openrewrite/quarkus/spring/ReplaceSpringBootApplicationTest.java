@@ -24,16 +24,16 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class RemoveSpringBootApplicationTest implements RewriteTest {
+class ReplaceSpringBootApplicationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.RemoveSpringBootApplication")
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.ReplaceSpringBootApplication")
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot"));
     }
 
     @DocumentExample
     @Test
-    void removeSpringBootApplicationAndUpdateMainMethod() {
+    void replaceSpringBootApplicationAndUpdateMainMethod() {
         rewriteRun(
           //language=java
           java(
@@ -54,7 +54,9 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
               package com.example;
 
               import io.quarkus.runtime.Quarkus;
+              import io.quarkus.runtime.annotations.QuarkusMain;
 
+              @QuarkusMain
               public class DemoApplication {
                   public static void main(String[] args) {
                       Quarkus.run(args);
@@ -66,7 +68,7 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
     }
 
     @Test
-    void removeOnlySpringBootApplication() {
+    void replaceOnlySpringBootApplication() {
         rewriteRun(
           //language=java
           java(
@@ -82,6 +84,9 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
               }
               """,
             """
+              import io.quarkus.runtime.annotations.QuarkusMain;
+
+              @QuarkusMain
               public class DemoApplication {
 
                   public void someOtherMethod() {
@@ -116,7 +121,9 @@ class RemoveSpringBootApplicationTest implements RewriteTest {
               package com.example;
 
               import io.quarkus.runtime.Quarkus;
+              import io.quarkus.runtime.annotations.QuarkusMain;
 
+              @QuarkusMain
               class DemoApplication {
 
                   public static void main(String[] args) {

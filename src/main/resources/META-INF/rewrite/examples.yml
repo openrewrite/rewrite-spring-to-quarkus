@@ -347,7 +347,7 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.quarkus.spring.RemoveSpringBootApplication
+recipeName: org.openrewrite.quarkus.spring.ReplaceSpringBootApplication
 examples:
 - description: ''
   sources:
