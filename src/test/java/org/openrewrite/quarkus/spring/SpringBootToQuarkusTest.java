@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -30,7 +31,8 @@ import static org.openrewrite.maven.Assertions.pomXml;
 class SpringBootToQuarkusTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringBootToQuarkus");
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringBootToQuarkus")
+          .parser(JavaParser.fromJavaVersion().classpath("spring-web", "spring-context"));
     }
 
     @DocumentExample
@@ -193,7 +195,7 @@ class SpringBootToQuarkusTest implements RewriteTest {
     }
 
     @Test
-    void migrateSpringBootDependency() {
+    void migrateSpringBootDependencyAndWebEndpoints() {
         rewriteRun(
           mavenProject("project",
             //language=xml
