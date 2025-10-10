@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class SpringBootToQuarkusTest implements RewriteTest {
@@ -51,6 +52,12 @@ class SpringBootToQuarkusTest implements RewriteTest {
                   <properties>
                       <java.version>17</java.version>
                   </properties>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-web</artifactId>
+                      </dependency>
+                  </dependencies>
               </project>
               """,
             spec -> spec.after(actual -> {
@@ -118,6 +125,12 @@ class SpringBootToQuarkusTest implements RewriteTest {
                           </dependency>
                       </dependencies>
                   </dependencyManagement>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-web</artifactId>
+                      </dependency>
+                  </dependencies>
               </project>
               """,
             spec -> spec.after(actual -> {
@@ -159,6 +172,99 @@ class SpringBootToQuarkusTest implements RewriteTest {
                   </project>
                   """.formatted(quarkusVersion, quarkusVersion);
             })
+          )
+        );
+    }
+
+    @Test
+    void migrateSpringBootDependency() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-web</artifactId>
+                            <version>3.1.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              """
+                <project>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>3.28.3</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>io.quarkus</groupId>
+                            <artifactId>quarkus-resteasy-jackson</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>io.quarkus</groupId>
+                            <artifactId>quarkus-spring-web</artifactId>
+                        </dependency>
+                    </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-maven-plugin</artifactId>
+                                <version>3.28.3</version>
+                            </plugin>
+                        </plugins>
+                    </build>
+                </project>
+                """
+            ),
+            srcMainJava(
+              java(
+                """
+                  import org.springframework.web.bind.annotation.RestController;
+                  import org.springframework.web.bind.annotation.GetMapping;
+
+                  @RestController
+                  public class UserController {
+
+                      @GetMapping("/users")
+                      public String getUsers() {
+                          return "users";
+                      }
+                  }
+                  """,
+                """
+                  import jakarta.ws.rs.GET;
+                  import jakarta.ws.rs.Path;
+
+                  @Path("")
+                  public class UserController {
+
+                      @GET
+                      @Path("/users")
+                      public String getUsers() {
+                          return "users";
+                      }
+                  }
+                  """
+              )
+            )
           )
         );
     }
