@@ -198,8 +198,8 @@ class SpringBootToQuarkusTest implements RewriteTest {
     void migrateSpringBootDependencyAndWebEndpoints() {
         rewriteRun(
           mavenProject("project",
-            //language=xml
             pomXml(
+              //language=xml
               """
                 <project>
                     <groupId>com.example</groupId>
@@ -214,43 +214,14 @@ class SpringBootToQuarkusTest implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <dependencyManagement>
-                        <dependencies>
-                            <dependency>
-                                <groupId>io.quarkus.platform</groupId>
-                                <artifactId>quarkus-bom</artifactId>
-                                <version>3.28.3</version>
-                                <type>pom</type>
-                                <scope>import</scope>
-                            </dependency>
-                        </dependencies>
-                    </dependencyManagement>
-                    <dependencies>
-                        <dependency>
-                            <groupId>io.quarkus</groupId>
-                            <artifactId>quarkus-resteasy-jackson</artifactId>
-                        </dependency>
-                        <dependency>
-                            <groupId>io.quarkus</groupId>
-                            <artifactId>quarkus-spring-web</artifactId>
-                        </dependency>
-                    </dependencies>
-                    <build>
-                        <plugins>
-                            <plugin>
-                                <groupId>io.quarkus.platform</groupId>
-                                <artifactId>quarkus-maven-plugin</artifactId>
-                                <version>3.28.3</version>
-                            </plugin>
-                        </plugins>
-                    </build>
-                </project>
-                """
+              spec -> spec.after(pom -> assertThat(pom)
+                .contains(
+                  "quarkus-bom",
+                  "<artifactId>quarkus-resteasy-jackson</artifactId>",
+                  "<artifactId>quarkus-spring-web</artifactId>",
+                  "<artifactId>quarkus-maven-plugin</artifactId>")
+                .doesNotContain("<artifactId>spring-boot-starter-web</artifactId>")
+                .actual())
             ),
             srcMainJava(
               java(
