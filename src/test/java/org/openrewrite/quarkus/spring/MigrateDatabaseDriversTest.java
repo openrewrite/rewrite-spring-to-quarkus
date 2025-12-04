@@ -238,7 +238,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
         );
     }
 
-    @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
+    @DisabledIfEnvironmentVariable(named = "CI", matches = "true", disabledReason = "Failure in CI needs investigation")
     @Test
     void migrateRuntimeScopeDependency() {
         rewriteRun(
