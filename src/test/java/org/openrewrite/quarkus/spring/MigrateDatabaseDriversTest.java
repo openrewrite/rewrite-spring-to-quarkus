@@ -289,6 +289,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                       <dependency>
                           <groupId>io.quarkus</groupId>
                           <artifactId>quarkus-jdbc-h2</artifactId>
+                          <scope>test</scope>
                       </dependency>
                   </dependencies>
               </project>
