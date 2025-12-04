@@ -21,10 +21,14 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.maven.AddPlugin;
+import org.openrewrite.maven.ChangePluginExecutions;
 import org.openrewrite.maven.MavenIsoVisitor;
 import org.openrewrite.maven.tree.ManagedDependency;
+import org.openrewrite.xml.AddOrUpdateChildTag;
 import org.openrewrite.xml.tree.Xml;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @Value
@@ -66,5 +70,21 @@ public class AddQuarkusMavenPlugin extends Recipe {
                         .visitNonNull(document, ctx);
             }
         };
+    }
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return Arrays.asList(
+                new ChangePluginExecutions(
+                        "io.quarkus.platform",
+                        "quarkus-maven-plugin",
+                        "<execution><goals><goal>build</goal><goal>generate-code</goal><goal>generate-code-tests</goal></goals></execution>"
+                ),
+                new AddOrUpdateChildTag(
+                        "//plugin[artifactId='quarkus-maven-plugin']",
+                        "<extensions>true</extensions>",
+                        null
+                )
+        );
     }
 }
