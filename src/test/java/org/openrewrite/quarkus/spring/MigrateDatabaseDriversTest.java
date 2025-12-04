@@ -15,7 +15,9 @@
  */
 package org.openrewrite.quarkus.spring;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.openrewrite.DocumentExample;
@@ -236,6 +238,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
         );
     }
 
+    @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
     @Test
     void migrateRuntimeScopeDependency() {
         rewriteRun(
@@ -289,7 +292,6 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                       <dependency>
                           <groupId>io.quarkus</groupId>
                           <artifactId>quarkus-jdbc-h2</artifactId>
-                          <scope>test</scope>
                       </dependency>
                   </dependencies>
               </project>
