@@ -98,6 +98,16 @@ class SpringBootToQuarkusTest implements RewriteTest {
                                     <groupId>io.quarkus.platform</groupId>
                                     <artifactId>quarkus-maven-plugin</artifactId>
                                     <version>%s</version>
+                                    <executions>
+                                        <execution>
+                                            <goals>
+                                                <goal>build</goal>
+                                                <goal>generate-code</goal>
+                                                <goal>generate-code-tests</goal>
+                                            </goals>
+                                        </execution>
+                                    </executions>
+                                    <extensions>true</extensions>
                                 </plugin>
                             </plugins>
                         </build>
@@ -183,6 +193,16 @@ class SpringBootToQuarkusTest implements RewriteTest {
                                     <groupId>io.quarkus.platform</groupId>
                                     <artifactId>quarkus-maven-plugin</artifactId>
                                     <version>%s</version>
+                                    <executions>
+                                        <execution>
+                                            <goals>
+                                                <goal>build</goal>
+                                                <goal>generate-code</goal>
+                                                <goal>generate-code-tests</goal>
+                                            </goals>
+                                        </execution>
+                                    </executions>
+                                    <extensions>true</extensions>
                                 </plugin>
                             </plugins>
                         </build>
