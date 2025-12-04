@@ -84,6 +84,16 @@ class MigrateMavenPluginTest implements RewriteTest {
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-maven-plugin</artifactId>
                               <version>3.2.5.Final</version>
+                              <executions>
+                                  <execution>
+                                      <goals>
+                                          <goal>build</goal>
+                                          <goal>generate-code</goal>
+                                          <goal>generate-code-tests</goal>
+                                      </goals>
+                                  </execution>
+                              </executions>
+                              <extensions>true</extensions>
                           </plugin>
                       </plugins>
                   </build>
@@ -157,6 +167,16 @@ class MigrateMavenPluginTest implements RewriteTest {
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-maven-plugin</artifactId>
                               <version>3.2.5.Final</version>
+                              <executions>
+                                  <execution>
+                                      <goals>
+                                          <goal>build</goal>
+                                          <goal>generate-code</goal>
+                                          <goal>generate-code-tests</goal>
+                                      </goals>
+                                  </execution>
+                              </executions>
+                              <extensions>true</extensions>
                           </plugin>
                       </plugins>
                   </build>
@@ -223,6 +243,16 @@ class MigrateMavenPluginTest implements RewriteTest {
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-maven-plugin</artifactId>
                               <version>3.2.5.Final</version>
+                              <executions>
+                                  <execution>
+                                      <goals>
+                                          <goal>build</goal>
+                                          <goal>generate-code</goal>
+                                          <goal>generate-code-tests</goal>
+                                      </goals>
+                                  </execution>
+                              </executions>
+                              <extensions>true</extensions>
                           </plugin>
                       </plugins>
                   </build>
