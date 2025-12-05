@@ -13,6 +13,69 @@
 # limitations under the License.
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.AddQuarkusMavenPlugin
+examples:
+- description: '`AddQuarkusMavenPluginTest#addPlugin`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>io.quarkus.platform</groupId>
+                      <artifactId>quarkus-bom</artifactId>
+                      <version>3.17.0</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>io.quarkus.platform</groupId>
+                      <artifactId>quarkus-bom</artifactId>
+                      <version>3.17.0</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>io.quarkus.platform</groupId>
+                      <artifactId>quarkus-maven-plugin</artifactId>
+                      <version>3.17.0</version>
+                      <executions>
+                          <execution>
+                              <goals>
+                                  <goal>build</goal>
+                                  <goal>generate-code</goal>
+                                  <goal>generate-code-tests</goal>
+                              </goals>
+                          </execution>
+                      </executions>
+                      <extensions>true</extensions>
+                  </plugin>
+              </plugins>
+          </build>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
 examples:
 - description: '`AddSpringCompatibilityExtensionsTest#addSpringCompatibilityExtensionsForCommonAnnotations`'
@@ -339,6 +402,16 @@ examples:
                       <groupId>io.quarkus.platform</groupId>
                       <artifactId>quarkus-maven-plugin</artifactId>
                       <version>3.2.5.Final</version>
+                      <executions>
+                          <execution>
+                              <goals>
+                                  <goal>build</goal>
+                                  <goal>generate-code</goal>
+                                  <goal>generate-code-tests</goal>
+                              </goals>
+                          </execution>
+                      </executions>
+                      <extensions>true</extensions>
                   </plugin>
               </plugins>
           </build>
