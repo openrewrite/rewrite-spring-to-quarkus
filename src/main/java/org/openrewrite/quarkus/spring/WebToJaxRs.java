@@ -24,6 +24,22 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
 public class WebToJaxRs extends Recipe {
+    private static final AnnotationMatcher REST_CONTROLLER_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RestController");
+    private static final AnnotationMatcher CONTROLLER_MATCHER = new AnnotationMatcher("@org.springframework.stereotype.Controller");
+    private static final AnnotationMatcher RESPONSE_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.ResponseBody");
+    private static final AnnotationMatcher REQUEST_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestMapping");
+    private static final AnnotationMatcher PATH_VARIABLE_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PathVariable");
+    private static final AnnotationMatcher REQUEST_PARAM_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestParam");
+    private static final AnnotationMatcher REQUEST_HEADER_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestHeader");
+    private static final AnnotationMatcher REQUEST_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestBody");
+
+    // HTTP method matchers
+    private static final AnnotationMatcher GET_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.GetMapping");
+    private static final AnnotationMatcher POST_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PostMapping");
+    private static final AnnotationMatcher PUT_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PutMapping");
+    private static final AnnotationMatcher DELETE_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.DeleteMapping");
+    private static final AnnotationMatcher PATCH_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PatchMapping");
+
     @Override
     public String getDisplayName() {
         return "Convert Spring Web annotations to JAX-RS";
@@ -38,19 +54,8 @@ public class WebToJaxRs extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
                 Preconditions.or(
-                        new UsesType<>("org.springframework.web.bind.annotation.RestController", false),
                         new UsesType<>("org.springframework.stereotype.Controller", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.RequestMapping", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.GetMapping", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.PostMapping", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.PutMapping", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.DeleteMapping", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.PatchMapping", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.PathVariable", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.RequestParam", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.RequestHeader", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.RequestBody", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.ResponseBody", false)
+                        new UsesType<>("org.springframework.web.bind.annotation.*", false)
                 ),
                 // XXX See if we can avoid repeatUntilStable by making the visitor idempotent in a single pass
                 Repeat.repeatUntilStable(new WebToJaxRsVisitor())
@@ -58,22 +63,6 @@ public class WebToJaxRs extends Recipe {
     }
 
     private static class WebToJaxRsVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final AnnotationMatcher REST_CONTROLLER_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RestController");
-        private static final AnnotationMatcher CONTROLLER_MATCHER = new AnnotationMatcher("@org.springframework.stereotype.Controller");
-        private static final AnnotationMatcher RESPONSE_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.ResponseBody");
-        private static final AnnotationMatcher REQUEST_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestMapping");
-        private static final AnnotationMatcher PATH_VARIABLE_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PathVariable");
-        private static final AnnotationMatcher REQUEST_PARAM_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestParam");
-        private static final AnnotationMatcher REQUEST_HEADER_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestHeader");
-        private static final AnnotationMatcher REQUEST_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestBody");
-
-        // HTTP method matchers
-        private static final AnnotationMatcher GET_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.GetMapping");
-        private static final AnnotationMatcher POST_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PostMapping");
-        private static final AnnotationMatcher PUT_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PutMapping");
-        private static final AnnotationMatcher DELETE_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.DeleteMapping");
-        private static final AnnotationMatcher PATCH_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PatchMapping");
-
         @Override
         public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
             // There's a weird issue with duplicated newlines on annotated classes
