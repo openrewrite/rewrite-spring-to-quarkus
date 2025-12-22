@@ -35,7 +35,6 @@ class MigrateBootStartersTest implements RewriteTest {
     @Test
     void migrateWebWithoutReactor() {
         rewriteRun(
-          spec -> spec.cycles(2).expectedCyclesThatMakeChanges(1),
           //language=xml
           pomXml(
             """
