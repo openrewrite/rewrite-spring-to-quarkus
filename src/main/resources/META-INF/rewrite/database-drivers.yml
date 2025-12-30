@@ -128,7 +128,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.H2DriverToQuarkus
 displayName: Replace H2 driver with Quarkus JDBC H2
-description: Migrates `com.h2database:h2` to `io.quarkus:quarkus-jdbc-h2` (excludes test scope)
+description: Migrates `com.h2database:h2` to `io.quarkus:quarkus-jdbc-h2` (excludes test scope).
 tags:
   - spring
   - quarkus
@@ -155,7 +155,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.H2TestDriverToQuarkus
 displayName: Replace H2 test driver with Quarkus JDBC H2 (test scope)
-description: Migrates `com.h2database:h2` with test scope to `io.quarkus:quarkus-jdbc-h2` with test scope
+description: Migrates `com.h2database:h2` with test scope to `io.quarkus:quarkus-jdbc-h2` with test scope.
 tags:
   - spring
   - quarkus
@@ -183,7 +183,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.DerbyDriverToQuarkus
 displayName: Replace Derby driver with Quarkus JDBC Derby
-description: Migrates `org.apache.derby:derby` or `derbyclient` to `io.quarkus:quarkus-jdbc-derby` (excludes test scope)
+description: Migrates `org.apache.derby:derby` or `derbyclient` to `io.quarkus:quarkus-jdbc-derby` (excludes test scope).
 tags:
   - spring
   - quarkus
@@ -215,7 +215,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.DerbyTestDriverToQuarkus
 displayName: Replace Derby test driver with Quarkus JDBC Derby (test scope)
-description: Migrates `org.apache.derby:derby` with test scope to `io.quarkus:quarkus-jdbc-derby` with test scope
+description: Migrates `org.apache.derby:derby` with test scope to `io.quarkus:quarkus-jdbc-derby` with test scope.
 tags:
   - spring
   - quarkus
