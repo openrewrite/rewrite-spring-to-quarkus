@@ -40,15 +40,9 @@ public class ResponseEntityToJaxRsResponse extends Recipe {
     private static final MethodMatcher RESPONSE_ENTITY_STATUS = new MethodMatcher("org.springframework.http.ResponseEntity status(..)");
     private static final MethodMatcher BODY_METHOD = new MethodMatcher("org.springframework.http.ResponseEntity$* body(..)");
 
-    @Override
-    public String getDisplayName() {
-        return "Convert Spring `ResponseEntity` to JAX-RS `Response`";
-    }
+    String displayName = "Convert Spring `ResponseEntity` to JAX-RS `Response`";
 
-    @Override
-    public String getDescription() {
-        return "Transforms Spring `ResponseEntity` patterns to JAX-RS `Response` API equivalents.";
-    }
+    String description = "Transforms Spring `ResponseEntity` patterns to JAX-RS `Response` API equivalents.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -41,15 +41,9 @@ public class ValueToCdiConfigProperty extends Recipe {
                     "(?::([^}]+))?" + // optionally captures :defaultValue
                     "[}]"); // Closing }
 
-    @Override
-    public String getDisplayName() {
-        return "Replace Spring `@Value` with CDI `@ConfigProperty`";
-    }
+    String displayName = "Replace Spring `@Value` with CDI `@ConfigProperty`";
 
-    @Override
-    public String getDescription() {
-        return "Transform Spring `@Value` annotations to MicroProfile `@ConfigProperty` with proper parameter mapping.";
-    }
+    String description = "Transform Spring `@Value` annotations to MicroProfile `@ConfigProperty` with proper parameter mapping.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

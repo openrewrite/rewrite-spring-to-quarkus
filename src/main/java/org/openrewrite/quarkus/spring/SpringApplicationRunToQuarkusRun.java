@@ -39,15 +39,9 @@ public class SpringApplicationRunToQuarkusRun extends Recipe {
 
     private static final MethodMatcher SPRING_APPLICATION_RUN = new MethodMatcher("org.springframework.boot.SpringApplication run(..)", true);
 
-    @Override
-    public String getDisplayName() {
-        return "Replace `SpringApplication.run()` with `Quarkus.run()`";
-    }
+    String displayName = "Replace `SpringApplication.run()` with `Quarkus.run()`";
 
-    @Override
-    public String getDescription() {
-        return "Replace Spring Boot's `SpringApplication.run()` method calls with Quarkus's `Quarkus.run()`.";
-    }
+    String description = "Replace Spring Boot's `SpringApplication.run()` method calls with Quarkus's `Quarkus.run()`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

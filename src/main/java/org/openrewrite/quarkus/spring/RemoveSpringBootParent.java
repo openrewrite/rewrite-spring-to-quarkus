@@ -28,15 +28,9 @@ import org.openrewrite.xml.tree.Xml;
 @EqualsAndHashCode(callSuper = false)
 public class RemoveSpringBootParent extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Remove Spring Boot 3.x parent POM";
-    }
+    String displayName = "Remove Spring Boot 3.x parent POM";
 
-    @Override
-    public String getDescription() {
-        return "Removes the Spring Boot 3.x starter parent POM from Maven projects.";
-    }
+    String description = "Removes the Spring Boot 3.x starter parent POM from Maven projects.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

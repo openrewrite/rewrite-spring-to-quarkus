@@ -51,15 +51,9 @@ public class SpringBeanToCdiProduces extends Recipe {
     public static final String APPLICATION_SCOPED = "@ApplicationScoped";
     public static final String NAMED = "@Named";
 
-    @Override
-    public String getDisplayName() {
-        return "Replace Spring `@Bean` with CDI `@Produces`";
-    }
+    String displayName = "Replace Spring `@Bean` with CDI `@Produces`";
 
-    @Override
-    public String getDescription() {
-        return "Transform Spring `@Bean` methods to CDI `@Produces` methods with appropriate scope annotations.";
-    }
+    String description = "Transform Spring `@Bean` methods to CDI `@Produces` methods with appropriate scope annotations.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

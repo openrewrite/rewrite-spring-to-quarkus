@@ -35,15 +35,9 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = false)
 public class AddQuarkusMavenPlugin extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Add Quarkus Maven plugin";
-    }
+    String displayName = "Add Quarkus Maven plugin";
 
-    @Override
-    public String getDescription() {
-        return "Adds the Quarkus Maven plugin using the same version as the quarkus-bom in dependency management.";
-    }
+    String description = "Adds the Quarkus Maven plugin using the same version as the quarkus-bom in dependency management.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
