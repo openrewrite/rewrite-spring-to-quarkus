@@ -15,6 +15,7 @@
  */
 package org.openrewrite.quarkus.spring;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -40,15 +41,11 @@ public class WebToJaxRs extends Recipe {
     private static final AnnotationMatcher DELETE_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.DeleteMapping");
     private static final AnnotationMatcher PATCH_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PatchMapping");
 
-    @Override
-    public String getDisplayName() {
-        return "Convert Spring Web annotations to JAX-RS";
-    }
+    @Getter
+    final String displayName = "Convert Spring Web annotations to JAX-RS";
 
-    @Override
-    public String getDescription() {
-        return "Converts Spring Web annotations such as `@RestController`, `@RequestMapping`, `@GetMapping`, etc., to their JAX-RS equivalents like `@Path`, `@GET`, etc.";
-    }
+    @Getter
+    final String description = "Converts Spring Web annotations such as `@RestController`, `@RequestMapping`, `@GetMapping`, etc., to their JAX-RS equivalents like `@Path`, `@GET`, etc.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
