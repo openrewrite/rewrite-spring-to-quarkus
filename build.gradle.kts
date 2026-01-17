@@ -56,5 +56,9 @@ dependencies {
     testRuntimeOnly("jakarta.validation:jakarta.validation-api:3.0.2")
     testRuntimeOnly("org.springframework.boot:spring-boot-actuator:3.5.4")
     testRuntimeOnly("org.springframework.boot:spring-boot-actuator-autoconfigure:3.5.4")
+    testRuntimeOnly("org.springframework:spring-tx:6.2.11")
+    testRuntimeOnly("jakarta.persistence:jakarta.persistence-api:3.1.0")
+    testRuntimeOnly("jakarta.transaction:jakarta.transaction-api:2.0.1")
+    testRuntimeOnly("io.quarkus:quarkus-hibernate-orm-panache:3.17.8")
     testRuntimeOnly(gradleApi())
 }

@@ -54,6 +54,10 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateSpringActuator
   - org.openrewrite.quarkus.spring.MigrateSpringTesting
   - org.openrewrite.quarkus.spring.MigrateConfigurationProperties
+  # Tier 2 recipes
+  - org.openrewrite.quarkus.spring.MigrateSpringTransactional
+  - org.openrewrite.quarkus.spring.MigrateSpringEvents
+  - org.openrewrite.quarkus.spring.MigrateEntitiesToPanache
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -285,3 +289,87 @@ recipeList:
   # Remove @ConstructorBinding (not needed in Quarkus)
   - org.openrewrite.java.RemoveAnnotation:
       annotationPattern: org.springframework.boot.context.properties.ConstructorBinding
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringTransactional
+displayName: Migrate Spring @Transactional to Jakarta @Transactional
+description: >-
+  Migrates Spring's @Transactional annotation to Jakarta's @Transactional.
+  Maps propagation attributes to TxType and removes Spring-specific attributes.
+tags:
+  - spring
+  - quarkus
+  - transaction
+  - migration
+recipeList:
+  # Add Narayana transaction dependency
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-narayana-jta
+      version: x
+      onlyIfUsing: org.springframework.transaction.annotation.Transactional
+  # Change @Transactional import
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.transaction.annotation.Transactional
+      newFullyQualifiedTypeName: jakarta.transaction.Transactional
+  # Change Propagation enum if used
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.transaction.annotation.Propagation
+      newFullyQualifiedTypeName: jakarta.transaction.Transactional.TxType
+  # Remove Spring transaction dependencies
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework
+      artifactId: spring-tx
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringEvents
+displayName: Migrate Spring Events to CDI Events
+description: >-
+  Migrates Spring's event mechanism to CDI events.
+  Converts ApplicationEventPublisher to CDI Event and @EventListener to @Observes.
+tags:
+  - spring
+  - quarkus
+  - events
+  - cdi
+  - migration
+recipeList:
+  # Convert ApplicationEventPublisher field type to Event
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.context.ApplicationEventPublisher
+      newFullyQualifiedTypeName: jakarta.enterprise.event.Event
+  # Convert ApplicationEvent base class (optional, events don't need to extend anything in CDI)
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.context.ApplicationEvent
+      newFullyQualifiedTypeName: java.lang.Object
+  # Convert publishEvent to fire
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: jakarta.enterprise.event.Event publishEvent(..)
+      newMethodName: fire
+  # Convert @EventListener to CDI pattern (requires Java recipe for parameter annotation)
+  - org.openrewrite.quarkus.spring.SpringEventListenerToObserves
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateEntitiesToPanache
+displayName: Migrate JPA Entities to Panache Entities
+description: >-
+  Converts standard JPA entities to Quarkus Panache entities using the Active Record pattern.
+  Entities will extend PanacheEntity and gain built-in CRUD operations.
+tags:
+  - spring
+  - quarkus
+  - jpa
+  - panache
+  - migration
+recipeList:
+  # Add Panache dependency
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-hibernate-orm-panache
+      version: x
+      onlyIfUsing: jakarta.persistence.Entity
+  # Convert entities to extend PanacheEntity
+  - org.openrewrite.quarkus.spring.JpaEntityToPanacheEntity
