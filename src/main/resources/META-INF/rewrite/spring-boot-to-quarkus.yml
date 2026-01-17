@@ -49,6 +49,11 @@ recipeList:
   - org.openrewrite.quarkus.spring.ValueToCdiConfigProperty
   - org.openrewrite.quarkus.spring.WebToJaxRs
   - org.openrewrite.quarkus.spring.RemoveSpringBootParent
+  # Tier 1 recipes
+  - org.openrewrite.quarkus.spring.MigrateSpringValidation
+  - org.openrewrite.quarkus.spring.MigrateSpringActuator
+  - org.openrewrite.quarkus.spring.MigrateSpringTesting
+  - org.openrewrite.quarkus.spring.MigrateConfigurationProperties
 
 ---
 type: specs.openrewrite.org/v1beta/recipe

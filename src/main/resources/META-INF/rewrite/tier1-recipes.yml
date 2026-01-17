@@ -1,0 +1,187 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringValidation
+displayName: Migrate Spring Validation to Quarkus
+description: >-
+  Migrates Spring Boot validation to Quarkus Hibernate Validator.
+  Adds the quarkus-hibernate-validator dependency and handles validation annotation imports.
+tags:
+  - spring
+  - quarkus
+  - validation
+  - migration
+recipeList:
+  # Replace spring-boot-starter-validation with quarkus-hibernate-validator
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-validation
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-hibernate-validator
+      newVersion: x
+  # Add hibernate validator if using javax.validation or jakarta.validation
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-hibernate-validator
+      version: x
+      onlyIfUsing: jakarta.validation.constraints.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-hibernate-validator
+      version: x
+      onlyIfUsing: jakarta.validation.Valid
+  # Remove Spring-specific validation imports if any
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework
+      artifactId: spring-context
+      because: Quarkus uses Hibernate Validator directly
+  # Change javax.validation to jakarta.validation if needed
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: javax.validation
+      newPackageName: jakarta.validation
+      recursive: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringActuator
+displayName: Migrate Spring Boot Actuator to Quarkus Health and Metrics
+description: >-
+  Migrates Spring Boot Actuator to Quarkus SmallRye Health and Metrics extensions.
+  Converts HealthIndicator implementations to Quarkus HealthCheck pattern.
+tags:
+  - spring
+  - quarkus
+  - actuator
+  - health
+  - metrics
+  - migration
+recipeList:
+  # Replace actuator dependency with SmallRye extensions
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-actuator
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-smallrye-health
+      newVersion: x
+  # Add metrics extension
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-micrometer
+      version: x
+      onlyIfUsing: io.micrometer.core.instrument.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-micrometer-registry-prometheus
+      version: x
+      onlyIfUsing: io.micrometer.core.instrument.*
+  # Convert HealthIndicator to HealthCheck
+  - org.openrewrite.quarkus.spring.SpringHealthIndicatorToQuarkus
+  # Update actuator property names
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: management.endpoints.web.exposure.include
+      newPropertyKey: quarkus.smallrye-health.root-path
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: management.endpoint.health.show-details
+      newPropertyKey: quarkus.smallrye-health.ui.always-include
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: management.server.port
+      newPropertyKey: quarkus.management.port
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringTesting
+displayName: Migrate Spring Boot Testing to Quarkus Testing
+description: >-
+  Migrates Spring Boot test annotations and utilities to Quarkus test equivalents.
+  Converts @SpringBootTest to @QuarkusTest, @MockBean to @InjectMock, etc.
+tags:
+  - spring
+  - quarkus
+  - testing
+  - migration
+recipeList:
+  # Replace spring-boot-starter-test with quarkus-junit5
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-test
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-junit5
+      newVersion: x
+  # Add quarkus-junit5-mockito for mock support
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-junit5-mockito
+      version: x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.mock.mockito.MockBean
+  # Convert test annotations
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.context.SpringBootTest
+      newFullyQualifiedTypeName: io.quarkus.test.junit.QuarkusTest
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.mock.mockito.MockBean
+      newFullyQualifiedTypeName: io.quarkus.test.junit.mockito.InjectMock
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.mock.mockito.SpyBean
+      newFullyQualifiedTypeName: io.quarkus.test.junit.mockito.InjectSpy
+  # Remove Spring test annotations that have no Quarkus equivalent
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.test.context.ActiveProfiles
+  # Change TestRestTemplate to REST-assured pattern
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.rest-assured
+      artifactId: rest-assured
+      version: 5.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.web.client.TestRestTemplate
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateConfigurationProperties
+displayName: Migrate @ConfigurationProperties to Quarkus @ConfigMapping
+description: >-
+  Migrates Spring Boot @ConfigurationProperties to Quarkus @ConfigMapping.
+  This recipe converts configuration property classes to the native Quarkus pattern.
+tags:
+  - spring
+  - quarkus
+  - configuration
+  - migration
+recipeList:
+  # Add config dependency
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-config-yaml
+      version: x
+      onlyIfUsing: org.springframework.boot.context.properties.ConfigurationProperties
+  # Convert @ConfigurationProperties to @ConfigMapping
+  - org.openrewrite.java.ChangeAnnotationAttributeName:
+      annotationType: org.springframework.boot.context.properties.ConfigurationProperties
+      oldAttributeName: prefix
+      newAttributeName: prefix
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.context.properties.ConfigurationProperties
+      newFullyQualifiedTypeName: io.smallrye.config.ConfigMapping
+  # Remove @EnableConfigurationProperties since Quarkus discovers @ConfigMapping automatically
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.boot.context.properties.EnableConfigurationProperties
+  # Remove @ConstructorBinding (not needed in Quarkus)
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.boot.context.properties.ConstructorBinding
