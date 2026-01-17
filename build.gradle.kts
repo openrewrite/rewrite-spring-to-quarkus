@@ -60,5 +60,9 @@ dependencies {
     testRuntimeOnly("jakarta.persistence:jakarta.persistence-api:3.1.0")
     testRuntimeOnly("jakarta.transaction:jakarta.transaction-api:2.0.1")
     testRuntimeOnly("io.quarkus:quarkus-hibernate-orm-panache:3.17.8")
+    testRuntimeOnly("org.springframework.data:spring-data-mongodb:4.4.4")
+    testRuntimeOnly("org.aspectj:aspectjweaver:1.9.22")
+    testRuntimeOnly("jakarta.interceptor:jakarta.interceptor-api:2.1.0")
+    testRuntimeOnly("org.springframework:spring-aop:6.2.11")
     testRuntimeOnly(gradleApi())
 }

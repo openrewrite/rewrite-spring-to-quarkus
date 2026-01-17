@@ -58,6 +58,12 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateSpringTransactional
   - org.openrewrite.quarkus.spring.MigrateSpringEvents
   - org.openrewrite.quarkus.spring.MigrateEntitiesToPanache
+  # Tier 3 recipes
+  - org.openrewrite.quarkus.spring.MigrateSpringDataMongodb
+  - org.openrewrite.quarkus.spring.MigrateSpringCloudConfig
+  - org.openrewrite.quarkus.spring.ConfigureNativeBuild
+  - org.openrewrite.quarkus.spring.MigrateSpringAop
+  - org.openrewrite.quarkus.spring.MigrateRequestParameterEdgeCases
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -373,3 +379,172 @@ recipeList:
       onlyIfUsing: jakarta.persistence.Entity
   # Convert entities to extend PanacheEntity
   - org.openrewrite.quarkus.spring.JpaEntityToPanacheEntity
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringDataMongodb
+displayName: Migrate Spring Data MongoDB to Quarkus Panache MongoDB
+description: >-
+  Migrates Spring Data MongoDB repositories to Quarkus MongoDB with Panache.
+  Converts MongoRepository interfaces to PanacheMongoRepository pattern.
+tags:
+  - spring
+  - quarkus
+  - mongodb
+  - panache
+  - migration
+recipeList:
+  # Replace spring-boot-starter-data-mongodb with quarkus-mongodb-panache
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-data-mongodb
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-mongodb-panache
+      newVersion: x
+  # Change MongoRepository to PanacheMongoRepository
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.mongodb.repository.MongoRepository
+      newFullyQualifiedTypeName: io.quarkus.mongodb.panache.PanacheMongoRepository
+  # Change @Document to @MongoEntity
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.mongodb.core.mapping.Document
+      newFullyQualifiedTypeName: io.quarkus.mongodb.panache.common.MongoEntity
+  # Change MongoTemplate to MongoClient patterns
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.mongodb.core.MongoTemplate
+      newFullyQualifiedTypeName: com.mongodb.client.MongoClient
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringCloudConfig
+displayName: Migrate Spring Cloud Config Client to Quarkus Config
+description: >-
+  Migrates Spring Cloud Config Client to Quarkus configuration sources.
+  Converts bootstrap.yml/properties patterns to Quarkus config.
+tags:
+  - spring
+  - quarkus
+  - cloud
+  - config
+  - migration
+recipeList:
+  # Remove spring-cloud-starter-config dependency
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-config
+  # Add quarkus-config-yaml for YAML config support
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-config-yaml
+      version: x
+      onlyIfUsing: org.springframework.cloud.context.config.annotation.RefreshScope
+  # Remove @RefreshScope (Quarkus handles config refresh differently)
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.cloud.context.config.annotation.RefreshScope
+  # Migrate bootstrap properties to application properties
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.cloud.config.uri
+      newPropertyKey: quarkus.config.locations
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.cloud.config.fail-fast
+      newPropertyKey: quarkus.config.fail-on-missing-locations
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.ConfigureNativeBuild
+displayName: Configure Quarkus Native Build Support
+description: >-
+  Adds configuration and dependencies required for Quarkus native image compilation with GraalVM.
+  Includes native profile configuration and reflection hints where needed.
+tags:
+  - spring
+  - quarkus
+  - native
+  - graalvm
+  - migration
+recipeList:
+  # Add native profile to pom.xml
+  - org.openrewrite.maven.AddProfile:
+      id: native
+      activation: |
+        <property>
+          <name>native</name>
+        </property>
+      properties: |
+        <quarkus.native.enabled>true</quarkus.native.enabled>
+        <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
+  # Ensure quarkus-maven-plugin has native goals
+  - org.openrewrite.quarkus.spring.AddQuarkusMavenPlugin
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringAop
+displayName: Migrate Spring AOP to CDI Interceptors
+description: >-
+  Migrates Spring AOP aspects to CDI interceptors.
+  Converts @Aspect classes to CDI interceptors with @Interceptor and @AroundInvoke patterns.
+tags:
+  - spring
+  - quarkus
+  - aop
+  - cdi
+  - interceptors
+  - migration
+recipeList:
+  # Remove spring-boot-starter-aop dependency
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-aop
+  # Convert @Aspect to @Interceptor
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.aspectj.lang.annotation.Aspect
+      newFullyQualifiedTypeName: jakarta.interceptor.Interceptor
+  # Convert @Around to @AroundInvoke
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.aspectj.lang.annotation.Around
+      newFullyQualifiedTypeName: jakarta.interceptor.AroundInvoke
+  # Convert @Before to CDI pattern (note: requires manual adjustment)
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.aspectj.lang.annotation.Before
+      newFullyQualifiedTypeName: jakarta.interceptor.AroundInvoke
+  # Convert @After to CDI pattern
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.aspectj.lang.annotation.After
+      newFullyQualifiedTypeName: jakarta.interceptor.AroundInvoke
+  # Convert ProceedingJoinPoint to InvocationContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.aspectj.lang.ProceedingJoinPoint
+      newFullyQualifiedTypeName: jakarta.interceptor.InvocationContext
+  # Change proceed() to context.proceed()
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: jakarta.interceptor.InvocationContext proceed()
+      newMethodName: proceed
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateRequestParameterEdgeCases
+displayName: Migrate Additional Spring Web Parameter Annotations
+description: >-
+  Migrates additional Spring Web parameter annotations not covered by the main WebToJaxRs recipe.
+  Includes @MatrixVariable, @CookieValue, and other edge cases.
+tags:
+  - spring
+  - quarkus
+  - web
+  - jaxrs
+  - migration
+recipeList:
+  # Convert @MatrixVariable to @MatrixParam
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.web.bind.annotation.MatrixVariable
+      newFullyQualifiedTypeName: jakarta.ws.rs.MatrixParam
+  # Convert @CookieValue to @CookieParam
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.web.bind.annotation.CookieValue
+      newFullyQualifiedTypeName: jakarta.ws.rs.CookieParam
+  # Convert @SessionAttribute (note: JAX-RS has no direct equivalent, use workaround)
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.web.bind.annotation.SessionAttribute
+  # Handle @RequestAttribute
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.web.bind.annotation.RequestAttribute
