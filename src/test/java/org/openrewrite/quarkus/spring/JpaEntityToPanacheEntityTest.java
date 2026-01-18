@@ -28,97 +28,97 @@ class JpaEntityToPanacheEntityTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JpaEntityToPanacheEntity())
-                .parser(JavaParser.fromJavaVersion()
-                        .classpath("jakarta.persistence-api", "quarkus-hibernate-orm-panache"));
+          .parser(JavaParser.fromJavaVersion()
+            .classpath("jakarta.persistence-api", "quarkus-hibernate-orm-panache"));
     }
 
     @DocumentExample
     @Test
     void convertEntityToPanacheEntity() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import jakarta.persistence.Entity;
-                                import jakarta.persistence.Id;
-                                import jakarta.persistence.GeneratedValue;
+          //language=java
+          java(
+            """
+              import jakarta.persistence.Entity;
+              import jakarta.persistence.Id;
+              import jakarta.persistence.GeneratedValue;
 
-                                @Entity
-                                public class User {
-                                    @Id
-                                    @GeneratedValue
-                                    private Long id;
+              @Entity
+              public class User {
+                  @Id
+                  @GeneratedValue
+                  private Long id;
 
-                                    private String name;
-                                    private String email;
+                  private String name;
+                  private String email;
 
-                                    public Long getId() { return id; }
-                                    public void setId(Long id) { this.id = id; }
-                                    public String getName() { return name; }
-                                    public void setName(String name) { this.name = name; }
-                                    public String getEmail() { return email; }
-                                    public void setEmail(String email) { this.email = email; }
-                                }
-                                """,
-                        """
-                                import io.quarkus.hibernate.orm.panache.PanacheEntity;
-                                import jakarta.persistence.Entity;
+                  public Long getId() { return id; }
+                  public void setId(Long id) { this.id = id; }
+                  public String getName() { return name; }
+                  public void setName(String name) { this.name = name; }
+                  public String getEmail() { return email; }
+                  public void setEmail(String email) { this.email = email; }
+              }
+              """,
+            """
+              import io.quarkus.hibernate.orm.panache.PanacheEntity;
+              import jakarta.persistence.Entity;
 
-                                @Entity
-                                public class User extends PanacheEntity {
+              @Entity
+              public class User extends PanacheEntity {
 
-                                    private String name;
-                                    private String email;
-                                    public String getName() { return name; }
-                                    public void setName(String name) { this.name = name; }
-                                    public String getEmail() { return email; }
-                                    public void setEmail(String email) { this.email = email; }
-                                }
-                                """
-                )
+                  private String name;
+                  private String email;
+                  public String getName() { return name; }
+                  public void setName(String name) { this.name = name; }
+                  public String getEmail() { return email; }
+                  public void setEmail(String email) { this.email = email; }
+              }
+              """
+          )
         );
     }
 
     @Test
     void doNotConvertEntityWithExistingSuperclass() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import jakarta.persistence.Entity;
-                                import jakarta.persistence.Id;
+          //language=java
+          java(
+            """
+              import jakarta.persistence.Entity;
+              import jakarta.persistence.Id;
 
-                                @Entity
-                                public class SpecialUser extends BaseEntity {
-                                    @Id
-                                    private Long id;
-                                    private String name;
-                                }
-                                """
-                ),
-                //language=java
-                java(
-                        """
-                                public class BaseEntity {
-                                    protected Long createdAt;
-                                }
-                                """
-                )
+              @Entity
+              public class SpecialUser extends BaseEntity {
+                  @Id
+                  private Long id;
+                  private String name;
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              public class BaseEntity {
+                  protected Long createdAt;
+              }
+              """
+          )
         );
     }
 
     @Test
     void doNotChangeNonEntityClass() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                public class RegularClass {
-                                    private Long id;
-                                    private String name;
-                                }
-                                """
-                )
+          //language=java
+          java(
+            """
+              public class RegularClass {
+                  private Long id;
+                  private String name;
+              }
+              """
+          )
         );
     }
 }

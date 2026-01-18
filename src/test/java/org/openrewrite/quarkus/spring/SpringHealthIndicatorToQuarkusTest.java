@@ -28,91 +28,91 @@ class SpringHealthIndicatorToQuarkusTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new SpringHealthIndicatorToQuarkus())
-                .parser(JavaParser.fromJavaVersion()
-                        .classpath("spring-boot-actuator", "spring-context"))
-                .typeValidationOptions(org.openrewrite.test.TypeValidation.none());
+          .parser(JavaParser.fromJavaVersion()
+            .classpath("spring-boot-actuator", "spring-context"))
+          .typeValidationOptions(org.openrewrite.test.TypeValidation.none());
     }
 
     @DocumentExample
     @Test
     void convertSimpleHealthIndicator() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.boot.actuate.health.Health;
-                                import org.springframework.boot.actuate.health.HealthIndicator;
+          //language=java
+          java(
+            """
+              import org.springframework.boot.actuate.health.Health;
+              import org.springframework.boot.actuate.health.HealthIndicator;
 
-                                public class CustomHealthIndicator implements HealthIndicator {
-                                    @Override
-                                    public Health health() {
-                                        return Health.up().build();
-                                    }
-                                }
-                                """,
-                        """
-                                import org.springframework.boot.actuate.health.HealthCheckResponse;
-                                import org.springframework.boot.actuate.health.HealthCheck;
+              public class CustomHealthIndicator implements HealthIndicator {
+                  @Override
+                  public Health health() {
+                      return Health.up().build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.actuate.health.HealthCheckResponse;
+              import org.springframework.boot.actuate.health.HealthCheck;
 
-                                public class CustomHealthIndicator implements HealthCheck {
-                                    @Override
-                                    public HealthCheckResponse call() {
-                                        return HealthCheckResponse.up().build();
-                                    }
-                                }
-                                """
-                )
+              public class CustomHealthIndicator implements HealthCheck {
+                  @Override
+                  public HealthCheckResponse call() {
+                      return HealthCheckResponse.up().build();
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void convertWithDetailToWithData() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.boot.actuate.health.Health;
-                                import org.springframework.boot.actuate.health.HealthIndicator;
+          //language=java
+          java(
+            """
+              import org.springframework.boot.actuate.health.Health;
+              import org.springframework.boot.actuate.health.HealthIndicator;
 
-                                public class DatabaseHealthIndicator implements HealthIndicator {
-                                    @Override
-                                    public Health health() {
-                                        return Health.up()
-                                                .withDetail("database", "PostgreSQL")
-                                                .build();
-                                    }
-                                }
-                                """,
-                        """
-                                import org.springframework.boot.actuate.health.HealthCheckResponse;
-                                import org.springframework.boot.actuate.health.HealthCheck;
+              public class DatabaseHealthIndicator implements HealthIndicator {
+                  @Override
+                  public Health health() {
+                      return Health.up()
+                              .withDetail("database", "PostgreSQL")
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.actuate.health.HealthCheckResponse;
+              import org.springframework.boot.actuate.health.HealthCheck;
 
-                                public class DatabaseHealthIndicator implements HealthCheck {
-                                    @Override
-                                    public HealthCheckResponse call() {
-                                        return HealthCheckResponse.up()
-                                                .withData("database", "PostgreSQL")
-                                                .build();
-                                    }
-                                }
-                                """
-                )
+              public class DatabaseHealthIndicator implements HealthCheck {
+                  @Override
+                  public HealthCheckResponse call() {
+                      return HealthCheckResponse.up()
+                              .withData("database", "PostgreSQL")
+                              .build();
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void doNotChangeNonHealthIndicator() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                public class RegularService {
-                                    public String health() {
-                                        return "healthy";
-                                    }
-                                }
-                                """
-                )
+          //language=java
+          java(
+            """
+              public class RegularService {
+                  public String health() {
+                      return "healthy";
+                  }
+              }
+              """
+          )
         );
     }
 }

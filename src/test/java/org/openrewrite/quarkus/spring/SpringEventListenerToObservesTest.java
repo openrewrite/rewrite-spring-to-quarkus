@@ -28,61 +28,61 @@ class SpringEventListenerToObservesTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new SpringEventListenerToObserves())
-                .parser(JavaParser.fromJavaVersion()
-                        .classpath("spring-context"));
+          .parser(JavaParser.fromJavaVersion()
+            .classpath("spring-context"));
     }
 
     @DocumentExample
     @Test
     void convertEventListenerToObserves() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.context.event.EventListener;
+          //language=java
+          java(
+            """
+              import org.springframework.context.event.EventListener;
 
-                                public class MyEventListener {
-                                    @EventListener
-                                    public void handleEvent(MyEvent event) {
-                                        System.out.println("Event received: " + event);
-                                    }
-                                }
-                                """,
-                        """
-                                import jakarta.enterprise.event.Observes;
+              public class MyEventListener {
+                  @EventListener
+                  public void handleEvent(MyEvent event) {
+                      System.out.println("Event received: " + event);
+                  }
+              }
+              """,
+            """
+              import jakarta.enterprise.event.Observes;
 
-                                public class MyEventListener {
-                                    public void handleEvent(@Observes MyEvent event) {
-                                        System.out.println("Event received: " + event);
-                                    }
-                                }
-                                """
-                ),
-                //language=java
-                java(
-                        """
-                                public class MyEvent {
-                                    private String message;
-                                    public String getMessage() { return message; }
-                                }
-                                """
-                )
+              public class MyEventListener {
+                  public void handleEvent(@Observes MyEvent event) {
+                      System.out.println("Event received: " + event);
+                  }
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              public class MyEvent {
+                  private String message;
+                  public String getMessage() { return message; }
+              }
+              """
+          )
         );
     }
 
     @Test
     void doNotChangeMethodWithoutEventListener() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                public class RegularService {
-                                    public void handleEvent(String event) {
-                                        System.out.println(event);
-                                    }
-                                }
-                                """
-                )
+          //language=java
+          java(
+            """
+              public class RegularService {
+                  public void handleEvent(String event) {
+                      System.out.println(event);
+                  }
+              }
+              """
+          )
         );
     }
 }

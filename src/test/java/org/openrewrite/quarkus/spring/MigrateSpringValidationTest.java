@@ -28,75 +28,75 @@ class MigrateSpringValidationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-                .scanRuntimeClasspath()
-                .build()
-                .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringValidation"));
+          .scanRuntimeClasspath()
+          .build()
+          .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringValidation"));
     }
 
     @DocumentExample
     @Test
     void migrateValidationDependency() {
         rewriteRun(
-                //language=xml
-                pomXml(
-                        """
-                                <?xml version="1.0" encoding="UTF-8"?>
-                                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-                                    <modelVersion>4.0.0</modelVersion>
-                                    <groupId>com.example</groupId>
-                                    <artifactId>demo</artifactId>
-                                    <version>1.0.0</version>
-                                    <dependencyManagement>
-                                        <dependencies>
-                                            <dependency>
-                                                <groupId>io.quarkus.platform</groupId>
-                                                <artifactId>quarkus-bom</artifactId>
-                                                <version>3.8.0</version>
-                                                <type>pom</type>
-                                                <scope>import</scope>
-                                            </dependency>
-                                        </dependencies>
-                                    </dependencyManagement>
-                                    <dependencies>
-                                        <dependency>
-                                            <groupId>org.springframework.boot</groupId>
-                                            <artifactId>spring-boot-starter-validation</artifactId>
-                                            <version>3.2.0</version>
-                                        </dependency>
-                                    </dependencies>
-                                </project>
-                                """,
-                        """
-                                <?xml version="1.0" encoding="UTF-8"?>
-                                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-                                    <modelVersion>4.0.0</modelVersion>
-                                    <groupId>com.example</groupId>
-                                    <artifactId>demo</artifactId>
-                                    <version>1.0.0</version>
-                                    <dependencyManagement>
-                                        <dependencies>
-                                            <dependency>
-                                                <groupId>io.quarkus.platform</groupId>
-                                                <artifactId>quarkus-bom</artifactId>
-                                                <version>3.8.0</version>
-                                                <type>pom</type>
-                                                <scope>import</scope>
-                                            </dependency>
-                                        </dependencies>
-                                    </dependencyManagement>
-                                    <dependencies>
-                                        <dependency>
-                                            <groupId>io.quarkus</groupId>
-                                            <artifactId>quarkus-hibernate-validator</artifactId>
-                                        </dependency>
-                                    </dependencies>
-                                </project>
-                                """
-                )
+          //language=xml
+          pomXml(
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project xmlns="http://maven.apache.org/POM/4.0.0"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <dependencyManagement>
+                      <dependencies>
+                          <dependency>
+                              <groupId>io.quarkus.platform</groupId>
+                              <artifactId>quarkus-bom</artifactId>
+                              <version>3.8.0</version>
+                              <type>pom</type>
+                              <scope>import</scope>
+                          </dependency>
+                      </dependencies>
+                  </dependencyManagement>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-validation</artifactId>
+                          <version>3.2.0</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """,
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project xmlns="http://maven.apache.org/POM/4.0.0"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <dependencyManagement>
+                      <dependencies>
+                          <dependency>
+                              <groupId>io.quarkus.platform</groupId>
+                              <artifactId>quarkus-bom</artifactId>
+                              <version>3.8.0</version>
+                              <type>pom</type>
+                              <scope>import</scope>
+                          </dependency>
+                      </dependencies>
+                  </dependencyManagement>
+                  <dependencies>
+                      <dependency>
+                          <groupId>io.quarkus</groupId>
+                          <artifactId>quarkus-hibernate-validator</artifactId>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
+          )
         );
     }
 }

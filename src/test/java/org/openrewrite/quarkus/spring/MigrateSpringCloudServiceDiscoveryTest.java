@@ -29,53 +29,53 @@ class MigrateSpringCloudServiceDiscoveryTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-                        .scanRuntimeClasspath()
-                        .build()
-                        .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringCloudServiceDiscovery"))
-                .parser(JavaParser.fromJavaVersion()
-                        .classpath("spring-cloud-commons", "spring-cloud-netflix-eureka-client"));
+            .scanRuntimeClasspath()
+            .build()
+            .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringCloudServiceDiscovery"))
+          .parser(JavaParser.fromJavaVersion()
+            .classpath("spring-cloud-commons", "spring-cloud-netflix-eureka-client"));
     }
 
     @DocumentExample
     @Test
     void removeEnableDiscoveryClientAnnotation() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+          //language=java
+          java(
+            """
+              import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
-                                @EnableDiscoveryClient
-                                public class Application {
-                                    public static void main(String[] args) {
-                                        // Application startup
-                                    }
-                                }
-                                """,
-                        """
-                                public class Application {
-                                    public static void main(String[] args) {
-                                        // Application startup
-                                    }
-                                }
-                                """
-                )
+              @EnableDiscoveryClient
+              public class Application {
+                  public static void main(String[] args) {
+                      // Application startup
+                  }
+              }
+              """,
+            """
+              public class Application {
+                  public static void main(String[] args) {
+                      // Application startup
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void doNotChangeNonDiscoveryClass() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                public class RegularClass {
-                                    public void doSomething() {
-                                        System.out.println("Hello");
-                                    }
-                                }
-                                """
-                )
+          //language=java
+          java(
+            """
+              public class RegularClass {
+                  public void doSomething() {
+                      System.out.println("Hello");
+                  }
+              }
+              """
+          )
         );
     }
 }

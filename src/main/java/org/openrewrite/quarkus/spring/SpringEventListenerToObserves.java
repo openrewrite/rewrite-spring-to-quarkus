@@ -27,8 +27,9 @@ import org.openrewrite.java.tree.Statement;
 import org.openrewrite.marker.Markers;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.emptyList;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -104,7 +105,7 @@ public class SpringEventListenerToObserves extends Recipe {
                                         Tree.randomId(),
                                         Space.EMPTY,
                                         Markers.EMPTY,
-                                        Collections.emptyList(),
+                                        emptyList(),
                                         "Observes",
                                         JavaType.buildType(OBSERVES_FQN),
                                         null
@@ -131,8 +132,7 @@ public class SpringEventListenerToObserves extends Recipe {
                             }
                         }
 
-                        m = m.withParameters(newParams);
-                        return m;
+                        return m.withParameters(newParams);
                     }
                 }
         );

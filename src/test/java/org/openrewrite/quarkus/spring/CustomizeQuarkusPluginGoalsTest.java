@@ -28,108 +28,108 @@ class CustomizeQuarkusPluginGoalsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-                .scanRuntimeClasspath()
-                .build()
-                .activateRecipes("org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals"));
+          .scanRuntimeClasspath()
+          .build()
+          .activateRecipes("org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals"));
     }
 
     @DocumentExample
     @Test
     void addNativeProfile() {
         rewriteRun(
-                pomXml(
-                        """
-                                <?xml version="1.0" encoding="UTF-8"?>
-                                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-                                    <modelVersion>4.0.0</modelVersion>
-                                    <groupId>com.example</groupId>
-                                    <artifactId>demo</artifactId>
-                                    <version>1.0.0</version>
-                                </project>
-                                """,
-                        """
-                                <?xml version="1.0" encoding="UTF-8"?>
-                                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-                                    <modelVersion>4.0.0</modelVersion>
-                                    <groupId>com.example</groupId>
-                                    <artifactId>demo</artifactId>
-                                    <version>1.0.0</version>
-                                    <profiles>
-                                        <profile>
-                                            <id>native</id>
-                                            <activation>
-                                                <property>
-                                                    <name>native</name>
-                                                </property>
-                                            </activation>
-                                            <properties>
-                                                <quarkus.package.type>native</quarkus.package.type>
-                                                <quarkus.native.enabled>true</quarkus.native.enabled>
-                                            </properties>
-                                        </profile>
-                                        <profile>
-                                            <id>container</id>
-                                            <activation>
-                                                <property>
-                                                    <name>container</name>
-                                                </property>
-                                            </activation>
-                                            <properties>
-                                                <quarkus.container-image.build>true</quarkus.container-image.build>
-                                            </properties>
-                                        </profile>
-                                    </profiles>
-                                </project>
-                                """
-                )
+          pomXml(
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project xmlns="http://maven.apache.org/POM/4.0.0"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+              </project>
+              """,
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project xmlns="http://maven.apache.org/POM/4.0.0"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <profiles>
+                      <profile>
+                          <id>native</id>
+                          <activation>
+                              <property>
+                                  <name>native</name>
+                              </property>
+                          </activation>
+                          <properties>
+                              <quarkus.package.type>native</quarkus.package.type>
+                              <quarkus.native.enabled>true</quarkus.native.enabled>
+                          </properties>
+                      </profile>
+                      <profile>
+                          <id>container</id>
+                          <activation>
+                              <property>
+                                  <name>container</name>
+                              </property>
+                          </activation>
+                          <properties>
+                              <quarkus.container-image.build>true</quarkus.container-image.build>
+                          </properties>
+                      </profile>
+                  </profiles>
+              </project>
+              """
+          )
         );
     }
 
     @Test
     void doNotDuplicateExistingProfile() {
         rewriteRun(
-                pomXml(
-                        """
-                                <?xml version="1.0" encoding="UTF-8"?>
-                                <project xmlns="http://maven.apache.org/POM/4.0.0"
-                                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-                                    <modelVersion>4.0.0</modelVersion>
-                                    <groupId>com.example</groupId>
-                                    <artifactId>demo</artifactId>
-                                    <version>1.0.0</version>
-                                    <profiles>
-                                        <profile>
-                                            <id>native</id>
-                                            <activation>
-                                                <property>
-                                                    <name>native</name>
-                                                </property>
-                                            </activation>
-                                            <properties>
-                                                <quarkus.package.type>native</quarkus.package.type>
-                                                <quarkus.native.enabled>true</quarkus.native.enabled>
-                                            </properties>
-                                        </profile>
-                                        <profile>
-                                            <id>container</id>
-                                            <activation>
-                                                <property>
-                                                    <name>container</name>
-                                                </property>
-                                            </activation>
-                                            <properties>
-                                                <quarkus.container-image.build>true</quarkus.container-image.build>
-                                            </properties>
-                                        </profile>
-                                    </profiles>
-                                </project>
-                                """
-                )
+          pomXml(
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project xmlns="http://maven.apache.org/POM/4.0.0"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <profiles>
+                      <profile>
+                          <id>native</id>
+                          <activation>
+                              <property>
+                                  <name>native</name>
+                              </property>
+                          </activation>
+                          <properties>
+                              <quarkus.package.type>native</quarkus.package.type>
+                              <quarkus.native.enabled>true</quarkus.native.enabled>
+                          </properties>
+                      </profile>
+                      <profile>
+                          <id>container</id>
+                          <activation>
+                              <property>
+                                  <name>container</name>
+                              </property>
+                          </activation>
+                          <properties>
+                              <quarkus.container-image.build>true</quarkus.container-image.build>
+                          </properties>
+                      </profile>
+                  </profiles>
+              </project>
+              """
+          )
         );
     }
 }

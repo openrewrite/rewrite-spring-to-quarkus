@@ -28,59 +28,59 @@ class MigrateSpringBootDevToolsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-                .scanRuntimeClasspath()
-                .build()
-                .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringBootDevTools"));
+          .scanRuntimeClasspath()
+          .build()
+          .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringBootDevTools"));
     }
 
     @DocumentExample
     @Test
     void removeDevToolsProperties() {
         rewriteRun(
-                properties(
-                        """
-                                server.port=8080
-                                spring.devtools.restart.enabled=true
-                                spring.devtools.livereload.enabled=true
-                                spring.application.name=myapp
-                                """,
-                        """
-                                server.port=8080
-                                spring.application.name=myapp
-                                """,
-                        spec -> spec.path("application.properties")
-                )
+          properties(
+            """
+              server.port=8080
+              spring.devtools.restart.enabled=true
+              spring.devtools.livereload.enabled=true
+              spring.application.name=myapp
+              """,
+            """
+              server.port=8080
+              spring.application.name=myapp
+              """,
+            spec -> spec.path("application.properties")
+          )
         );
     }
 
     @Test
     void removeAllDevToolsProperties() {
         rewriteRun(
-                properties(
-                        """
-                                spring.devtools.restart.enabled=true
-                                spring.devtools.livereload.enabled=false
-                                spring.devtools.restart.exclude=static/**
-                                spring.devtools.restart.additional-paths=src/main/resources
-                                spring.devtools.restart.additional-exclude=test/**
-                                """,
-                        "",
-                        spec -> spec.path("application.properties")
-                )
+          properties(
+            """
+              spring.devtools.restart.enabled=true
+              spring.devtools.livereload.enabled=false
+              spring.devtools.restart.exclude=static/**
+              spring.devtools.restart.additional-paths=src/main/resources
+              spring.devtools.restart.additional-exclude=test/**
+              """,
+            "",
+            spec -> spec.path("application.properties")
+          )
         );
     }
 
     @Test
     void doNotChangeNonDevToolsProperties() {
         rewriteRun(
-                properties(
-                        """
-                                server.port=8080
-                                spring.application.name=myapp
-                                logging.level.root=INFO
-                                """,
-                        spec -> spec.path("application.properties")
-                )
+          properties(
+            """
+              server.port=8080
+              spring.application.name=myapp
+              logging.level.root=INFO
+              """,
+            spec -> spec.path("application.properties")
+          )
         );
     }
 }

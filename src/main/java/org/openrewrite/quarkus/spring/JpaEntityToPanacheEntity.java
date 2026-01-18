@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -26,7 +27,7 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
 import org.openrewrite.marker.Markers;
 
-import java.util.Collections;
+import static java.util.Collections.emptyList;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -65,7 +66,7 @@ public class JpaEntityToPanacheEntity extends Recipe {
                         if (cd.getExtends() != null) {
                             String extendsType = cd.getExtends().getType() != null ?
                                     cd.getExtends().getType().toString() : "";
-                            if (!extendsType.isEmpty() && !extendsType.equals("java.lang.Object")) {
+                            if (!extendsType.isEmpty() && !"java.lang.Object".equals(extendsType)) {
                                 // Already has a superclass, don't modify
                                 return cd;
                             }
@@ -79,7 +80,7 @@ public class JpaEntityToPanacheEntity extends Recipe {
                                 Tree.randomId(),
                                 Space.SINGLE_SPACE,  // Space before "PanacheEntity" (after "extends")
                                 Markers.EMPTY,
-                                Collections.emptyList(),
+                                emptyList(),
                                 "PanacheEntity",
                                 JavaType.buildType(PANACHE_ENTITY_FQN),
                                 null
@@ -107,7 +108,7 @@ public class JpaEntityToPanacheEntity extends Recipe {
     private static class RemoveIdFieldAndMethodsVisitor extends JavaIsoVisitor<ExecutionContext> {
 
         @Override
-        public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
+        public J.@Nullable VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
             J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, ctx);
 
             // Check if this field has @Id annotation
@@ -124,7 +125,6 @@ public class JpaEntityToPanacheEntity extends Recipe {
                 if (isIdField) {
                     maybeRemoveImport(ID_FQN);
                     maybeRemoveImport(GENERATED_VALUE_FQN);
-                    //noinspection DataFlowIssue
                     return null;
                 }
             }
@@ -133,13 +133,12 @@ public class JpaEntityToPanacheEntity extends Recipe {
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+        public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
             // Remove getId() and setId() methods
             String methodName = m.getSimpleName();
             if ("getId".equals(methodName) || "setId".equals(methodName)) {
-                //noinspection DataFlowIssue
                 return null;
             }
 

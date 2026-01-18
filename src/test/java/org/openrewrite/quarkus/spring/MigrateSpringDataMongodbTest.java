@@ -29,63 +29,63 @@ class MigrateSpringDataMongodbTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-                        .scanRuntimeClasspath()
-                        .build()
-                        .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringDataMongodb"))
-                .parser(JavaParser.fromJavaVersion()
-                        .classpath("spring-data-mongodb", "spring-data-commons"));
+            .scanRuntimeClasspath()
+            .build()
+            .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringDataMongodb"))
+          .parser(JavaParser.fromJavaVersion()
+            .classpath("spring-data-mongodb", "spring-data-commons"));
     }
 
     @DocumentExample
     @Test
     void convertDocumentAnnotation() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.data.mongodb.core.mapping.Document;
+          //language=java
+          java(
+            """
+              import org.springframework.data.mongodb.core.mapping.Document;
 
-                                @Document(collection = "users")
-                                public class User {
-                                    private String id;
-                                    private String name;
+              @Document(collection = "users")
+              public class User {
+                  private String id;
+                  private String name;
 
-                                    public String getId() { return id; }
-                                    public void setId(String id) { this.id = id; }
-                                    public String getName() { return name; }
-                                    public void setName(String name) { this.name = name; }
-                                }
-                                """,
-                        """
-                                import io.quarkus.mongodb.panache.common.MongoEntity;
+                  public String getId() { return id; }
+                  public void setId(String id) { this.id = id; }
+                  public String getName() { return name; }
+                  public void setName(String name) { this.name = name; }
+              }
+              """,
+            """
+              import io.quarkus.mongodb.panache.common.MongoEntity;
 
-                                @MongoEntity(collection = "users")
-                                public class User {
-                                    private String id;
-                                    private String name;
+              @MongoEntity(collection = "users")
+              public class User {
+                  private String id;
+                  private String name;
 
-                                    public String getId() { return id; }
-                                    public void setId(String id) { this.id = id; }
-                                    public String getName() { return name; }
-                                    public void setName(String name) { this.name = name; }
-                                }
-                                """
-                )
+                  public String getId() { return id; }
+                  public void setId(String id) { this.id = id; }
+                  public String getName() { return name; }
+                  public void setName(String name) { this.name = name; }
+              }
+              """
+          )
         );
     }
 
     @Test
     void doNotChangeNonMongoClass() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                public class RegularClass {
-                                    private String name;
-                                    public String getName() { return name; }
-                                }
-                                """
-                )
+          //language=java
+          java(
+            """
+              public class RegularClass {
+                  private String name;
+                  public String getName() { return name; }
+              }
+              """
+          )
         );
     }
 }

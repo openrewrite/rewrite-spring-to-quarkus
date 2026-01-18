@@ -29,86 +29,86 @@ class MigrateSpringTransactionalTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-                        .scanRuntimeClasspath()
-                        .build()
-                        .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringTransactional"))
-                .parser(JavaParser.fromJavaVersion()
-                        .classpath("spring-tx", "jakarta.transaction-api"));
+            .scanRuntimeClasspath()
+            .build()
+            .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringTransactional"))
+          .parser(JavaParser.fromJavaVersion()
+            .classpath("spring-tx", "jakarta.transaction-api"));
     }
 
     @DocumentExample
     @Test
     void convertSpringTransactionalToJakarta() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.transaction.annotation.Transactional;
+          //language=java
+          java(
+            """
+              import org.springframework.transaction.annotation.Transactional;
 
-                                public class UserService {
-                                    @Transactional
-                                    public void saveUser() {
-                                    }
-                                }
-                                """,
-                        """
-                                import jakarta.transaction.Transactional;
+              public class UserService {
+                  @Transactional
+                  public void saveUser() {
+                  }
+              }
+              """,
+            """
+              import jakarta.transaction.Transactional;
 
-                                public class UserService {
-                                    @Transactional
-                                    public void saveUser() {
-                                    }
-                                }
-                                """
-                )
+              public class UserService {
+                  @Transactional
+                  public void saveUser() {
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void convertTransactionalOnClass() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.transaction.annotation.Transactional;
+          //language=java
+          java(
+            """
+              import org.springframework.transaction.annotation.Transactional;
 
-                                @Transactional
-                                public class OrderService {
-                                    public void createOrder() {
-                                    }
+              @Transactional
+              public class OrderService {
+                  public void createOrder() {
+                  }
 
-                                    public void updateOrder() {
-                                    }
-                                }
-                                """,
-                        """
-                                import jakarta.transaction.Transactional;
+                  public void updateOrder() {
+                  }
+              }
+              """,
+            """
+              import jakarta.transaction.Transactional;
 
-                                @Transactional
-                                public class OrderService {
-                                    public void createOrder() {
-                                    }
+              @Transactional
+              public class OrderService {
+                  public void createOrder() {
+                  }
 
-                                    public void updateOrder() {
-                                    }
-                                }
-                                """
-                )
+                  public void updateOrder() {
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void doNotChangeNonTransactionalClass() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                public class RegularService {
-                                    public void doSomething() {
-                                    }
-                                }
-                                """
-                )
+          //language=java
+          java(
+            """
+              public class RegularService {
+                  public void doSomething() {
+                  }
+              }
+              """
+          )
         );
     }
 }

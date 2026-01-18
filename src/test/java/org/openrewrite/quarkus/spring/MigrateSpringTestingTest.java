@@ -29,91 +29,91 @@ class MigrateSpringTestingTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-                        .scanRuntimeClasspath()
-                        .build()
-                        .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringTesting"))
-                .parser(JavaParser.fromJavaVersion()
-                        .classpath("spring-boot-test", "spring-boot-test-autoconfigure", "junit-jupiter-api"));
+            .scanRuntimeClasspath()
+            .build()
+            .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringTesting"))
+          .parser(JavaParser.fromJavaVersion()
+            .classpath("spring-boot-test", "spring-boot-test-autoconfigure", "junit-jupiter-api"));
     }
 
     @DocumentExample
     @Test
     void convertSpringBootTestToQuarkusTest() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.boot.test.context.SpringBootTest;
-                                import org.junit.jupiter.api.Test;
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+              import org.junit.jupiter.api.Test;
 
-                                @SpringBootTest
-                                class MyApplicationTest {
-                                    @Test
-                                    void contextLoads() {
-                                    }
-                                }
-                                """,
-                        """
-                                import io.quarkus.test.junit.QuarkusTest;
-                                import org.junit.jupiter.api.Test;
+              @SpringBootTest
+              class MyApplicationTest {
+                  @Test
+                  void contextLoads() {
+                  }
+              }
+              """,
+            """
+              import io.quarkus.test.junit.QuarkusTest;
+              import org.junit.jupiter.api.Test;
 
-                                @QuarkusTest
-                                class MyApplicationTest {
-                                    @Test
-                                    void contextLoads() {
-                                    }
-                                }
-                                """
-                )
+              @QuarkusTest
+              class MyApplicationTest {
+                  @Test
+                  void contextLoads() {
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void convertMockBeanToInjectMock() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.boot.test.context.SpringBootTest;
-                                import org.springframework.boot.test.mock.mockito.MockBean;
-                                import org.junit.jupiter.api.Test;
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+              import org.springframework.boot.test.mock.mockito.MockBean;
+              import org.junit.jupiter.api.Test;
 
-                                @SpringBootTest
-                                class ServiceTest {
-                                    @MockBean
-                                    private MyService myService;
+              @SpringBootTest
+              class ServiceTest {
+                  @MockBean
+                  private MyService myService;
 
-                                    @Test
-                                    void testService() {
-                                    }
-                                }
-                                """,
-                        """
-                                import io.quarkus.test.junit.QuarkusTest;
-                                import io.quarkus.test.junit.mockito.InjectMock;
-                                import org.junit.jupiter.api.Test;
+                  @Test
+                  void testService() {
+                  }
+              }
+              """,
+            """
+              import io.quarkus.test.junit.QuarkusTest;
+              import io.quarkus.test.junit.mockito.InjectMock;
+              import org.junit.jupiter.api.Test;
 
-                                @QuarkusTest
-                                class ServiceTest {
-                                    @InjectMock
-                                    private MyService myService;
+              @QuarkusTest
+              class ServiceTest {
+                  @InjectMock
+                  private MyService myService;
 
-                                    @Test
-                                    void testService() {
-                                    }
-                                }
-                                """
-                ),
-                //language=java
-                java(
-                        """
-                                public class MyService {
-                                    public String process() {
-                                        return "result";
-                                    }
-                                }
-                                """
-                )
+                  @Test
+                  void testService() {
+                  }
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              public class MyService {
+                  public String process() {
+                      return "result";
+                  }
+              }
+              """
+          )
         );
     }
 }

@@ -29,68 +29,68 @@ class MigrateSpringAopTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-                        .scanRuntimeClasspath()
-                        .build()
-                        .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringAop"))
-                .parser(JavaParser.fromJavaVersion()
-                        .classpath("aspectjweaver", "jakarta.interceptor-api"));
+            .scanRuntimeClasspath()
+            .build()
+            .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringAop"))
+          .parser(JavaParser.fromJavaVersion()
+            .classpath("aspectjweaver", "jakarta.interceptor-api"));
     }
 
     @DocumentExample
     @Test
     void convertAspectToInterceptor() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.aspectj.lang.annotation.Aspect;
-                                import org.aspectj.lang.annotation.Around;
-                                import org.aspectj.lang.ProceedingJoinPoint;
+          //language=java
+          java(
+            """
+              import org.aspectj.lang.annotation.Aspect;
+              import org.aspectj.lang.annotation.Around;
+              import org.aspectj.lang.ProceedingJoinPoint;
 
-                                @Aspect
-                                public class LoggingAspect {
-                                    @Around("execution(* com.example.service.*.*(..))")
-                                    public Object logExecution(ProceedingJoinPoint joinPoint) throws Throwable {
-                                        System.out.println("Before method");
-                                        Object result = joinPoint.proceed();
-                                        System.out.println("After method");
-                                        return result;
-                                    }
-                                }
-                                """,
-                        """
-                                import jakarta.interceptor.AroundInvoke;
-                                import jakarta.interceptor.Interceptor;
-                                import jakarta.interceptor.InvocationContext;
+              @Aspect
+              public class LoggingAspect {
+                  @Around("execution(* com.example.service.*.*(..))")
+                  public Object logExecution(ProceedingJoinPoint joinPoint) throws Throwable {
+                      System.out.println("Before method");
+                      Object result = joinPoint.proceed();
+                      System.out.println("After method");
+                      return result;
+                  }
+              }
+              """,
+            """
+              import jakarta.interceptor.AroundInvoke;
+              import jakarta.interceptor.Interceptor;
+              import jakarta.interceptor.InvocationContext;
 
-                                @Interceptor
-                                public class LoggingAspect {
-                                    @AroundInvoke("execution(* com.example.service.*.*(..))")
-                                    public Object logExecution(InvocationContext joinPoint) throws Throwable {
-                                        System.out.println("Before method");
-                                        Object result = joinPoint.proceed();
-                                        System.out.println("After method");
-                                        return result;
-                                    }
-                                }
-                                """
-                )
+              @Interceptor
+              public class LoggingAspect {
+                  @AroundInvoke("execution(* com.example.service.*.*(..))")
+                  public Object logExecution(InvocationContext joinPoint) throws Throwable {
+                      System.out.println("Before method");
+                      Object result = joinPoint.proceed();
+                      System.out.println("After method");
+                      return result;
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void doNotChangeNonAspectClass() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                public class RegularClass {
-                                    public void doSomething() {
-                                        System.out.println("Hello");
-                                    }
-                                }
-                                """
-                )
+          //language=java
+          java(
+            """
+              public class RegularClass {
+                  public void doSomething() {
+                      System.out.println("Hello");
+                  }
+              }
+              """
+          )
         );
     }
 }

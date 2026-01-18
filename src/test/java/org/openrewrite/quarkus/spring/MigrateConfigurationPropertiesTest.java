@@ -29,69 +29,69 @@ class MigrateConfigurationPropertiesTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-                        .scanRuntimeClasspath()
-                        .build()
-                        .activateRecipes("org.openrewrite.quarkus.spring.MigrateConfigurationProperties"))
-                .parser(JavaParser.fromJavaVersion().classpath("spring-boot"));
+            .scanRuntimeClasspath()
+            .build()
+            .activateRecipes("org.openrewrite.quarkus.spring.MigrateConfigurationProperties"))
+          .parser(JavaParser.fromJavaVersion().classpath("spring-boot"));
     }
 
     @DocumentExample
     @Test
     void convertConfigurationPropertiesToConfigMapping() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.boot.context.properties.ConfigurationProperties;
+          //language=java
+          java(
+            """
+              import org.springframework.boot.context.properties.ConfigurationProperties;
 
-                                @ConfigurationProperties(prefix = "app")
-                                public class AppProperties {
-                                    private String name;
-                                    private int timeout;
+              @ConfigurationProperties(prefix = "app")
+              public class AppProperties {
+                  private String name;
+                  private int timeout;
 
-                                    public String getName() {
-                                        return name;
-                                    }
+                  public String getName() {
+                      return name;
+                  }
 
-                                    public void setName(String name) {
-                                        this.name = name;
-                                    }
+                  public void setName(String name) {
+                      this.name = name;
+                  }
 
-                                    public int getTimeout() {
-                                        return timeout;
-                                    }
+                  public int getTimeout() {
+                      return timeout;
+                  }
 
-                                    public void setTimeout(int timeout) {
-                                        this.timeout = timeout;
-                                    }
-                                }
-                                """,
-                        """
-                                import io.smallrye.config.ConfigMapping;
+                  public void setTimeout(int timeout) {
+                      this.timeout = timeout;
+                  }
+              }
+              """,
+            """
+              import io.smallrye.config.ConfigMapping;
 
-                                @ConfigMapping(prefix = "app")
-                                public class AppProperties {
-                                    private String name;
-                                    private int timeout;
+              @ConfigMapping(prefix = "app")
+              public class AppProperties {
+                  private String name;
+                  private int timeout;
 
-                                    public String getName() {
-                                        return name;
-                                    }
+                  public String getName() {
+                      return name;
+                  }
 
-                                    public void setName(String name) {
-                                        this.name = name;
-                                    }
+                  public void setName(String name) {
+                      this.name = name;
+                  }
 
-                                    public int getTimeout() {
-                                        return timeout;
-                                    }
+                  public int getTimeout() {
+                      return timeout;
+                  }
 
-                                    public void setTimeout(int timeout) {
-                                        this.timeout = timeout;
-                                    }
-                                }
-                                """
-                )
+                  public void setTimeout(int timeout) {
+                      this.timeout = timeout;
+                  }
+              }
+              """
+          )
         );
     }
 
@@ -100,71 +100,71 @@ class MigrateConfigurationPropertiesTest implements RewriteTest {
         // Note: ConstructorBinding was deprecated in Spring Boot 3.x
         // This test uses Spring Boot 2.x style for demonstration
         rewriteRun(
-                spec -> spec.parser(JavaParser.fromJavaVersion()
-                        .classpath("spring-boot")),
-                //language=java
-                java(
-                        """
-                                import org.springframework.boot.context.properties.ConfigurationProperties;
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpath("spring-boot")),
+          //language=java
+          java(
+            """
+              import org.springframework.boot.context.properties.ConfigurationProperties;
 
-                                @ConfigurationProperties(prefix = "server")
-                                public class ServerConfig {
-                                    private final String host;
-                                    private final int port;
+              @ConfigurationProperties(prefix = "server")
+              public class ServerConfig {
+                  private final String host;
+                  private final int port;
 
-                                    public ServerConfig(String host, int port) {
-                                        this.host = host;
-                                        this.port = port;
-                                    }
+                  public ServerConfig(String host, int port) {
+                      this.host = host;
+                      this.port = port;
+                  }
 
-                                    public String getHost() {
-                                        return host;
-                                    }
+                  public String getHost() {
+                      return host;
+                  }
 
-                                    public int getPort() {
-                                        return port;
-                                    }
-                                }
-                                """,
-                        """
-                                import io.smallrye.config.ConfigMapping;
+                  public int getPort() {
+                      return port;
+                  }
+              }
+              """,
+            """
+              import io.smallrye.config.ConfigMapping;
 
-                                @ConfigMapping(prefix = "server")
-                                public class ServerConfig {
-                                    private final String host;
-                                    private final int port;
+              @ConfigMapping(prefix = "server")
+              public class ServerConfig {
+                  private final String host;
+                  private final int port;
 
-                                    public ServerConfig(String host, int port) {
-                                        this.host = host;
-                                        this.port = port;
-                                    }
+                  public ServerConfig(String host, int port) {
+                      this.host = host;
+                      this.port = port;
+                  }
 
-                                    public String getHost() {
-                                        return host;
-                                    }
+                  public String getHost() {
+                      return host;
+                  }
 
-                                    public int getPort() {
-                                        return port;
-                                    }
-                                }
-                                """
-                )
+                  public int getPort() {
+                      return port;
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void doNotChangeNonConfigurationPropertiesClass() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                public class RegularConfig {
-                                    private String name;
-                                    public String getName() { return name; }
-                                    public void setName(String name) { this.name = name; }
-                                }
-                                """
-                )
+          //language=java
+          java(
+            """
+              public class RegularConfig {
+                  private String name;
+                  public String getName() { return name; }
+                  public void setName(String name) { this.name = name; }
+              }
+              """
+          )
         );
     }
 }
