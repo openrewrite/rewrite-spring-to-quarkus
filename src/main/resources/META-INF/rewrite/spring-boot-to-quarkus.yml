@@ -64,6 +64,11 @@ recipeList:
   - org.openrewrite.quarkus.spring.ConfigureNativeBuild
   - org.openrewrite.quarkus.spring.MigrateSpringAop
   - org.openrewrite.quarkus.spring.MigrateRequestParameterEdgeCases
+  # Tier 4 recipes
+  - org.openrewrite.quarkus.spring.MigrateSpringCloudServiceDiscovery
+  - org.openrewrite.quarkus.spring.MigrateSpringBootDevTools
+  - org.openrewrite.quarkus.spring.CustomizeQuarkusVersion
+  - org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -548,3 +553,144 @@ recipeList:
   # Handle @RequestAttribute
   - org.openrewrite.java.RemoveAnnotation:
       annotationPattern: org.springframework.web.bind.annotation.RequestAttribute
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringCloudServiceDiscovery
+displayName: Migrate Spring Cloud Service Discovery to Quarkus
+description: >-
+  Migrates Spring Cloud Service Discovery annotations and configurations to Quarkus equivalents.
+  Converts @EnableDiscoveryClient and related patterns to Quarkus Stork service discovery.
+tags:
+  - spring
+  - quarkus
+  - cloud
+  - service-discovery
+  - migration
+recipeList:
+  # Remove @EnableDiscoveryClient - Quarkus Stork handles this automatically
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.cloud.client.discovery.EnableDiscoveryClient
+  # Remove @EnableEurekaClient - not needed in Quarkus
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.cloud.netflix.eureka.EnableEurekaClient
+  # Remove Spring Cloud discovery dependencies and add Quarkus Stork
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-netflix-eureka-client
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-consul-discovery
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-smallrye-stork
+      version: 3.x
+      onlyIfUsing: org.springframework.cloud.client.discovery.*
+  # Convert DiscoveryClient to Stork
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.client.discovery.DiscoveryClient
+      newFullyQualifiedTypeName: io.smallrye.stork.Stork
+  # Convert @LoadBalanced WebClient to Quarkus REST Client
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.cloud.client.loadbalancer.LoadBalanced
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringBootDevTools
+displayName: Remove Spring Boot DevTools
+description: >-
+  Removes Spring Boot DevTools dependency and configuration.
+  Quarkus has built-in dev mode with hot reload that replaces DevTools functionality.
+tags:
+  - spring
+  - quarkus
+  - devtools
+  - migration
+recipeList:
+  # Remove spring-boot-devtools dependency
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-devtools
+  # Remove devtools-related properties
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: spring.devtools.restart.enabled
+      fileMatcher: "**/application*.properties"
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: spring.devtools.livereload.enabled
+      fileMatcher: "**/application*.properties"
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: spring.devtools.restart.exclude
+      fileMatcher: "**/application*.properties"
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: spring.devtools.restart.additional-paths
+      fileMatcher: "**/application*.properties"
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: spring.devtools.restart.additional-exclude
+      fileMatcher: "**/application*.properties"
+  # Remove YAML equivalents
+  - org.openrewrite.yaml.DeleteKey:
+      keyPath: $.spring.devtools
+      fileMatcher: "**/application*.yml"
+  - org.openrewrite.yaml.DeleteKey:
+      keyPath: $.spring.devtools
+      fileMatcher: "**/application*.yaml"
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.CustomizeQuarkusVersion
+displayName: Customize Quarkus BOM Version
+description: >-
+  Allows customization of the Quarkus BOM version used in the migration.
+  By default uses 3.x (latest 3.x version), but can be configured to use a specific version.
+tags:
+  - spring
+  - quarkus
+  - version
+  - bom
+  - migration
+recipeList:
+  # This recipe allows overriding the Quarkus BOM version
+  # Users can customize this by extending this recipe with their desired version
+  - org.openrewrite.maven.ChangeManagedDependencyVersion:
+      groupId: io.quarkus.platform
+      artifactId: quarkus-bom
+      newVersion: 3.x
+  - org.openrewrite.maven.ChangePluginVersion:
+      groupId: io.quarkus.platform
+      artifactId: quarkus-maven-plugin
+      newVersion: 3.x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals
+displayName: Customize Quarkus Maven Plugin Goals
+description: >-
+  Allows customization of Quarkus Maven plugin goals.
+  Adds or modifies the executions and goals for the quarkus-maven-plugin.
+tags:
+  - spring
+  - quarkus
+  - maven
+  - plugin
+  - build
+  - migration
+recipeList:
+  # Add native build profile for GraalVM native compilation
+  - org.openrewrite.maven.AddProfile:
+      id: native
+      activation: |
+        <property>
+          <name>native</name>
+        </property>
+      properties: |
+        <quarkus.package.type>native</quarkus.package.type>
+        <quarkus.native.enabled>true</quarkus.native.enabled>
+  # Add container build profile for container-native builds
+  - org.openrewrite.maven.AddProfile:
+      id: container
+      activation: |
+        <property>
+          <name>container</name>
+        </property>
+      properties: |
+        <quarkus.container-image.build>true</quarkus.container-image.build>

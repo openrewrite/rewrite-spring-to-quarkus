@@ -64,5 +64,7 @@ dependencies {
     testRuntimeOnly("org.aspectj:aspectjweaver:1.9.22")
     testRuntimeOnly("jakarta.interceptor:jakarta.interceptor-api:2.1.0")
     testRuntimeOnly("org.springframework:spring-aop:6.2.11")
+    testRuntimeOnly("org.springframework.cloud:spring-cloud-commons:4.1.4")
+    testRuntimeOnly("org.springframework.cloud:spring-cloud-netflix-eureka-client:4.1.3")
     testRuntimeOnly(gradleApi())
 }
