@@ -17,7 +17,6 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.config.Environment;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -27,10 +26,7 @@ class CustomizeQuarkusPluginGoalsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(Environment.builder()
-          .scanRuntimeClasspath()
-          .build()
-          .activateRecipes("org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals"));
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals");
     }
 
     @DocumentExample
@@ -39,10 +35,7 @@ class CustomizeQuarkusPluginGoalsTest implements RewriteTest {
         rewriteRun(
           pomXml(
             """
-              <?xml version="1.0" encoding="UTF-8"?>
-              <project xmlns="http://maven.apache.org/POM/4.0.0"
-                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+              <project>
                   <modelVersion>4.0.0</modelVersion>
                   <groupId>com.example</groupId>
                   <artifactId>demo</artifactId>
@@ -50,10 +43,7 @@ class CustomizeQuarkusPluginGoalsTest implements RewriteTest {
               </project>
               """,
             """
-              <?xml version="1.0" encoding="UTF-8"?>
-              <project xmlns="http://maven.apache.org/POM/4.0.0"
-                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+              <project>
                   <modelVersion>4.0.0</modelVersion>
                   <groupId>com.example</groupId>
                   <artifactId>demo</artifactId>
@@ -94,10 +84,7 @@ class CustomizeQuarkusPluginGoalsTest implements RewriteTest {
         rewriteRun(
           pomXml(
             """
-              <?xml version="1.0" encoding="UTF-8"?>
-              <project xmlns="http://maven.apache.org/POM/4.0.0"
-                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+              <project>
                   <modelVersion>4.0.0</modelVersion>
                   <groupId>com.example</groupId>
                   <artifactId>demo</artifactId>

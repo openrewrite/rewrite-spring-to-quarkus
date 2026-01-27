@@ -17,7 +17,6 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -28,10 +27,7 @@ class MigrateSpringTestingTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(Environment.builder()
-            .scanRuntimeClasspath()
-            .build()
-            .activateRecipes("org.openrewrite.quarkus.spring.MigrateSpringTesting"))
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.MigrateSpringTesting")
           .parser(JavaParser.fromJavaVersion()
             .classpath("spring-boot-test", "spring-boot-test-autoconfigure", "junit-jupiter-api"));
     }
