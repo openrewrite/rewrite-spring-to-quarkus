@@ -19,6 +19,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
 displayName: Migrate database drivers to Quarkus JDBC extensions
 description: Replaces Spring Boot database driver dependencies with their Quarkus JDBC extension equivalents.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - quarkus
@@ -135,6 +137,7 @@ tags:
   - database
   - h2
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: com.h2database
       artifactIdPattern: h2
@@ -163,6 +166,7 @@ tags:
   - h2
   - test
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: com.h2database
       artifactIdPattern: h2
@@ -190,6 +194,7 @@ tags:
   - database
   - derby
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.apache.derby
       artifactIdPattern: derby*
@@ -223,6 +228,7 @@ tags:
   - derby
   - test
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.apache.derby
       artifactIdPattern: derby|derbyclient

@@ -19,6 +19,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.MigrateBootStarters
 displayName: Replace Spring Boot starter dependencies with Quarkus equivalents
 description: Migrates Spring Boot starter dependencies to their Quarkus equivalents, removing version tags as Quarkus manages versions through its BOM.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - quarkus
@@ -74,6 +76,7 @@ tags:
   - web
   - reactive
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-web
@@ -101,6 +104,7 @@ tags:
   - web
   - classic
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-web
@@ -125,6 +129,7 @@ tags:
   - jpa
   - data
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-data-jpa
@@ -148,6 +153,7 @@ tags:
   - quarkus
   - security
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-security
@@ -171,6 +177,7 @@ tags:
   - quarkus
   - validation
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-validation
@@ -194,6 +201,7 @@ tags:
   - quarkus
   - test
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-test
@@ -219,6 +227,7 @@ tags:
   - actuator
   - health
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-actuator
@@ -242,6 +251,7 @@ tags:
   - quarkus
   - websocket
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-websocket
@@ -265,6 +275,7 @@ tags:
   - quarkus
   - cache
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-cache
@@ -289,6 +300,7 @@ tags:
   - webflux
   - reactive
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-webflux
@@ -317,6 +329,7 @@ tags:
   - mongodb
   - data
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-data-mongodb
@@ -341,6 +354,7 @@ tags:
   - redis
   - data
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-data-redis
@@ -366,6 +380,7 @@ tags:
   - messaging
   - reactive
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-amqp
@@ -394,6 +409,7 @@ tags:
   - rabbitmq
   - classic
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-amqp
@@ -419,6 +435,7 @@ tags:
   - messaging
   - reactive
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.kafka
       artifactIdPattern: spring-kafka
@@ -446,6 +463,7 @@ tags:
   - kafka
   - classic
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.kafka
       artifactIdPattern: spring-kafka
@@ -470,6 +488,7 @@ tags:
   - oauth2
   - security
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-oauth2-resource-server
@@ -494,6 +513,7 @@ tags:
   - oauth2
   - security
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-oauth2-client
@@ -518,6 +538,7 @@ tags:
   - jdbc
   - datasource
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-jdbc
@@ -541,6 +562,7 @@ tags:
   - quarkus
   - mail
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-mail
@@ -565,6 +587,7 @@ tags:
   - batch
   - scheduler
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-batch
@@ -588,6 +611,7 @@ tags:
   - quarkus
   - templating
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-thymeleaf
@@ -612,6 +636,7 @@ tags:
   - scheduler
   - quartz
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-quartz
@@ -636,6 +661,7 @@ tags:
   - integration
   - camel
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-integration
@@ -660,6 +686,7 @@ tags:
   - jms
   - activemq
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-activemq
@@ -684,6 +711,7 @@ tags:
   - jms
   - artemis
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-artemis
@@ -708,6 +736,7 @@ tags:
   - elasticsearch
   - data
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-data-elasticsearch
@@ -732,6 +761,7 @@ tags:
   - rest
   - data
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot-starter-data-rest

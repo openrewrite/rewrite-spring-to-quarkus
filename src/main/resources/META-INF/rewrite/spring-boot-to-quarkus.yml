@@ -25,6 +25,7 @@ tags:
   - migration
   - bom
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-*
@@ -55,6 +56,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.MigrateMavenPlugin
 displayName: Add or replace Spring Boot build plugin with Quarkus build plugin
 description: Remove Spring Boot Maven plugin if present and add Quarkus Maven plugin using the same version as the quarkus-bom.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - quarkus
@@ -73,6 +76,7 @@ name: org.openrewrite.quarkus.spring.ReplaceSpringBootApplication
 displayName: Replace `@SpringBootApplication` with Quarkus equivalent
 description: Replace `@SpringBootApplication` annotation with `@QuarkusMain`, `SpringApplication.run()` calls.
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.search.FindTypes:
       fullyQualifiedTypeName: org.springframework.boot.autoconfigure.SpringBootApplication
 recipeList:
@@ -86,6 +90,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI
 displayName: Migrate Spring annotations to CDI
 description: Replace Spring stereotype and injection annotations with CDI equivalents.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.quarkus.spring.SpringBeanToCdiProduces
   - org.openrewrite.java.ReplaceAnnotation:
