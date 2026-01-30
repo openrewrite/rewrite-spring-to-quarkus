@@ -19,6 +19,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions
 displayName: Add Spring compatibility extensions for commonly used annotations
 description: Adds Quarkus Spring compatibility extensions when Spring annotations are detected in the codebase.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - quarkus
@@ -52,6 +54,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies
 displayName: Migrate `@EnableXyz` annotations to Quarkus extensions
 description: Removes Spring `@EnableXyz` annotations and adds the corresponding Quarkus extensions as dependencies.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - quarkus
