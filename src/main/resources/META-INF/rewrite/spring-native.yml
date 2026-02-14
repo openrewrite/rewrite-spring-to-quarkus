@@ -57,11 +57,11 @@ tags:
 recipeList:
   # This recipe allows overriding the Quarkus BOM version
   # Users can customize this by extending this recipe with their desired version
-  - org.openrewrite.maven.ChangeManagedDependencyVersion:
+  - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: io.quarkus.platform
       artifactId: quarkus-bom
       newVersion: 3.x
-  - org.openrewrite.maven.ChangePluginVersion:
+  - org.openrewrite.maven.UpgradePluginVersion:
       groupId: io.quarkus.platform
       artifactId: quarkus-maven-plugin
       newVersion: 3.x

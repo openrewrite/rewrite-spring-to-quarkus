@@ -58,12 +58,12 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateEntitiesToPanache
   - org.openrewrite.quarkus.spring.MigrateSpringDataMongodb
   - org.openrewrite.quarkus.spring.MigrateSpringCloudConfig
-  - org.openrewrite.quarkus.spring.ConfigureNativeBuild
+  #- org.openrewrite.quarkus.spring.ConfigureNativeBuild # Disabled until AddProfile is idempotent
   - org.openrewrite.quarkus.spring.MigrateRequestParameterEdgeCases
   - org.openrewrite.quarkus.spring.MigrateSpringCloudServiceDiscovery
   - org.openrewrite.quarkus.spring.MigrateSpringBootDevTools
   - org.openrewrite.quarkus.spring.CustomizeQuarkusVersion
-  - org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals
+  #- org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals # Disabled until AddProfile is idempotent
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
