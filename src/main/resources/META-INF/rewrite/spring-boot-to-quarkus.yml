@@ -59,7 +59,6 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateSpringDataMongodb
   - org.openrewrite.quarkus.spring.MigrateSpringCloudConfig
   - org.openrewrite.quarkus.spring.ConfigureNativeBuild
-  - org.openrewrite.quarkus.spring.MigrateSpringAop
   - org.openrewrite.quarkus.spring.MigrateRequestParameterEdgeCases
   - org.openrewrite.quarkus.spring.MigrateSpringCloudServiceDiscovery
   - org.openrewrite.quarkus.spring.MigrateSpringBootDevTools

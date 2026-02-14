@@ -49,13 +49,16 @@ recipeList:
       onlyIfUsing: io.micrometer.core.instrument.*
   # Convert HealthIndicator to HealthCheck
   - org.openrewrite.quarkus.spring.SpringHealthIndicatorToQuarkus
-  # Update actuator property names
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.endpoints.web.exposure.include
-      newPropertyKey: quarkus.smallrye-health.root-path
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.endpoint.health.show-details
-      newPropertyKey: quarkus.smallrye-health.ui.always-include
+  # Update management port property
   - org.openrewrite.properties.ChangePropertyKey:
       oldPropertyKey: management.server.port
       newPropertyKey: quarkus.management.port
+  # Remove actuator properties that have no direct Quarkus equivalent
+  # management.endpoints.web.exposure.include configures which endpoints are exposed,
+  # but Quarkus SmallRye Health exposes all health endpoints by default
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: management.endpoints.web.exposure.include
+      fileMatcher: "**/application*.properties"
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: management.endpoint.health.show-details
+      fileMatcher: "**/application*.properties"

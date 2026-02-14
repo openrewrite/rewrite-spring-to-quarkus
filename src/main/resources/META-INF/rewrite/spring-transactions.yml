@@ -41,7 +41,5 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.transaction.annotation.Propagation
       newFullyQualifiedTypeName: jakarta.transaction.Transactional.TxType
-  # Remove Spring transaction dependencies
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springframework
-      artifactId: spring-tx
+  # Note: Not removing spring-tx dependency as it may be used by other Spring components
+  # that are still being migrated. The dependency will be removed as part of the broader migration.
