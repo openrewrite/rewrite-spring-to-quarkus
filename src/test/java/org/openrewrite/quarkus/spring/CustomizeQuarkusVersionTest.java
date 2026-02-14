@@ -45,7 +45,7 @@ class CustomizeQuarkusVersionTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.17.8</version>
+                              <version>3.31.3</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
