@@ -32,10 +32,8 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.context.ApplicationEventPublisher
       newFullyQualifiedTypeName: jakarta.enterprise.event.Event
-  # Convert ApplicationEvent base class (optional, events don't need to extend anything in CDI)
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.context.ApplicationEvent
-      newFullyQualifiedTypeName: java.lang.Object
+  # Note: ApplicationEvent -> Object conversion is not safe because it breaks super(source) constructor calls.
+  # CDI events don't need a base class, but removing the extends clause requires a Java recipe to also fix constructors.
   # Convert publishEvent to fire
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: jakarta.enterprise.event.Event publishEvent(..)
