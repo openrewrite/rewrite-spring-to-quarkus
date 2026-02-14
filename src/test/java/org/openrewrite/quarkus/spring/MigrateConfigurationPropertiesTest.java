@@ -147,6 +147,29 @@ class MigrateConfigurationPropertiesTest implements RewriteTest {
     }
 
     @Test
+    void removeIgnoreUnknownFieldsAttribute() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+
+              @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
+              public class ApplicationProperties {
+              }
+              """,
+            """
+              import io.smallrye.config.ConfigMapping;
+
+              @ConfigMapping(prefix = "application")
+              public class ApplicationProperties {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void doNotChangeNonConfigurationPropertiesClass() {
         rewriteRun(
           //language=java

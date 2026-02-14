@@ -11,3 +11,4 @@ bin/
 
 # Exclude files from being added to git index
 .gitmodules
+working-set*/

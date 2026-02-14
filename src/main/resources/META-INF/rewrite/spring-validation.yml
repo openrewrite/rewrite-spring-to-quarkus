@@ -45,11 +45,6 @@ recipeList:
       artifactId: quarkus-hibernate-validator
       version: x
       onlyIfUsing: jakarta.validation.Valid
-  # Remove Spring-specific validation imports if any
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springframework
-      artifactId: spring-context
-      because: Quarkus uses Hibernate Validator directly
   # Change javax.validation to jakarta.validation if needed
   - org.openrewrite.java.ChangePackage:
       oldPackageName: javax.validation
