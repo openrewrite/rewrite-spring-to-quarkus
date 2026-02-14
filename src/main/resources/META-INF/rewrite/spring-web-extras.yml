@@ -1,0 +1,85 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateRequestParameterEdgeCases
+displayName: Migrate Additional Spring Web Parameter Annotations
+description: >-
+  Migrates additional Spring Web parameter annotations not covered by the main WebToJaxRs recipe.
+  Includes @MatrixVariable, @CookieValue, and other edge cases.
+tags:
+  - spring
+  - quarkus
+  - web
+  - jaxrs
+  - migration
+recipeList:
+  # Convert @MatrixVariable to @MatrixParam
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.web.bind.annotation.MatrixVariable
+      newFullyQualifiedTypeName: jakarta.ws.rs.MatrixParam
+  # Convert @CookieValue to @CookieParam
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.web.bind.annotation.CookieValue
+      newFullyQualifiedTypeName: jakarta.ws.rs.CookieParam
+  # Convert @SessionAttribute (note: JAX-RS has no direct equivalent, use workaround)
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.web.bind.annotation.SessionAttribute
+  # Handle @RequestAttribute
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.web.bind.annotation.RequestAttribute
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringBootDevTools
+displayName: Remove Spring Boot DevTools
+description: >-
+  Removes Spring Boot DevTools dependency and configuration.
+  Quarkus has built-in dev mode with hot reload that replaces DevTools functionality.
+tags:
+  - spring
+  - quarkus
+  - devtools
+  - migration
+recipeList:
+  # Remove spring-boot-devtools dependency
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-devtools
+  # Remove devtools-related properties
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: spring.devtools.restart.enabled
+      fileMatcher: "**/application*.properties"
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: spring.devtools.livereload.enabled
+      fileMatcher: "**/application*.properties"
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: spring.devtools.restart.exclude
+      fileMatcher: "**/application*.properties"
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: spring.devtools.restart.additional-paths
+      fileMatcher: "**/application*.properties"
+  - org.openrewrite.properties.DeleteProperty:
+      propertyKey: spring.devtools.restart.additional-exclude
+      fileMatcher: "**/application*.properties"
+  # Remove YAML equivalents
+  - org.openrewrite.yaml.DeleteKey:
+      keyPath: $.spring.devtools
+      fileMatcher: "**/application*.yml"
+  - org.openrewrite.yaml.DeleteKey:
+      keyPath: $.spring.devtools
+      fileMatcher: "**/application*.yaml"

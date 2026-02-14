@@ -49,6 +49,22 @@ recipeList:
   - org.openrewrite.quarkus.spring.ValueToCdiConfigProperty
   - org.openrewrite.quarkus.spring.WebToJaxRs
   - org.openrewrite.quarkus.spring.RemoveSpringBootParent
+  - org.openrewrite.quarkus.spring.MigrateSpringValidation
+  - org.openrewrite.quarkus.spring.MigrateSpringActuator
+  - org.openrewrite.quarkus.spring.MigrateSpringTesting
+  - org.openrewrite.quarkus.spring.MigrateConfigurationProperties
+  - org.openrewrite.quarkus.spring.MigrateSpringTransactional
+  - org.openrewrite.quarkus.spring.MigrateSpringEvents
+  - org.openrewrite.quarkus.spring.MigrateEntitiesToPanache
+  - org.openrewrite.quarkus.spring.MigrateSpringDataMongodb
+  - org.openrewrite.quarkus.spring.MigrateSpringCloudConfig
+  - org.openrewrite.quarkus.spring.ConfigureNativeBuild
+  - org.openrewrite.quarkus.spring.MigrateSpringAop
+  - org.openrewrite.quarkus.spring.MigrateRequestParameterEdgeCases
+  - org.openrewrite.quarkus.spring.MigrateSpringCloudServiceDiscovery
+  - org.openrewrite.quarkus.spring.MigrateSpringBootDevTools
+  - org.openrewrite.quarkus.spring.CustomizeQuarkusVersion
+  - org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
