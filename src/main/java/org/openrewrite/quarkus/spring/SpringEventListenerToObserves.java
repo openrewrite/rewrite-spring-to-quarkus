@@ -18,18 +18,16 @@ package org.openrewrite.quarkus.spring;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
-import org.openrewrite.java.tree.Statement;
-import org.openrewrite.marker.Markers;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Collections.emptyList;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -88,51 +86,23 @@ public class SpringEventListenerToObserves extends Recipe {
                             m = m.withPrefix(annotationPrefix);
                         }
 
-                        // Add @Observes to first parameter
                         maybeRemoveImport(EVENT_LISTENER_FQN);
                         maybeAddImport(OBSERVES_FQN);
 
-                        // Build new parameters list with @Observes on first parameter
-                        List<Statement> newParams = new ArrayList<>();
-                        boolean first = true;
-                        for (Statement param : m.getParameters()) {
-                            if (first && param instanceof J.VariableDeclarations) {
-                                first = false;
-                                J.VariableDeclarations vd = (J.VariableDeclarations) param;
-
-                                // Create @Observes annotation manually
-                                J.Identifier observesId = new J.Identifier(
-                                        Tree.randomId(),
-                                        Space.EMPTY,
-                                        Markers.EMPTY,
-                                        emptyList(),
-                                        "Observes",
-                                        JavaType.buildType(OBSERVES_FQN),
-                                        null
-                                );
-                                J.Annotation observesAnn = new J.Annotation(
-                                        Tree.randomId(),
-                                        Space.EMPTY,
-                                        Markers.EMPTY,
-                                        observesId,
-                                        null
-                                );
-
-                                // Add annotation to parameter, preserving the parameter's prefix
-                                List<J.Annotation> paramAnnotations = new ArrayList<>(vd.getLeadingAnnotations());
-                                paramAnnotations.add(0, observesAnn);
-                                // Add space after the annotation by updating the type tree prefix
-                                vd = vd.withLeadingAnnotations(paramAnnotations);
-                                if (vd.getTypeExpression() != null) {
-                                    vd = vd.withTypeExpression(vd.getTypeExpression().withPrefix(Space.SINGLE_SPACE));
-                                }
-                                newParams.add(vd);
-                            } else {
-                                newParams.add(param);
+                        // Add @Observes to first parameter
+                        return m.withParameters(ListUtils.mapFirst(m.getParameters(), param -> {
+                            if (!(param instanceof J.VariableDeclarations)) {
+                                return param;
                             }
-                        }
-
-                        return m.withParameters(newParams);
+                            J.VariableDeclarations vd = (J.VariableDeclarations) param;
+                            vd = JavaTemplate.builder("@Observes")
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "jakarta.enterprise.cdi-api"))
+                                    .imports(OBSERVES_FQN)
+                                    .build()
+                                    .apply(new Cursor(getCursor(), vd), vd.getCoordinates().addAnnotation((a1, a2) -> 0));
+                            return vd;
+                        }));
                     }
                 }
         );

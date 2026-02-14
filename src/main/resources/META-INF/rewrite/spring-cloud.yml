@@ -1,0 +1,90 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringCloudConfig
+displayName: Migrate Spring Cloud Config Client to Quarkus Config
+description: >-
+  Migrates Spring Cloud Config Client to Quarkus configuration sources.
+  Converts bootstrap.yml/properties patterns to Quarkus config.
+tags:
+  - spring
+  - quarkus
+  - cloud
+  - config
+  - migration
+recipeList:
+  # Remove spring-cloud-starter-config dependency
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-config
+  # Add quarkus-config-yaml for YAML config support
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-config-yaml
+      version: x
+      onlyIfUsing: org.springframework.cloud.context.config.annotation.RefreshScope
+  # Remove @RefreshScope (Quarkus handles config refresh differently)
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.cloud.context.config.annotation.RefreshScope
+  # Migrate bootstrap properties to application properties
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.cloud.config.uri
+      newPropertyKey: quarkus.config.locations
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.cloud.config.fail-fast
+      newPropertyKey: quarkus.config.fail-on-missing-locations
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringCloudServiceDiscovery
+displayName: Migrate Spring Cloud Service Discovery to Quarkus
+description: >-
+  Migrates Spring Cloud Service Discovery annotations and configurations to Quarkus equivalents.
+  Converts @EnableDiscoveryClient and related patterns to Quarkus Stork service discovery.
+tags:
+  - spring
+  - quarkus
+  - cloud
+  - service-discovery
+  - migration
+recipeList:
+  # Remove @EnableDiscoveryClient - Quarkus Stork handles this automatically
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.cloud.client.discovery.EnableDiscoveryClient
+  # Remove @EnableEurekaClient - not needed in Quarkus
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.cloud.netflix.eureka.EnableEurekaClient
+  # Remove Spring Cloud discovery dependencies and add Quarkus Stork
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-netflix-eureka-client
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-consul-discovery
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-smallrye-stork
+      version: 3.x
+      onlyIfUsing: org.springframework.cloud.client.discovery.*
+  # Convert DiscoveryClient to Stork
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.client.discovery.DiscoveryClient
+      newFullyQualifiedTypeName: io.smallrye.stork.Stork
+  # Convert @LoadBalanced WebClient to Quarkus REST Client
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: org.springframework.cloud.client.loadbalancer.LoadBalanced

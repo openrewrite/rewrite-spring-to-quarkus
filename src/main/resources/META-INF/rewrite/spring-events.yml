@@ -1,0 +1,44 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringEvents
+displayName: Migrate Spring Events to CDI Events
+description: >-
+  Migrates Spring's event mechanism to CDI events.
+  Converts ApplicationEventPublisher to CDI Event and @EventListener to @Observes.
+tags:
+  - spring
+  - quarkus
+  - events
+  - cdi
+  - migration
+recipeList:
+  # Convert ApplicationEventPublisher field type to Event
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.context.ApplicationEventPublisher
+      newFullyQualifiedTypeName: jakarta.enterprise.event.Event
+  # Convert ApplicationEvent base class (optional, events don't need to extend anything in CDI)
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.context.ApplicationEvent
+      newFullyQualifiedTypeName: java.lang.Object
+  # Convert publishEvent to fire
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: jakarta.enterprise.event.Event publishEvent(..)
+      newMethodName: fire
+  # Convert @EventListener to CDI pattern (requires Java recipe for parameter annotation)
+  - org.openrewrite.quarkus.spring.SpringEventListenerToObserves

@@ -96,8 +96,6 @@ class MigrateConfigurationPropertiesTest implements RewriteTest {
         // Note: ConstructorBinding was deprecated in Spring Boot 3.x
         // This test uses Spring Boot 2.x style for demonstration
         rewriteRun(
-          spec -> spec.parser(JavaParser.fromJavaVersion()
-            .classpath("spring-boot")),
           //language=java
           java(
             """

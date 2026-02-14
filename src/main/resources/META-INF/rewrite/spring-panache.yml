@@ -1,0 +1,72 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateEntitiesToPanache
+displayName: Migrate JPA Entities to Panache Entities
+description: >-
+  Converts standard JPA entities to Quarkus Panache entities using the Active Record pattern.
+  Entities will extend PanacheEntity and gain built-in CRUD operations.
+tags:
+  - spring
+  - quarkus
+  - jpa
+  - panache
+  - migration
+recipeList:
+  # Add Panache dependency
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.quarkus
+      artifactId: quarkus-hibernate-orm-panache
+      version: x
+      onlyIfUsing: jakarta.persistence.Entity
+  # Convert entities to extend PanacheEntity
+  - org.openrewrite.quarkus.spring.JpaEntityToPanacheEntity
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringDataMongodb
+displayName: Migrate Spring Data MongoDB to Quarkus Panache MongoDB
+description: >-
+  Migrates Spring Data MongoDB repositories to Quarkus MongoDB with Panache.
+  Converts MongoRepository interfaces to PanacheMongoRepository pattern.
+tags:
+  - spring
+  - quarkus
+  - mongodb
+  - panache
+  - migration
+recipeList:
+  # Replace spring-boot-starter-data-mongodb with quarkus-mongodb-panache
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-data-mongodb
+      newGroupId: io.quarkus
+      newArtifactId: quarkus-mongodb-panache
+      newVersion: x
+  # Change MongoRepository to PanacheMongoRepository
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.mongodb.repository.MongoRepository
+      newFullyQualifiedTypeName: io.quarkus.mongodb.panache.PanacheMongoRepository
+  # Change @Document to @MongoEntity
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.mongodb.core.mapping.Document
+      newFullyQualifiedTypeName: io.quarkus.mongodb.panache.common.MongoEntity
+  # Change MongoTemplate to MongoClient patterns
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.mongodb.core.MongoTemplate
+      newFullyQualifiedTypeName: com.mongodb.client.MongoClient

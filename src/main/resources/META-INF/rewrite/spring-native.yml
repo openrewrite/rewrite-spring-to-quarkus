@@ -1,0 +1,102 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.ConfigureNativeBuild
+displayName: Configure Quarkus Native Build Support
+description: >-
+  Adds configuration and dependencies required for Quarkus native image compilation with GraalVM.
+  Includes native profile configuration and reflection hints where needed.
+tags:
+  - spring
+  - quarkus
+  - native
+  - graalvm
+  - migration
+recipeList:
+  # Add native profile to pom.xml
+  - org.openrewrite.maven.AddProfile:
+      id: native
+      activation: |
+        <property>
+          <name>native</name>
+        </property>
+      properties: |
+        <quarkus.native.enabled>true</quarkus.native.enabled>
+        <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
+  # Ensure quarkus-maven-plugin has native goals
+  - org.openrewrite.quarkus.spring.AddQuarkusMavenPlugin
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.CustomizeQuarkusVersion
+displayName: Customize Quarkus BOM Version
+description: >-
+  Allows customization of the Quarkus BOM version used in the migration.
+  By default uses 3.x (latest 3.x version), but can be configured to use a specific version.
+tags:
+  - spring
+  - quarkus
+  - version
+  - bom
+  - migration
+recipeList:
+  # This recipe allows overriding the Quarkus BOM version
+  # Users can customize this by extending this recipe with their desired version
+  - org.openrewrite.maven.ChangeManagedDependencyVersion:
+      groupId: io.quarkus.platform
+      artifactId: quarkus-bom
+      newVersion: 3.x
+  - org.openrewrite.maven.ChangePluginVersion:
+      groupId: io.quarkus.platform
+      artifactId: quarkus-maven-plugin
+      newVersion: 3.x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals
+displayName: Customize Quarkus Maven Plugin Goals
+description: >-
+  Allows customization of Quarkus Maven plugin goals.
+  Adds or modifies the executions and goals for the quarkus-maven-plugin.
+tags:
+  - spring
+  - quarkus
+  - maven
+  - plugin
+  - build
+  - migration
+recipeList:
+  # Add native build profile for GraalVM native compilation
+  - org.openrewrite.maven.AddProfile:
+      id: native
+      activation: |
+        <property>
+          <name>native</name>
+        </property>
+      properties: |
+        <quarkus.package.type>native</quarkus.package.type>
+        <quarkus.native.enabled>true</quarkus.native.enabled>
+  # Add container build profile for container-native builds
+  - org.openrewrite.maven.AddProfile:
+      id: container
+      activation: |
+        <property>
+          <name>container</name>
+        </property>
+      properties: |
+        <quarkus.container-image.build>true</quarkus.container-image.build>
