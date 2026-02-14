@@ -28,6 +28,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok:latest.release")
 
     implementation(platform("org.openrewrite:rewrite-bom:${rewriteVersion}"))
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.21.0"))
     implementation("org.openrewrite:rewrite-java")
     implementation("org.openrewrite:rewrite-maven")
     implementation("org.openrewrite:rewrite-xml")
