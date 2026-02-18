@@ -20,6 +20,7 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class CustomizeQuarkusVersionTest implements RewriteTest {
@@ -45,16 +46,17 @@ class CustomizeQuarkusVersionTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.31.4</version>
+                              <version>2.16.12.Final</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
                       </dependencies>
                   </dependencyManagement>
               </project>
-              """
-            // Note: The actual version update depends on what 3.x resolves to
-            // This test validates the recipe is properly configured
+              """,
+            spec -> spec.after(actual -> assertThat(actual)
+              .containsPattern("<artifactId>quarkus-bom</artifactId>\\s*<version>3\\.\\d+\\.\\d+</version>")
+              .actual())
           )
         );
     }
