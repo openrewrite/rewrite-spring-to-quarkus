@@ -162,6 +162,79 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals
+examples:
+- description: '`CustomizeQuarkusPluginGoalsTest#addNativeProfile`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <profiles>
+              <profile>
+                  <id>native</id>
+                  <activation>
+                      <property>
+                          <name>native</name>
+                      </property>
+                  </activation>
+                  <properties>
+                      <quarkus.package.type>native</quarkus.package.type>
+                      <quarkus.native.enabled>true</quarkus.native.enabled>
+                  </properties>
+              </profile>
+              <profile>
+                  <id>container</id>
+                  <activation>
+                      <property>
+                          <name>container</name>
+                      </property>
+                  </activation>
+                  <properties>
+                      <quarkus.container-image.build>true</quarkus.container-image.build>
+                  </properties>
+              </profile>
+          </profiles>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.CustomizeQuarkusVersion
+examples:
+- description: '`CustomizeQuarkusVersionTest#updateQuarkusBomVersion`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>io.quarkus.platform</groupId>
+                      <artifactId>quarkus-bom</artifactId>
+                      <version>2.16.12.Final</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies
 examples:
 - description: '`EnableAnnotationsToQuarkusDependenciesTest#convertEnableSchedulingToQuarkusScheduler`'
@@ -222,6 +295,48 @@ examples:
       </project>
     path: pom.xml
     language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.JpaEntityToPanacheEntity
+examples:
+- description: '`JpaEntityToPanacheEntityTest#convertEntityToPanacheEntity`'
+  sources:
+  - before: |
+      import jakarta.persistence.Entity;
+      import jakarta.persistence.Id;
+      import jakarta.persistence.GeneratedValue;
+
+      @Entity
+      public class User {
+          @Id
+          @GeneratedValue
+          private Long id;
+
+          private String name;
+          private String email;
+
+          public Long getId() { return id; }
+          public void setId(Long id) { this.id = id; }
+          public String getName() { return name; }
+          public void setName(String name) { this.name = name; }
+          public String getEmail() { return email; }
+          public void setEmail(String email) { this.email = email; }
+      }
+    after: |
+      import io.quarkus.hibernate.orm.panache.PanacheEntity;
+      import jakarta.persistence.Entity;
+
+      @Entity
+      public class User extends PanacheEntity {
+
+          private String name;
+          private String email;
+          public String getName() { return name; }
+          public void setName(String name) { this.name = name; }
+          public String getEmail() { return email; }
+          public void setEmail(String email) { this.email = email; }
+      }
+    language: java
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.MigrateBootStarters
@@ -290,6 +405,61 @@ examples:
       </project>
     path: pom.xml
     language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.MigrateConfigurationProperties
+examples:
+- description: '`MigrateConfigurationPropertiesTest#convertConfigurationPropertiesToConfigMapping`'
+  sources:
+  - before: |
+      import org.springframework.boot.context.properties.ConfigurationProperties;
+
+      @ConfigurationProperties(prefix = "app")
+      public class AppProperties {
+          private String name;
+          private int timeout;
+
+          public String getName() {
+              return name;
+          }
+
+          public void setName(String name) {
+              this.name = name;
+          }
+
+          public int getTimeout() {
+              return timeout;
+          }
+
+          public void setTimeout(int timeout) {
+              this.timeout = timeout;
+          }
+      }
+    after: |
+      import io.smallrye.config.ConfigMapping;
+
+      @ConfigMapping(prefix = "app")
+      public class AppProperties {
+          private String name;
+          private int timeout;
+
+          public String getName() {
+              return name;
+          }
+
+          public void setName(String name) {
+              this.name = name;
+          }
+
+          public int getTimeout() {
+              return timeout;
+          }
+
+          public void setTimeout(int timeout) {
+              this.timeout = timeout;
+          }
+      }
+    language: java
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
@@ -415,6 +585,184 @@ examples:
                   </plugin>
               </plugins>
           </build>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.MigrateSpringBootDevTools
+examples:
+- description: '`MigrateSpringBootDevToolsTest#removeDevToolsProperties`'
+  sources:
+  - before: |
+      server.port=8080
+      spring.devtools.restart.enabled=true
+      spring.devtools.livereload.enabled=true
+      spring.application.name=myapp
+    after: |
+      server.port=8080
+      spring.application.name=myapp
+    path: application.properties
+    language: properties
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.MigrateSpringCloudServiceDiscovery
+examples:
+- description: '`MigrateSpringCloudServiceDiscoveryTest#removeEnableDiscoveryClientAnnotation`'
+  sources:
+  - before: |
+      import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+      @EnableDiscoveryClient
+      public class Application {
+          public static void main(String[] args) {
+              // Application startup
+          }
+      }
+    after: |
+      public class Application {
+          public static void main(String[] args) {
+              // Application startup
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.MigrateSpringDataMongodb
+examples:
+- description: '`MigrateSpringDataMongodbTest#convertDocumentAnnotation`'
+  sources:
+  - before: |
+      import org.springframework.data.mongodb.core.mapping.Document;
+
+      @Document(collection = "users")
+      public class User {
+          private String id;
+          private String name;
+
+          public String getId() { return id; }
+          public void setId(String id) { this.id = id; }
+          public String getName() { return name; }
+          public void setName(String name) { this.name = name; }
+      }
+    after: |
+      import io.quarkus.mongodb.panache.common.MongoEntity;
+
+      @MongoEntity(collection = "users")
+      public class User {
+          private String id;
+          private String name;
+
+          public String getId() { return id; }
+          public void setId(String id) { this.id = id; }
+          public String getName() { return name; }
+          public void setName(String name) { this.name = name; }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.MigrateSpringTesting
+examples:
+- description: '`MigrateSpringTestingTest#convertSpringBootTestToQuarkusTest`'
+  sources:
+  - before: |
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.junit.jupiter.api.Test;
+
+      @SpringBootTest
+      class MyApplicationTest {
+          @Test
+          void contextLoads() {
+          }
+      }
+    after: |
+      import io.quarkus.test.junit.QuarkusTest;
+      import org.junit.jupiter.api.Test;
+
+      @QuarkusTest
+      class MyApplicationTest {
+          @Test
+          void contextLoads() {
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.MigrateSpringTransactional
+examples:
+- description: '`MigrateSpringTransactionalTest#convertSpringTransactionalToJakarta`'
+  sources:
+  - before: |
+      import org.springframework.transaction.annotation.Transactional;
+
+      public class UserService {
+          @Transactional
+          public void saveUser() {
+          }
+      }
+    after: |
+      import jakarta.transaction.Transactional;
+
+      public class UserService {
+          @Transactional
+          public void saveUser() {
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.MigrateSpringValidation
+examples:
+- description: '`MigrateSpringValidationTest#migrateValidationDependency`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>io.quarkus.platform</groupId>
+                      <artifactId>quarkus-bom</artifactId>
+                      <version>3.26.4</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-validation</artifactId>
+                  <version>3.2.0</version>
+              </dependency>
+          </dependencies>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>io.quarkus.platform</groupId>
+                      <artifactId>quarkus-bom</artifactId>
+                      <version>3.26.4</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+          <dependencies>
+              <dependency>
+                  <groupId>io.quarkus</groupId>
+                  <artifactId>quarkus-hibernate-validator</artifactId>
+              </dependency>
+          </dependencies>
       </project>
     path: pom.xml
     language: xml
@@ -625,6 +973,63 @@ examples:
       </project>
     path: pom.xml
     language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.SpringEventListenerToObserves
+examples:
+- description: '`SpringEventListenerToObservesTest#convertEventListenerToObserves`'
+  sources:
+  - before: |
+      import org.springframework.context.event.EventListener;
+
+      public class MyEventListener {
+          @EventListener
+          public void handleEvent(MyEvent event) {
+              System.out.println("Event received: " + event);
+          }
+      }
+    after: |
+      import jakarta.enterprise.event.Observes;
+
+      public class MyEventListener {
+          public void handleEvent(@Observes MyEvent event) {
+              System.out.println("Event received: " + event);
+          }
+      }
+    language: java
+  - before: |
+      public class MyEvent {
+          private String message;
+          public String getMessage() { return message; }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.SpringHealthIndicatorToQuarkus
+examples:
+- description: '`SpringHealthIndicatorToQuarkusTest#convertSimpleHealthIndicator`'
+  sources:
+  - before: |
+      import org.springframework.boot.actuate.health.Health;
+      import org.springframework.boot.actuate.health.HealthIndicator;
+
+      public class CustomHealthIndicator implements HealthIndicator {
+          @Override
+          public Health health() {
+              return Health.up().build();
+          }
+      }
+    after: |
+      import org.springframework.boot.actuate.health.HealthCheckResponse;
+      import org.springframework.boot.actuate.health.HealthCheck;
+
+      public class CustomHealthIndicator implements HealthCheck {
+          @Override
+          public HealthCheckResponse call() {
+              return HealthCheckResponse.up().build();
+          }
+      }
+    language: java
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI

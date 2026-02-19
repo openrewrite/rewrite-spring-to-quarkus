@@ -95,13 +95,12 @@ public class SpringEventListenerToObserves extends Recipe {
                                 return param;
                             }
                             J.VariableDeclarations vd = (J.VariableDeclarations) param;
-                            vd = JavaTemplate.builder("@Observes")
+                            return JavaTemplate.builder("@Observes")
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "jakarta.enterprise.cdi-api"))
                                     .imports(OBSERVES_FQN)
                                     .build()
                                     .apply(new Cursor(getCursor(), vd), vd.getCoordinates().addAnnotation((a1, a2) -> 0));
-                            return vd;
                         }));
                     }
                 }
