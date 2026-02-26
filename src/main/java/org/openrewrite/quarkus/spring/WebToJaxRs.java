@@ -280,7 +280,7 @@ public class WebToJaxRs extends Recipe {
                     String newAnn = "@PathParam";
                     Object[] args = new Object[0];
                     if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
-                        newAnn = "@PathParam(#{})";
+                        newAnn = "@PathParam(#{any()})";
                         args = ann.getArguments().toArray();
                     }
                     return JavaTemplate.builder(newAnn)
@@ -297,7 +297,7 @@ public class WebToJaxRs extends Recipe {
                     String newAnn = "@QueryParam";
                     Object[] args = new Object[0];
                     if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
-                        newAnn = "@QueryParam(#{})";
+                        newAnn = "@QueryParam(#{any()})";
                         args = ann.getArguments().toArray();
                     }
                     return JavaTemplate.builder(newAnn)
@@ -314,7 +314,7 @@ public class WebToJaxRs extends Recipe {
                     String newAnn = "@HeaderParam";
                     Object[] args = new Object[0];
                     if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
-                        newAnn = "@HeaderParam(#{})";
+                        newAnn = "@HeaderParam(#{any()})";
                         args = ann.getArguments().toArray();
                     }
                     return JavaTemplate.builder(newAnn)
