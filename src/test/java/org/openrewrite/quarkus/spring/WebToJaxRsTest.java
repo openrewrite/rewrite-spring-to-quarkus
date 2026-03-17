@@ -297,6 +297,42 @@ class WebToJaxRsTest implements RewriteTest {
     }
 
     @Test
+    void convertPathVariableWithNonValueAttributes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.bind.annotation.*;
+
+              @RestController
+              public class UserController {
+
+                  @GetMapping("/users/{id}")
+                  public String getUser(@PathVariable(required = false) Long id) {
+                      return "user";
+                  }
+              }
+              """,
+            """
+              import jakarta.ws.rs.GET;
+              import jakarta.ws.rs.Path;
+              import jakarta.ws.rs.PathParam;
+
+              @Path("")
+              public class UserController {
+
+                  @GET
+                  @Path("/users/{id}")
+                  public String getUser(@PathParam("id") Long id) {
+                      return "user";
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void convertRequestParam() {
         rewriteRun(
           //language=java

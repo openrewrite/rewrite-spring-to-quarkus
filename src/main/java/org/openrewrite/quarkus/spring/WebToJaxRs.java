@@ -293,11 +293,13 @@ public class WebToJaxRs extends Recipe {
         }
 
         private J.Annotation convertParamAnnotation(J.Annotation ann, String jaxRsAnnotation, J.VariableDeclarations varDecls, ExecutionContext ctx) {
+            // Extract explicit value/name attribute from the annotation
+            Expression value = extractAttributeValue(ann, "value", "name");
             String template;
             Object[] args;
-            if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
+            if (value != null) {
                 template = "@" + jaxRsAnnotation + "(#{any()})";
-                args = ann.getArguments().toArray();
+                args = new Object[]{value};
             } else {
                 // Infer name from the variable declaration
                 String paramName = varDecls.getVariables().get(0).getSimpleName();
