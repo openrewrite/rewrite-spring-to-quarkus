@@ -18,6 +18,7 @@ package org.openrewrite.quarkus.spring;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -259,6 +260,7 @@ class WebToJaxRsTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring-to-quarkus/issues/76")
     @Test
     void convertPathVariableWithoutExplicitValue() {
         rewriteRun(
@@ -296,6 +298,7 @@ class WebToJaxRsTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring-to-quarkus/issues/76")
     @Test
     void convertPathVariableWithNonValueAttributes() {
         rewriteRun(
@@ -370,6 +373,7 @@ class WebToJaxRsTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring-to-quarkus/issues/76")
     @Test
     void convertRequestParamWithoutExplicitValue() {
         rewriteRun(
@@ -406,6 +410,7 @@ class WebToJaxRsTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring-to-quarkus/issues/76")
     @Test
     void convertRequestHeaderWithoutExplicitValue() {
         rewriteRun(
