@@ -202,19 +202,19 @@ class WebToJaxRsTest implements RewriteTest {
 
                   @PUT
                   @Path("/users/{id}")
-                  public String updateUser(@PathParam Long id) {
+                  public String updateUser(@PathParam("id") Long id) {
                       return "updated";
                   }
 
                   @DELETE
                   @Path("/users/{id}")
-                  public String deleteUser(@PathParam Long id) {
+                  public String deleteUser(@PathParam("id") Long id) {
                       return "deleted";
                   }
 
                   @PATCH
                   @Path("/users/{id}")
-                  public String patchUser(@PathParam Long id) {
+                  public String patchUser(@PathParam("id") Long id) {
                       return "patched";
                   }
               }
@@ -260,6 +260,43 @@ class WebToJaxRsTest implements RewriteTest {
     }
 
     @Test
+    void convertPathVariableWithoutExplicitValue() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.bind.annotation.*;
+
+              @RestController
+              @RequestMapping("/api")
+              public class GreetingController {
+
+                  @GetMapping("/hello/{name}")
+                  public String hello(@PathVariable String name) {
+                      return "Hello, " + name + "!";
+                  }
+              }
+              """,
+            """
+              import jakarta.ws.rs.GET;
+              import jakarta.ws.rs.Path;
+              import jakarta.ws.rs.PathParam;
+
+              @Path("/api")
+              public class GreetingController {
+
+                  @GET
+                  @Path("/hello/{name}")
+                  public String hello(@PathParam("name") String name) {
+                      return "Hello, " + name + "!";
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void convertRequestParam() {
         rewriteRun(
           //language=java
@@ -289,6 +326,78 @@ class WebToJaxRsTest implements RewriteTest {
                   @Path("/users")
                   public String getUsers(@QueryParam("page") int page,
                                         @QueryParam("size") int size) {
+                      return "users";
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void convertRequestParamWithoutExplicitValue() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.bind.annotation.*;
+
+              @RestController
+              public class UserController {
+
+                  @GetMapping("/users")
+                  public String getUsers(@RequestParam int page) {
+                      return "users";
+                  }
+              }
+              """,
+            """
+              import jakarta.ws.rs.GET;
+              import jakarta.ws.rs.Path;
+              import jakarta.ws.rs.QueryParam;
+
+              @Path("")
+              public class UserController {
+
+                  @GET
+                  @Path("/users")
+                  public String getUsers(@QueryParam("page") int page) {
+                      return "users";
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void convertRequestHeaderWithoutExplicitValue() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.bind.annotation.*;
+
+              @RestController
+              public class UserController {
+
+                  @GetMapping("/users")
+                  public String getUsers(@RequestHeader String authorization) {
+                      return "users";
+                  }
+              }
+              """,
+            """
+              import jakarta.ws.rs.GET;
+              import jakarta.ws.rs.HeaderParam;
+              import jakarta.ws.rs.Path;
+
+              @Path("")
+              public class UserController {
+
+                  @GET
+                  @Path("/users")
+                  public String getUsers(@HeaderParam("authorization") String authorization) {
                       return "users";
                   }
               }
@@ -469,7 +578,7 @@ class WebToJaxRsTest implements RewriteTest {
 
                   @GET
                   @Path("/users/{id}")
-                  public String getUser(@PathParam Long id) {
+                  public String getUser(@PathParam("id") Long id) {
                       return "user";
                   }
 
@@ -481,13 +590,13 @@ class WebToJaxRsTest implements RewriteTest {
 
                   @PUT
                   @Path("/users/{id}")
-                  public String updateUser(@PathParam Long id, User user) {
+                  public String updateUser(@PathParam("id") Long id, User user) {
                       return "updated";
                   }
 
                   @DELETE
                   @Path("/users/{id}")
-                  public String deleteUser(@PathParam Long id) {
+                  public String deleteUser(@PathParam("id") Long id) {
                       return "deleted";
                   }
               }

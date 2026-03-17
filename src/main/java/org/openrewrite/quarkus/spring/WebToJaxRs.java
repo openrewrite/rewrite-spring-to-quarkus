@@ -275,57 +275,40 @@ public class WebToJaxRs extends Recipe {
                 if (PATH_VARIABLE_MATCHER.matches(ann)) {
                     maybeRemoveImport("org.springframework.web.bind.annotation.PathVariable");
                     maybeAddImport("jakarta.ws.rs.PathParam");
-
-                    // Keep arguments if present
-                    String newAnn = "@PathParam";
-                    Object[] args = new Object[0];
-                    if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
-                        newAnn = "@PathParam(#{any()})";
-                        args = ann.getArguments().toArray();
-                    }
-                    return JavaTemplate.builder(newAnn)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                            .imports("jakarta.ws.rs.PathParam")
-                            .build()
-                            .apply(getCursor(), ann.getCoordinates().replace(), args);
+                    return convertParamAnnotation(ann, "PathParam", (J.VariableDeclarations) parent, ctx);
                 }
                 if (REQUEST_PARAM_MATCHER.matches(ann)) {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestParam");
                     maybeAddImport("jakarta.ws.rs.QueryParam");
-
-                    // Keep arguments if present
-                    String newAnn = "@QueryParam";
-                    Object[] args = new Object[0];
-                    if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
-                        newAnn = "@QueryParam(#{any()})";
-                        args = ann.getArguments().toArray();
-                    }
-                    return JavaTemplate.builder(newAnn)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                            .imports("jakarta.ws.rs.QueryParam")
-                            .build()
-                            .apply(getCursor(), ann.getCoordinates().replace(), args);
+                    return convertParamAnnotation(ann, "QueryParam", (J.VariableDeclarations) parent, ctx);
                 }
                 if (REQUEST_HEADER_MATCHER.matches(ann)) {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestHeader");
                     maybeAddImport("jakarta.ws.rs.HeaderParam");
-
-                    // Keep arguments if present
-                    String newAnn = "@HeaderParam";
-                    Object[] args = new Object[0];
-                    if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
-                        newAnn = "@HeaderParam(#{any()})";
-                        args = ann.getArguments().toArray();
-                    }
-                    return JavaTemplate.builder(newAnn)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                            .imports("jakarta.ws.rs.HeaderParam")
-                            .build()
-                            .apply(getCursor(), ann.getCoordinates().replace(), args);
+                    return convertParamAnnotation(ann, "HeaderParam", (J.VariableDeclarations) parent, ctx);
                 }
             }
 
             return ann;
+        }
+
+        private J.Annotation convertParamAnnotation(J.Annotation ann, String jaxRsAnnotation, J.VariableDeclarations varDecls, ExecutionContext ctx) {
+            String template;
+            Object[] args;
+            if (ann.getArguments() != null && !ann.getArguments().isEmpty()) {
+                template = "@" + jaxRsAnnotation + "(#{any()})";
+                args = ann.getArguments().toArray();
+            } else {
+                // Infer name from the variable declaration
+                String paramName = varDecls.getVariables().get(0).getSimpleName();
+                template = "@" + jaxRsAnnotation + "(\"" + paramName + "\")";
+                args = new Object[0];
+            }
+            return JavaTemplate.builder(template)
+                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
+                    .imports("jakarta.ws.rs." + jaxRsAnnotation)
+                    .build()
+                    .apply(getCursor(), ann.getCoordinates().replace(), args);
         }
 
         private J.Annotation convertHttpMethodMapping(J.Annotation ann, String springMapping, String jaxRsMethod, ExecutionContext ctx) {
