@@ -439,25 +439,10 @@ examples:
       import io.smallrye.config.ConfigMapping;
 
       @ConfigMapping(prefix = "app")
-      public class AppProperties {
-          private String name;
-          private int timeout;
+      public interface AppProperties {
+          String name();
 
-          public String getName() {
-              return name;
-          }
-
-          public void setName(String name) {
-              this.name = name;
-          }
-
-          public int getTimeout() {
-              return timeout;
-          }
-
-          public void setTimeout(int timeout) {
-              this.timeout = timeout;
-          }
+          int timeout();
       }
     language: java
 ---
