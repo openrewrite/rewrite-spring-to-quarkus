@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -29,10 +30,39 @@ class MigrateSpringDataMongodbTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.MigrateSpringDataMongodb")
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-data-mongodb", "spring-data-commons"));
+            .classpath("spring-data-mongodb", "spring-data-commons", "quarkus-mongodb-panache"));
     }
 
     @DocumentExample
+    @Issue("https://github.com/openrewrite/rewrite-spring-to-quarkus/issues/67")
+    @Test
+    void convertMongoRepository() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              public class User {
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              import org.springframework.data.mongodb.repository.MongoRepository;
+
+              public interface UserRepository extends MongoRepository<User, String> {
+              }
+              """,
+            """
+              import io.quarkus.mongodb.panache.PanacheMongoRepository;
+
+              public interface UserRepository extends PanacheMongoRepository<User> {
+              }
+              """
+          )
+        );
+    }
+
     @Test
     void convertDocumentAnnotation() {
         rewriteRun(
