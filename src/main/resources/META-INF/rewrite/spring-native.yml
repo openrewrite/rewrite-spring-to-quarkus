@@ -32,12 +32,16 @@ recipeList:
   - org.openrewrite.maven.AddProfile:
       id: native
       activation: |
-        <property>
-          <name>native</name>
-        </property>
+        <activation>
+          <property>
+            <name>native</name>
+          </property>
+        </activation>
       properties: |
-        <quarkus.native.enabled>true</quarkus.native.enabled>
-        <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
+        <properties>
+          <quarkus.native.enabled>true</quarkus.native.enabled>
+          <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
+        </properties>
   # Ensure quarkus-maven-plugin has native goals
   - org.openrewrite.quarkus.spring.AddQuarkusMavenPlugin
 
@@ -85,18 +89,26 @@ recipeList:
   - org.openrewrite.maven.AddProfile:
       id: native
       activation: |
-        <property>
-          <name>native</name>
-        </property>
+        <activation>
+          <property>
+            <name>native</name>
+          </property>
+        </activation>
       properties: |
-        <quarkus.package.type>native</quarkus.package.type>
-        <quarkus.native.enabled>true</quarkus.native.enabled>
+        <properties>
+          <quarkus.package.type>native</quarkus.package.type>
+          <quarkus.native.enabled>true</quarkus.native.enabled>
+        </properties>
   # Add container build profile for container-native builds
   - org.openrewrite.maven.AddProfile:
       id: container
       activation: |
-        <property>
-          <name>container</name>
-        </property>
+        <activation>
+          <property>
+            <name>container</name>
+          </property>
+        </activation>
       properties: |
-        <quarkus.container-image.build>true</quarkus.container-image.build>
+        <properties>
+          <quarkus.container-image.build>true</quarkus.container-image.build>
+        </properties>
