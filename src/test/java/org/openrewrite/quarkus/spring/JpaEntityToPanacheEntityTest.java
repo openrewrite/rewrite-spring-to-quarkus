@@ -121,7 +121,7 @@ class JpaEntityToPanacheEntityTest implements RewriteTest {
 
     @Issue("https://github.com/openrewrite/rewrite-spring-to-quarkus/issues/69")
     @Test
-    void doesNotRemoveGetIdWhenIdFieldNotNamedId() {
+    void removesIdFieldAndMethodsForLongIdWithOtherFields() {
         rewriteRun(
           //language=java
           java(

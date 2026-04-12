@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
+import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
@@ -38,6 +39,8 @@ public class JpaEntityToPanacheEntity extends Recipe {
     private static final String PANACHE_ENTITY_BASE_FQN = "io.quarkus.hibernate.orm.panache.PanacheEntityBase";
     private static final String ID_FQN = "jakarta.persistence.Id";
     private static final String GENERATED_VALUE_FQN = "jakarta.persistence.GeneratedValue";
+    private static final AnnotationMatcher ENTITY_MATCHER = new AnnotationMatcher("@" + ENTITY_FQN);
+    private static final AnnotationMatcher ID_MATCHER = new AnnotationMatcher("@" + ID_FQN);
 
     String displayName = "Convert JPA Entity to Panache Entity";
 
@@ -54,12 +57,7 @@ public class JpaEntityToPanacheEntity extends Recipe {
                         J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
                         // Check if class has @Entity annotation
-                        boolean hasEntityAnnotation = cd.getLeadingAnnotations().stream()
-                                .anyMatch(ann -> "Entity".equals(ann.getSimpleName()) ||
-                                        (ann.getAnnotationType().getType() != null &&
-                                                ENTITY_FQN.equals(ann.getAnnotationType().getType().toString())));
-
-                        if (!hasEntityAnnotation) {
+                        if (cd.getLeadingAnnotations().stream().noneMatch(ENTITY_MATCHER::matches)) {
                             return cd;
                         }
 
@@ -99,8 +97,8 @@ public class JpaEntityToPanacheEntity extends Recipe {
                                 Markers.EMPTY
                         ));
 
-                        // Only remove @Id field and getId/setId methods when the @Id field is named "id"
-                        if (idFieldNamedId) {
+                        // Only remove @Id field and getId/setId when PanacheEntity provides the id
+                        if (idFieldNamedId && isLongId) {
                             doAfterVisit(new RemoveIdFieldAndMethodsVisitor());
                         }
 
@@ -114,11 +112,7 @@ public class JpaEntityToPanacheEntity extends Recipe {
         for (org.openrewrite.java.tree.Statement stmt : cd.getBody().getStatements()) {
             if (stmt instanceof J.VariableDeclarations) {
                 J.VariableDeclarations vd = (J.VariableDeclarations) stmt;
-                boolean hasIdAnnotation = vd.getLeadingAnnotations().stream()
-                        .anyMatch(ann -> "Id".equals(ann.getSimpleName()) ||
-                                (ann.getAnnotationType().getType() != null &&
-                                        ID_FQN.equals(ann.getAnnotationType().getType().toString())));
-                if (hasIdAnnotation) {
+                if (vd.getLeadingAnnotations().stream().anyMatch(ID_MATCHER::matches)) {
                     boolean isNamedId = vd.getVariables().stream()
                             .anyMatch(v -> "id".equals(v.getSimpleName()));
                     JavaType type = vd.getType();
@@ -149,13 +143,7 @@ public class JpaEntityToPanacheEntity extends Recipe {
         public J.@Nullable VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
             J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, ctx);
 
-            // Check if this field has @Id annotation
-            boolean hasIdAnnotation = vd.getLeadingAnnotations().stream()
-                    .anyMatch(ann -> "Id".equals(ann.getSimpleName()) ||
-                            (ann.getAnnotationType().getType() != null &&
-                                    ID_FQN.equals(ann.getAnnotationType().getType().toString())));
-
-            if (hasIdAnnotation) {
+            if (vd.getLeadingAnnotations().stream().anyMatch(ID_MATCHER::matches)) {
                 boolean isIdField = vd.getVariables().stream()
                         .anyMatch(v -> "id".equals(v.getSimpleName()));
 
