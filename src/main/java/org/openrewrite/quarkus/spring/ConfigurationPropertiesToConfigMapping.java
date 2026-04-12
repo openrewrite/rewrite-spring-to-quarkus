@@ -27,7 +27,6 @@ import org.openrewrite.marker.Markers;
 
 import org.openrewrite.internal.ListUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -105,53 +104,37 @@ public class ConfigurationPropertiesToConfigMapping extends Recipe {
                         }
 
                         // Transform body: remove fields, constructors, setters; convert getters to interface methods
-                        List<Statement> newStatements = new ArrayList<>();
-                        for (Statement stmt : cd.getBody().getStatements()) {
+                        List<Statement> newStatements = ListUtils.map(cd.getBody().getStatements(), stmt -> {
                             if (stmt instanceof J.VariableDeclarations) {
-                                continue;
+                                return null;
                             }
-                            if (stmt instanceof J.MethodDeclaration) {
-                                J.MethodDeclaration method = (J.MethodDeclaration) stmt;
-
-                                if (method.isConstructor()) {
-                                    continue;
-                                }
-
-                                String methodName = method.getSimpleName();
-
-                                if (methodName.startsWith("set") && methodName.length() > 3) {
-                                    continue;
-                                }
-
-                                if (methodName.startsWith("get") && methodName.length() > 3 &&
-                                    method.getParameters().stream().allMatch(p -> p instanceof J.Empty)) {
-                                    String propertyName = Character.toLowerCase(methodName.charAt(3)) + methodName.substring(4);
-                                    newStatements.add(convertGetterToInterfaceMethod(method, propertyName));
-                                    continue;
-                                }
-                                if (methodName.startsWith("is") && methodName.length() > 2 &&
-                                    method.getParameters().stream().allMatch(p -> p instanceof J.Empty)) {
-                                    String propertyName = Character.toLowerCase(methodName.charAt(2)) + methodName.substring(3);
-                                    newStatements.add(convertGetterToInterfaceMethod(method, propertyName));
-                                    continue;
-                                }
-
-                                // Keep other methods but remove body for interface
-                                newStatements.add(stripForInterface(method));
-                            } else {
-                                newStatements.add(stmt);
+                            if (!(stmt instanceof J.MethodDeclaration)) {
+                                return stmt;
                             }
-                        }
+                            J.MethodDeclaration method = (J.MethodDeclaration) stmt;
+                            if (method.isConstructor()) {
+                                return null;
+                            }
+                            String methodName = method.getSimpleName();
+                            if (methodName.startsWith("set") && methodName.length() > 3) {
+                                return null;
+                            }
+                            if (methodName.startsWith("get") && methodName.length() > 3 &&
+                                method.getParameters().stream().allMatch(p -> p instanceof J.Empty)) {
+                                String propertyName = Character.toLowerCase(methodName.charAt(3)) + methodName.substring(4);
+                                return convertGetterToInterfaceMethod(method, propertyName);
+                            }
+                            if (methodName.startsWith("is") && methodName.length() > 2 &&
+                                method.getParameters().stream().allMatch(p -> p instanceof J.Empty)) {
+                                String propertyName = Character.toLowerCase(methodName.charAt(2)) + methodName.substring(3);
+                                return convertGetterToInterfaceMethod(method, propertyName);
+                            }
+                            return stripForInterface(method);
+                        });
 
                         // Fix spacing: first statement gets single newline, rest get blank line
-                        for (int i = 0; i < newStatements.size(); i++) {
-                            Statement s = newStatements.get(i);
-                            if (i == 0) {
-                                newStatements.set(i, s.withPrefix(Space.format("\n    ")));
-                            } else {
-                                newStatements.set(i, s.withPrefix(Space.format("\n\n    ")));
-                            }
-                        }
+                        newStatements = ListUtils.map(newStatements, (i, s) ->
+                                s.withPrefix(Space.format(i == 0 ? "\n    " : "\n\n    ")));
 
                         cd = cd.withBody(cd.getBody().withStatements(newStatements));
 
