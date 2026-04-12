@@ -40,15 +40,9 @@ public class MongoRepositoryToPanacheMongoRepository extends Recipe {
     private static final String MONGO_REPO_FQN = "org.springframework.data.mongodb.repository.MongoRepository";
     private static final String PANACHE_MONGO_REPO_FQN = "io.quarkus.mongodb.panache.PanacheMongoRepository";
 
-    @Override
-    public String getDisplayName() {
-        return "Convert MongoRepository to PanacheMongoRepository";
-    }
+    String displayName = "Convert MongoRepository to PanacheMongoRepository";
 
-    @Override
-    public String getDescription() {
-        return "Transforms Spring Data `MongoRepository<T, ID>` interfaces to Quarkus `PanacheMongoRepository<T>`, dropping the ID type parameter.";
-    }
+    String description = "Transforms Spring Data `MongoRepository<T, ID>` interfaces to Quarkus `PanacheMongoRepository<T>`, dropping the ID type parameter.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
