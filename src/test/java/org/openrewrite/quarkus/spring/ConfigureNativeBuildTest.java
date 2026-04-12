@@ -28,9 +28,7 @@ class ConfigureNativeBuildTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.ConfigureNativeBuild")
-          // AddProfile is not idempotent; it removes and re-adds the profile each cycle
-          .expectedCyclesThatMakeChanges(2);
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.ConfigureNativeBuild");
     }
 
     @DocumentExample
