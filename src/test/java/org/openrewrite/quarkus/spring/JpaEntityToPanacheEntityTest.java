@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -73,6 +74,84 @@ class JpaEntityToPanacheEntityTest implements RewriteTest {
                   public void setName(String name) { this.name = name; }
                   public String getEmail() { return email; }
                   public void setEmail(String email) { this.email = email; }
+              }
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring-to-quarkus/issues/69")
+    @Test
+    void usesPanacheEntityBaseForStringId() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import jakarta.persistence.Entity;
+              import jakarta.persistence.Id;
+
+              @Entity
+              public class Authority {
+                  @Id
+                  private String name;
+
+                  public String getId() {
+                      return this.name;
+                  }
+              }
+              """,
+            """
+              import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+              import jakarta.persistence.Entity;
+              import jakarta.persistence.Id;
+
+              @Entity
+              public class Authority extends PanacheEntityBase {
+                  @Id
+                  private String name;
+
+                  public String getId() {
+                      return this.name;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring-to-quarkus/issues/69")
+    @Test
+    void doesNotRemoveGetIdWhenIdFieldNotNamedId() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import jakarta.persistence.Entity;
+              import jakarta.persistence.Id;
+              import jakarta.persistence.GeneratedValue;
+
+              @Entity
+              public class Item {
+                  @Id
+                  @GeneratedValue
+                  private Long id;
+
+                  private String code;
+
+                  public Long getId() { return id; }
+                  public void setId(Long id) { this.id = id; }
+                  public String getCode() { return code; }
+              }
+              """,
+            """
+              import io.quarkus.hibernate.orm.panache.PanacheEntity;
+              import jakarta.persistence.Entity;
+
+              @Entity
+              public class Item extends PanacheEntity {
+
+                  private String code;
+                  public String getCode() { return code; }
               }
               """
           )

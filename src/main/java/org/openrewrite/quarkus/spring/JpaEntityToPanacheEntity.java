@@ -35,6 +35,7 @@ public class JpaEntityToPanacheEntity extends Recipe {
 
     private static final String ENTITY_FQN = "jakarta.persistence.Entity";
     private static final String PANACHE_ENTITY_FQN = "io.quarkus.hibernate.orm.panache.PanacheEntity";
+    private static final String PANACHE_ENTITY_BASE_FQN = "io.quarkus.hibernate.orm.panache.PanacheEntityBase";
     private static final String ID_FQN = "jakarta.persistence.Id";
     private static final String GENERATED_VALUE_FQN = "jakarta.persistence.GeneratedValue";
 
@@ -67,34 +68,41 @@ public class JpaEntityToPanacheEntity extends Recipe {
                             String extendsType = cd.getExtends().getType() != null ?
                                     cd.getExtends().getType().toString() : "";
                             if (!extendsType.isEmpty() && !"java.lang.Object".equals(extendsType)) {
-                                // Already has a superclass, don't modify
                                 return cd;
                             }
                         }
 
-                        // Add PanacheEntity as superclass
-                        maybeAddImport(PANACHE_ENTITY_FQN);
+                        // Find the @Id field to determine type and name
+                        IdFieldInfo idFieldInfo = findIdField(cd);
+                        boolean isLongId = idFieldInfo != null && idFieldInfo.isLongType;
+                        boolean idFieldNamedId = idFieldInfo != null && idFieldInfo.isNamedId;
 
-                        // Create the extends identifier with proper spacing
+                        // Choose base class: PanacheEntity for Long id, PanacheEntityBase otherwise
+                        String panacheFqn = isLongId ? PANACHE_ENTITY_FQN : PANACHE_ENTITY_BASE_FQN;
+                        String panacheSimpleName = isLongId ? "PanacheEntity" : "PanacheEntityBase";
+
+                        maybeAddImport(panacheFqn);
+
                         J.Identifier panacheEntityId = new J.Identifier(
                                 Tree.randomId(),
-                                Space.SINGLE_SPACE,  // Space before "PanacheEntity" (after "extends")
+                                Space.SINGLE_SPACE,
                                 Markers.EMPTY,
                                 emptyList(),
-                                "PanacheEntity",
-                                JavaType.buildType(PANACHE_ENTITY_FQN),
+                                panacheSimpleName,
+                                JavaType.buildType(panacheFqn),
                                 null
                         );
 
-                        // Use padding to set proper extends clause with space before "extends"
                         cd = cd.getPadding().withExtends(new JLeftPadded<>(
-                                Space.SINGLE_SPACE,  // Space before "extends" keyword
+                                Space.SINGLE_SPACE,
                                 panacheEntityId,
                                 Markers.EMPTY
                         ));
 
-                        // Remove @Id field and its getter/setter
-                        doAfterVisit(new RemoveIdFieldAndMethodsVisitor());
+                        // Only remove @Id field and getId/setId methods when the @Id field is named "id"
+                        if (idFieldNamedId) {
+                            doAfterVisit(new RemoveIdFieldAndMethodsVisitor());
+                        }
 
                         return cd;
                     }
@@ -102,8 +110,38 @@ public class JpaEntityToPanacheEntity extends Recipe {
         );
     }
 
+    private static @Nullable IdFieldInfo findIdField(J.ClassDeclaration cd) {
+        for (org.openrewrite.java.tree.Statement stmt : cd.getBody().getStatements()) {
+            if (stmt instanceof J.VariableDeclarations) {
+                J.VariableDeclarations vd = (J.VariableDeclarations) stmt;
+                boolean hasIdAnnotation = vd.getLeadingAnnotations().stream()
+                        .anyMatch(ann -> "Id".equals(ann.getSimpleName()) ||
+                                (ann.getAnnotationType().getType() != null &&
+                                        ID_FQN.equals(ann.getAnnotationType().getType().toString())));
+                if (hasIdAnnotation) {
+                    boolean isNamedId = vd.getVariables().stream()
+                            .anyMatch(v -> "id".equals(v.getSimpleName()));
+                    JavaType type = vd.getType();
+                    boolean isLongType = type != null && ("java.lang.Long".equals(type.toString()) || "long".equals(type.toString()));
+                    return new IdFieldInfo(isNamedId, isLongType);
+                }
+            }
+        }
+        return null;
+    }
+
+    private static class IdFieldInfo {
+        final boolean isNamedId;
+        final boolean isLongType;
+
+        IdFieldInfo(boolean isNamedId, boolean isLongType) {
+            this.isNamedId = isNamedId;
+            this.isLongType = isLongType;
+        }
+    }
+
     /**
-     * Visitor to remove the @Id annotated field and its getter/setter since PanacheEntity provides the id.
+     * Visitor to remove the @Id annotated field named "id" and its getter/setter since PanacheEntity provides the id.
      */
     private static class RemoveIdFieldAndMethodsVisitor extends JavaIsoVisitor<ExecutionContext> {
 
@@ -118,7 +156,6 @@ public class JpaEntityToPanacheEntity extends Recipe {
                                     ID_FQN.equals(ann.getAnnotationType().getType().toString())));
 
             if (hasIdAnnotation) {
-                // Check if the field is named "id" - if so, remove it entirely
                 boolean isIdField = vd.getVariables().stream()
                         .anyMatch(v -> "id".equals(v.getSimpleName()));
 
@@ -136,7 +173,7 @@ public class JpaEntityToPanacheEntity extends Recipe {
         public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
-            // Remove getId() and setId() methods
+            // Only remove getId() and setId() when the @Id field is named "id"
             String methodName = m.getSimpleName();
             if ("getId".equals(methodName) || "setId".equals(methodName)) {
                 return null;
