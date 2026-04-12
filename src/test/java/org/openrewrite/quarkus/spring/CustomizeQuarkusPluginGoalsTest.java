@@ -15,7 +15,6 @@
  */
 package org.openrewrite.quarkus.spring;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
@@ -23,12 +22,13 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.maven.Assertions.pomXml;
 
-@Disabled("AddProfile is not idempotent and produces malformed XML")
 class CustomizeQuarkusPluginGoalsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals");
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals")
+          // AddProfile is not idempotent; it removes and re-adds the profile each cycle
+          .expectedCyclesThatMakeChanges(2);
     }
 
     @DocumentExample
@@ -82,9 +82,42 @@ class CustomizeQuarkusPluginGoalsTest implements RewriteTest {
     }
 
     @Test
-    void doNotDuplicateExistingProfile() {
+    void existingProfilesAreReplaced() {
         rewriteRun(
           pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <profiles>
+                      <profile>
+                          <id>native</id>
+                          <activation>
+                              <property>
+                                  <name>native</name>
+                              </property>
+                          </activation>
+                          <properties>
+                              <quarkus.package.type>native</quarkus.package.type>
+                              <quarkus.native.enabled>true</quarkus.native.enabled>
+                          </properties>
+                      </profile>
+                      <profile>
+                          <id>container</id>
+                          <activation>
+                              <property>
+                                  <name>container</name>
+                              </property>
+                          </activation>
+                          <properties>
+                              <quarkus.container-image.build>true</quarkus.container-image.build>
+                          </properties>
+                      </profile>
+                  </profiles>
+              </project>
+              """,
             """
               <project>
                   <modelVersion>4.0.0</modelVersion>
