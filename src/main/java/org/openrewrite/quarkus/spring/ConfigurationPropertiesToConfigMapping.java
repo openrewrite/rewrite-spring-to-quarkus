@@ -25,6 +25,8 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
+import org.openrewrite.internal.ListUtils;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,42 +63,39 @@ public class ConfigurationPropertiesToConfigMapping extends Recipe {
                         }
 
                         // Change annotation from @ConfigurationProperties to @ConfigMapping
-                        List<J.Annotation> newAnnotations = new ArrayList<>();
-                        for (J.Annotation ann : cd.getLeadingAnnotations()) {
-                            if (CONFIG_PROPS_MATCHER.matches(ann)) {
-                                J.Identifier configMappingId = new J.Identifier(
-                                        Tree.randomId(),
-                                        Space.EMPTY,
-                                        Markers.EMPTY,
-                                        emptyList(),
-                                        "ConfigMapping",
-                                        JavaType.buildType(CONFIG_MAPPING_FQN),
-                                        null
-                                );
-                                J.Annotation newAnn = ann.withAnnotationType(configMappingId);
-
-                                // Remove Spring-specific attributes, keep only prefix
-                                if (newAnn.getArguments() != null) {
-                                    List<Expression> filteredArgs = newAnn.getArguments().stream()
-                                            .filter(arg -> {
-                                                if (arg instanceof J.Assignment) {
-                                                    J.Assignment assignment = (J.Assignment) arg;
-                                                    if (assignment.getVariable() instanceof J.Identifier) {
-                                                        String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
-                                                        return "prefix".equals(name);
-                                                    }
-                                                }
-                                                return true;
-                                            })
-                                            .collect(Collectors.toList());
-                                    newAnn = newAnn.withArguments(filteredArgs.isEmpty() ? null : filteredArgs);
-                                }
-                                newAnnotations.add(newAnn);
-                            } else {
-                                newAnnotations.add(ann);
+                        cd = cd.withLeadingAnnotations(ListUtils.map(cd.getLeadingAnnotations(), ann -> {
+                            if (!CONFIG_PROPS_MATCHER.matches(ann)) {
+                                return ann;
                             }
-                        }
-                        cd = cd.withLeadingAnnotations(newAnnotations);
+                            J.Identifier configMappingId = new J.Identifier(
+                                    Tree.randomId(),
+                                    Space.EMPTY,
+                                    Markers.EMPTY,
+                                    emptyList(),
+                                    "ConfigMapping",
+                                    JavaType.buildType(CONFIG_MAPPING_FQN),
+                                    null
+                            );
+                            J.Annotation newAnn = ann.withAnnotationType(configMappingId);
+
+                            // Remove Spring-specific attributes, keep only prefix
+                            if (newAnn.getArguments() != null) {
+                                List<Expression> filteredArgs = newAnn.getArguments().stream()
+                                        .filter(arg -> {
+                                            if (arg instanceof J.Assignment) {
+                                                J.Assignment assignment = (J.Assignment) arg;
+                                                if (assignment.getVariable() instanceof J.Identifier) {
+                                                    String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
+                                                    return "prefix".equals(name);
+                                                }
+                                            }
+                                            return true;
+                                        })
+                                        .collect(Collectors.toList());
+                                newAnn = newAnn.withArguments(filteredArgs.isEmpty() ? null : filteredArgs);
+                            }
+                            return newAnn;
+                        }));
 
                         // Convert class to interface - both AST kind and type information
                         cd = cd.withKind(J.ClassDeclaration.Kind.Type.Interface);
