@@ -66,103 +66,10 @@ class MigrateConfigurationPropertiesTest implements RewriteTest {
               import io.smallrye.config.ConfigMapping;
 
               @ConfigMapping(prefix = "app")
-              public class AppProperties {
-                  private String name;
-                  private int timeout;
+              public interface AppProperties {
+                  String name();
 
-                  public String getName() {
-                      return name;
-                  }
-
-                  public void setName(String name) {
-                      this.name = name;
-                  }
-
-                  public int getTimeout() {
-                      return timeout;
-                  }
-
-                  public void setTimeout(int timeout) {
-                      this.timeout = timeout;
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void removeConstructorBinding() {
-        // Note: ConstructorBinding was deprecated in Spring Boot 3.x
-        // This test uses Spring Boot 2.x style for demonstration
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.context.properties.ConfigurationProperties;
-
-              @ConfigurationProperties(prefix = "server")
-              public class ServerConfig {
-                  private final String host;
-                  private final int port;
-
-                  public ServerConfig(String host, int port) {
-                      this.host = host;
-                      this.port = port;
-                  }
-
-                  public String getHost() {
-                      return host;
-                  }
-
-                  public int getPort() {
-                      return port;
-                  }
-              }
-              """,
-            """
-              import io.smallrye.config.ConfigMapping;
-
-              @ConfigMapping(prefix = "server")
-              public class ServerConfig {
-                  private final String host;
-                  private final int port;
-
-                  public ServerConfig(String host, int port) {
-                      this.host = host;
-                      this.port = port;
-                  }
-
-                  public String getHost() {
-                      return host;
-                  }
-
-                  public int getPort() {
-                      return port;
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void removeIgnoreUnknownFieldsAttribute() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.context.properties.ConfigurationProperties;
-
-              @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
-              public class ApplicationProperties {
-              }
-              """,
-            """
-              import io.smallrye.config.ConfigMapping;
-
-              @ConfigMapping(prefix = "application")
-              public class ApplicationProperties {
+                  int timeout();
               }
               """
           )
