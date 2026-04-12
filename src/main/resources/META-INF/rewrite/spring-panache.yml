@@ -58,10 +58,8 @@ recipeList:
       newGroupId: io.quarkus
       newArtifactId: quarkus-mongodb-panache
       newVersion: x
-  # Change MongoRepository to PanacheMongoRepository
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.data.mongodb.repository.MongoRepository
-      newFullyQualifiedTypeName: io.quarkus.mongodb.panache.PanacheMongoRepository
+  # Change MongoRepository to PanacheMongoRepository (drops ID type param)
+  - org.openrewrite.quarkus.spring.MongoRepositoryToPanacheMongoRepository
   # Change @Document to @MongoEntity
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.data.mongodb.core.mapping.Document

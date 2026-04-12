@@ -18,6 +18,7 @@ recipeDependencies {
     parserClasspath("io.smallrye:smallrye-health-api:4.0.0")
     parserClasspath("io.smallrye:smallrye-config-core:3.4.0")
     parserClasspath("org.eclipse.microprofile.health:microprofile-health-api:4.0.1")
+    parserClasspath("io.quarkus:quarkus-mongodb-panache:3.28.2")
     parserClasspath("io.quarkus:quarkus-junit5:3.28.2")
 }
 
@@ -60,6 +61,7 @@ dependencies {
     testRuntimeOnly("jakarta.persistence:jakarta.persistence-api:3.1.0")
     testRuntimeOnly("jakarta.transaction:jakarta.transaction-api:2.0.1")
     testRuntimeOnly("io.quarkus:quarkus-hibernate-orm-panache:3.17.8")
+    testRuntimeOnly("io.quarkus:quarkus-mongodb-panache:3.17.8")
     testRuntimeOnly("org.springframework.data:spring-data-mongodb:4.4.4")
     testRuntimeOnly("org.aspectj:aspectjweaver:1.9.22")
     testRuntimeOnly("jakarta.interceptor:jakarta.interceptor-api:2.1.0")
