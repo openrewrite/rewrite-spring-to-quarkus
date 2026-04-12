@@ -33,21 +33,8 @@ recipeList:
       artifactId: quarkus-config-yaml
       version: x
       onlyIfUsing: org.springframework.boot.context.properties.ConfigurationProperties
-  # Convert @ConfigurationProperties to @ConfigMapping
-  # Note: @ConfigMapping in Quarkus requires interfaces, not classes. This ChangeType converts
-  # the annotation but doesn't convert the class to an interface. A separate Java recipe would
-  # be needed for full conversion. The recipe works for simple cases where the class can be
-  # manually refactored to an interface afterward.
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.context.properties.ConfigurationProperties
-      newFullyQualifiedTypeName: io.smallrye.config.ConfigMapping
-  # Remove Spring-specific attributes that don't exist on @ConfigMapping
-  - org.openrewrite.java.RemoveAnnotationAttribute:
-      annotationType: io.smallrye.config.ConfigMapping
-      attributeName: ignoreUnknownFields
-  - org.openrewrite.java.RemoveAnnotationAttribute:
-      annotationType: io.smallrye.config.ConfigMapping
-      attributeName: ignoreInvalidFields
+  # Convert @ConfigurationProperties class to @ConfigMapping interface
+  - org.openrewrite.quarkus.spring.ConfigurationPropertiesToConfigMapping
   # Remove @EnableConfigurationProperties since Quarkus discovers @ConfigMapping automatically
   - org.openrewrite.java.RemoveAnnotation:
       annotationPattern: org.springframework.boot.context.properties.EnableConfigurationProperties

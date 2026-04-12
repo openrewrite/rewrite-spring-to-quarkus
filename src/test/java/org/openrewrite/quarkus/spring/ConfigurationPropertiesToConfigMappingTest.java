@@ -17,23 +17,25 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class MigrateConfigurationPropertiesTest implements RewriteTest {
+@Issue("https://github.com/openrewrite/rewrite-spring-to-quarkus/issues/66")
+class ConfigurationPropertiesToConfigMappingTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.MigrateConfigurationProperties")
+        spec.recipe(new ConfigurationPropertiesToConfigMapping())
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot"));
     }
 
     @DocumentExample
     @Test
-    void convertConfigurationPropertiesToConfigMapping() {
+    void convertClassToInterface() {
         rewriteRun(
           //language=java
           java(
@@ -77,7 +79,7 @@ class MigrateConfigurationPropertiesTest implements RewriteTest {
     }
 
     @Test
-    void convertConstructorBasedConfigProperties() {
+    void convertConstructorBasedClass() {
         rewriteRun(
           //language=java
           java(
@@ -118,6 +120,39 @@ class MigrateConfigurationPropertiesTest implements RewriteTest {
     }
 
     @Test
+    void convertBooleanIsGetter() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+
+              @ConfigurationProperties(prefix = "feature")
+              public class FeatureFlags {
+                  private boolean enabled;
+
+                  public boolean isEnabled() {
+                      return enabled;
+                  }
+
+                  public void setEnabled(boolean enabled) {
+                      this.enabled = enabled;
+                  }
+              }
+              """,
+            """
+              import io.smallrye.config.ConfigMapping;
+
+              @ConfigMapping(prefix = "feature")
+              public interface FeatureFlags {
+                  boolean enabled();
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void removeIgnoreUnknownFieldsAttribute() {
         rewriteRun(
           //language=java
@@ -141,40 +176,7 @@ class MigrateConfigurationPropertiesTest implements RewriteTest {
     }
 
     @Test
-    void convertBooleanGetter() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.context.properties.ConfigurationProperties;
-
-              @ConfigurationProperties(prefix = "feature")
-              public class FeatureProperties {
-                  private boolean enabled;
-
-                  public boolean isEnabled() {
-                      return enabled;
-                  }
-
-                  public void setEnabled(boolean enabled) {
-                      this.enabled = enabled;
-                  }
-              }
-              """,
-            """
-              import io.smallrye.config.ConfigMapping;
-
-              @ConfigMapping(prefix = "feature")
-              public interface FeatureProperties {
-                  boolean enabled();
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void doNotChangeNonConfigurationPropertiesClass() {
+    void unchangedWithoutAnnotation() {
         rewriteRun(
           //language=java
           java(
