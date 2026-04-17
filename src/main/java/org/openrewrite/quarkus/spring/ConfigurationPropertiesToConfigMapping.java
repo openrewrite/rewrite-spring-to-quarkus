@@ -18,6 +18,7 @@ package org.openrewrite.quarkus.spring;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AddImport;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -25,13 +26,10 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
-import org.openrewrite.internal.ListUtils;
-
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -90,7 +88,7 @@ public class ConfigurationPropertiesToConfigMapping extends Recipe {
                                             }
                                             return true;
                                         })
-                                        .collect(Collectors.toList());
+                                        .collect(toList());
                                 newAnn = newAnn.withArguments(filteredArgs.isEmpty() ? null : filteredArgs);
                             }
                             return newAnn;
@@ -157,7 +155,7 @@ public class ConfigurationPropertiesToConfigMapping extends Recipe {
                     private J.MethodDeclaration stripForInterface(J.MethodDeclaration method) {
                         J.MethodDeclaration m = method
                                 .withBody(null)
-                                .withModifiers(Collections.emptyList());
+                                .withModifiers(emptyList());
                         // When modifiers are removed, reset the return type's prefix
                         if (m.getReturnTypeExpression() != null) {
                             m = m.withReturnTypeExpression(m.getReturnTypeExpression().withPrefix(Space.EMPTY));

@@ -27,10 +27,10 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.openrewrite.Tree.randomId;
 
 @Value
@@ -94,17 +94,17 @@ public class MongoRepositoryToPanacheMongoRepository extends Recipe {
                         );
 
                         List<Expression> typeParams = pt.getTypeParameters();
-                        List<Expression> newTypeParams = typeParams != null && !typeParams.isEmpty()
-                                ? Collections.singletonList(typeParams.get(0))
-                                : typeParams;
+                        List<Expression> newTypeParams = typeParams != null && !typeParams.isEmpty() ?
+                                singletonList(typeParams.get(0)) :
+                                typeParams;
 
                         // Build a new parameterized type with only the entity type parameter
                         JavaType.Parameterized newParamType = new JavaType.Parameterized(
                                 null,
                                 (JavaType.FullyQualified) panacheType,
-                                newTypeParams != null && !newTypeParams.isEmpty()
-                                        ? Collections.singletonList(newTypeParams.get(0).getType())
-                                        : null
+                                newTypeParams != null && !newTypeParams.isEmpty() ?
+                                        singletonList(newTypeParams.get(0).getType()) :
+                                        null
                         );
 
                         return pt.withClazz(newClazz).withTypeParameters(newTypeParams).withType(newParamType);

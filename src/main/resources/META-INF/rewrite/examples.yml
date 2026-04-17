@@ -162,6 +162,82 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.ConfigurationPropertiesToConfigMapping
+examples:
+- description: '`ConfigurationPropertiesToConfigMappingTest#convertClassToInterface`'
+  sources:
+  - before: |
+      import org.springframework.boot.context.properties.ConfigurationProperties;
+
+      @ConfigurationProperties(prefix = "app")
+      public class AppProperties {
+          private String name;
+          private int timeout;
+
+          public String getName() {
+              return name;
+          }
+
+          public void setName(String name) {
+              this.name = name;
+          }
+
+          public int getTimeout() {
+              return timeout;
+          }
+
+          public void setTimeout(int timeout) {
+              this.timeout = timeout;
+          }
+      }
+    after: |
+      import io.smallrye.config.ConfigMapping;
+
+      @ConfigMapping(prefix = "app")
+      public interface AppProperties {
+          String name();
+
+          int timeout();
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.ConfigureNativeBuild
+examples:
+- description: '`ConfigureNativeBuildTest#addNativeProfile`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <profiles>
+              <profile>
+                  <id>native</id>
+                  <activation>
+                      <property>
+                          <name>native</name>
+                      </property>
+                  </activation>
+                  <properties>
+                      <quarkus.native.enabled>true</quarkus.native.enabled>
+                      <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
+                  </properties>
+              </profile>
+          </profiles>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals
 examples:
 - description: '`CustomizeQuarkusPluginGoalsTest#addNativeProfile`'
@@ -615,33 +691,21 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.MigrateSpringDataMongodb
 examples:
-- description: '`MigrateSpringDataMongodbTest#convertDocumentAnnotation`'
+- description: '`MigrateSpringDataMongodbTest#convertMongoRepository`'
   sources:
   - before: |
-      import org.springframework.data.mongodb.core.mapping.Document;
+      import org.springframework.data.mongodb.repository.MongoRepository;
 
-      @Document(collection = "users")
-      public class User {
-          private String id;
-          private String name;
-
-          public String getId() { return id; }
-          public void setId(String id) { this.id = id; }
-          public String getName() { return name; }
-          public void setName(String name) { this.name = name; }
+      public interface UserRepository extends MongoRepository<User, String> {
       }
     after: |
-      import io.quarkus.mongodb.panache.common.MongoEntity;
+      import io.quarkus.mongodb.panache.PanacheMongoRepository;
 
-      @MongoEntity(collection = "users")
+      public interface UserRepository extends PanacheMongoRepository<User> {
+      }
+    language: java
+  - before: |
       public class User {
-          private String id;
-          private String name;
-
-          public String getId() { return id; }
-          public void setId(String id) { this.id = id; }
-          public String getName() { return name; }
-          public void setName(String name) { this.name = name; }
       }
     language: java
 ---
