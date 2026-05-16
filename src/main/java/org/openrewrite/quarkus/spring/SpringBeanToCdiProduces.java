@@ -114,7 +114,7 @@ public class SpringBeanToCdiProduces extends Recipe {
                             scopeValue = ((J.FieldAccess) arg).getSimpleName();
                         }
 
-                        return (scopeValue != null && scopeValue.toLowerCase().contains("prototype")) ? DEPENDENT : APPLICATION_SCOPED;
+                        return scopeValue != null && scopeValue.toLowerCase().contains("prototype") ? DEPENDENT : APPLICATION_SCOPED;
                     }
                 });
     }
