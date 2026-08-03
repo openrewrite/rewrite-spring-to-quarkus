@@ -28,8 +28,12 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.StereotypeAnnotationsToCDI")
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-context", "spring-beans", "spring-web",
-              "javax.persistence-api", "validation-api"));
+            .classpath(
+              "spring-context",
+              "spring-beans",
+              "spring-web",
+              "javax.persistence-api",
+              "validation-api"));
     }
 
     @DocumentExample

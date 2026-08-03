@@ -31,7 +31,11 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
             "/META-INF/rewrite/autoconfig.yml",
             "org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies")
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-boot", "spring-boot-autoconfigure", "spring-context", "spring-data-jpa"));
+            .classpath(
+              "spring-boot",
+              "spring-boot-autoconfigure",
+              "spring-context",
+              "spring-data-jpa"));
     }
 
     @DocumentExample
