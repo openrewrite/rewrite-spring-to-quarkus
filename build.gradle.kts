@@ -29,6 +29,7 @@ dependencies {
 
     implementation(platform("org.openrewrite:rewrite-bom:${rewriteVersion}"))
     implementation("org.openrewrite:rewrite-java")
+    implementation("org.openrewrite:rewrite-gradle")
     implementation("org.openrewrite:rewrite-maven")
     implementation("org.openrewrite:rewrite-xml")
     implementation("org.openrewrite:rewrite-properties")
@@ -38,7 +39,6 @@ dependencies {
 
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite.gradle.tooling:model")
-    testImplementation("org.openrewrite:rewrite-gradle")
 
     testRuntimeOnly("org.openrewrite:rewrite-java-21")
     testRuntimeOnly("org.springframework.boot:spring-boot:3.5.4")

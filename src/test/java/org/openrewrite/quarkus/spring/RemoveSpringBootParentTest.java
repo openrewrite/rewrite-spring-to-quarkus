@@ -79,6 +79,40 @@ class RemoveSpringBootParentTest implements RewriteTest {
     }
 
     @Test
+    void removeSpringBoot4Parent() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>4.0.0</version>
+                      <relativePath/>
+                  </parent>
+
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+              </project>
+              """,
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
     void doNotRemoveSpringBoot2xParent() {
         rewriteRun(
           //language=xml
