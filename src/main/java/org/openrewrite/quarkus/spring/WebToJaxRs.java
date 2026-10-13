@@ -19,355 +19,296 @@ import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.*;
+import org.openrewrite.java.AnnotationMatcher;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.RemoveAnnotationVisitor;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
+import org.openrewrite.marker.SearchResult;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.openrewrite.Tree.randomId;
 
 public class WebToJaxRs extends Recipe {
-    private static final AnnotationMatcher REST_CONTROLLER_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RestController");
-    private static final AnnotationMatcher CONTROLLER_MATCHER = new AnnotationMatcher("@org.springframework.stereotype.Controller");
-    private static final AnnotationMatcher RESPONSE_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.ResponseBody");
-    private static final AnnotationMatcher REQUEST_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestMapping");
-    private static final AnnotationMatcher PATH_VARIABLE_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PathVariable");
-    private static final AnnotationMatcher REQUEST_PARAM_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestParam");
-    private static final AnnotationMatcher REQUEST_HEADER_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestHeader");
-    private static final AnnotationMatcher REQUEST_BODY_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestBody");
+    private static final String SPRING_WEB = "org.springframework.web.bind.annotation.";
+    private static final String JAX_RS = "jakarta.ws.rs.";
+    private static final String RESOURCE = "IS_JAX_RS_RESOURCE";
 
-    // HTTP method matchers
-    private static final AnnotationMatcher GET_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.GetMapping");
-    private static final AnnotationMatcher POST_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PostMapping");
-    private static final AnnotationMatcher PUT_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PutMapping");
-    private static final AnnotationMatcher DELETE_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.DeleteMapping");
-    private static final AnnotationMatcher PATCH_MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.PatchMapping");
+    private static final AnnotationMatcher REST_CONTROLLER_MATCHER = new AnnotationMatcher("@" + SPRING_WEB + "RestController");
+    private static final AnnotationMatcher CONTROLLER_MATCHER = new AnnotationMatcher("@org.springframework.stereotype.Controller");
+    private static final AnnotationMatcher RESPONSE_BODY_MATCHER = new AnnotationMatcher("@" + SPRING_WEB + "ResponseBody");
+    private static final AnnotationMatcher REQUEST_MAPPING_MATCHER = new AnnotationMatcher("@" + SPRING_WEB + "RequestMapping");
+    private static final AnnotationMatcher REQUEST_BODY_MATCHER = new AnnotationMatcher("@" + SPRING_WEB + "RequestBody");
+    private static final AnnotationMatcher FEIGN_CLIENT_MATCHER = new AnnotationMatcher("@org.springframework.cloud.openfeign.FeignClient");
+
+    private static final List<String> JAX_RS_HTTP_METHODS = Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS");
 
     @Getter
     final String displayName = "Convert Spring Web annotations to JAX-RS";
 
     @Getter
-    final String description = "Converts Spring Web annotations such as `@RestController`, `@RequestMapping`, `@GetMapping`, etc., to their JAX-RS equivalents like `@Path`, `@GET`, etc.";
+    final String description = "Converts Spring Web annotations such as `@RestController`, `@RequestMapping`, `@GetMapping`, etc., " +
+            "to their JAX-RS equivalents like `@Path`, `@GET`, etc. MVC view controllers, and handler methods that have " +
+            "no single JAX-RS equivalent, are left unchanged and marked for manual migration.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
                 Preconditions.or(
                         new UsesType<>("org.springframework.stereotype.Controller", false),
-                        new UsesType<>("org.springframework.web.bind.annotation.*", false)
+                        new UsesType<>(SPRING_WEB + "*", false)
                 ),
-                // XXX See if we can avoid repeatUntilStable by making the visitor idempotent in a single pass
-                Repeat.repeatUntilStable(new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
-                // There's a weird issue with duplicated newlines on annotated classes
-                J.CompilationUnit cu = super.visitCompilationUnit(compilationUnit, ctx);
-                doAfterVisit(new RemoveAnnotationVisitor(REQUEST_BODY_MATCHER));
-                return cu.withClasses(ListUtils.mapFirst(cu.getClasses(),
-                        cd -> cd
-                                .withPrefix(cd.getPrefix().withWhitespace("\n\n"))
-                                .withLeadingAnnotations(ListUtils.mapFirst(cd.getLeadingAnnotations(),
-                                        ann -> ann.withPrefix(ann.getPrefix().withWhitespace(""))))));
-            }
-
-            @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-
-                // Check if we need to add @Path annotation
-                boolean hasRestController = false;
-                boolean hasController = false;
-                boolean hasResponseBody = false;
-                boolean hasPath = false;
-                boolean hasRequestMapping = false;
-
-                for (J.Annotation annotation : classDecl.getLeadingAnnotations()) {
-                    if (REST_CONTROLLER_MATCHER.matches(annotation)) {
-                        hasRestController = true;
-                    } else if (CONTROLLER_MATCHER.matches(annotation)) {
-                        hasController = true;
-                    } else if (RESPONSE_BODY_MATCHER.matches(annotation)) {
-                        hasResponseBody = true;
-                    } else if (REQUEST_MAPPING_MATCHER.matches(annotation)) {
-                        hasRequestMapping = true;
-                    } else if ("Path".equals(annotation.getSimpleName())) {
-                        hasPath = true;
-                    }
-                }
-
-                // Add @Path("") only if:
-                // 1. We have @RestController or (@Controller + @ResponseBody)
-                // 2. We don't have @RequestMapping (which will be converted to @Path)
-                // 3. We don't already have @Path
-                if ((hasRestController || (hasController && hasResponseBody)) && !hasRequestMapping && !hasPath) {
-                    maybeAddImport("jakarta.ws.rs.Path");
-                    return JavaTemplate.builder("@Path(\"\")")
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                            .imports("jakarta.ws.rs.Path")
-                            .build()
-                            .apply(getCursor(), cd.getCoordinates().addAnnotation((a1, a2) -> 0));
-                }
-
-                return cd;
-            }
-
-            @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                // Extract path, consumes, and produces BEFORE calling super (which will transform the annotations)
-                Expression pathToAdd = null;
-                Expression consumesToAdd = null;
-                Expression producesToAdd = null;
-                boolean hasHttpMethod = false;
-
-                // Check what the original method has before transformation
-                for (J.Annotation annotation : method.getLeadingAnnotations()) {
-                    if (GET_MAPPING_MATCHER.matches(annotation) ||
-                            POST_MAPPING_MATCHER.matches(annotation) ||
-                            PUT_MAPPING_MATCHER.matches(annotation) ||
-                            DELETE_MAPPING_MATCHER.matches(annotation) ||
-                            PATCH_MAPPING_MATCHER.matches(annotation)) {
-                        pathToAdd = extractPathValue(annotation);
-                        consumesToAdd = extractAttributeValue(annotation, "consumes");
-                        producesToAdd = extractAttributeValue(annotation, "produces");
-                        hasHttpMethod = true;
-                    } else if (REQUEST_MAPPING_MATCHER.matches(annotation)) {
-                        pathToAdd = extractPathValue(annotation);
-                        consumesToAdd = extractAttributeValue(annotation, "consumes");
-                        producesToAdd = extractAttributeValue(annotation, "produces");
-                        hasHttpMethod = true;
-                    }
-                }
-
-                // Now transform the annotations
-                J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-
-                // Check if @Path, @Consumes, @Produces already exist after transformation
-                boolean hasPath = false;
-                boolean hasConsumes = false;
-                boolean hasProduces = false;
-                for (J.Annotation annotation : m.getLeadingAnnotations()) {
-                    String simpleName = annotation.getSimpleName();
-                    if ("Path".equals(simpleName)) {
-                        hasPath = true;
-                    } else if ("Consumes".equals(simpleName)) {
-                        hasConsumes = true;
-                    } else if ("Produces".equals(simpleName)) {
-                        hasProduces = true;
-                    }
-                }
-
-                // Add @Path if needed
-                if (hasHttpMethod && pathToAdd != null && !hasPath) {
-                    maybeAddImport("jakarta.ws.rs.Path");
-                    m = JavaTemplate.builder("@Path(#{any()})")
-                            .contextSensitive()
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                            .imports("jakarta.ws.rs.Path")
-                            .build()
-                            .apply(updateCursor(m), m.getCoordinates().addAnnotation((a1, a2) -> 0), pathToAdd);
-                }
-
-                // Add @Consumes if needed
-                if (hasHttpMethod && consumesToAdd != null && !hasConsumes) {
-                    maybeAddImport("jakarta.ws.rs.Consumes");
-                    m = JavaTemplate.builder("@Consumes(#{any()})")
-                            .contextSensitive()
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                            .imports("jakarta.ws.rs.Consumes")
-                            .build()
-                            .apply(updateCursor(m), m.getCoordinates().addAnnotation((a1, a2) -> 0), consumesToAdd);
-                }
-
-                // Add @Produces if needed
-                if (hasHttpMethod && producesToAdd != null && !hasProduces) {
-                    maybeAddImport("jakarta.ws.rs.Produces");
-                    m = JavaTemplate.builder("@Produces(#{any()})")
-                            .contextSensitive()
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                            .imports("jakarta.ws.rs.Produces")
-                            .build()
-                            .apply(updateCursor(m), m.getCoordinates().addAnnotation((a1, a2) -> 0), producesToAdd);
-                }
-
-                return m;
-            }
-
-            @Override
-            public J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                J.Annotation ann = annotation;
-                Object parent = getCursor().getParentOrThrow().getValue();
-
-                // Handle class-level annotations
-                if (parent instanceof J.ClassDeclaration) {
-                    if (REST_CONTROLLER_MATCHER.matches(ann)) {
-                        maybeRemoveImport("org.springframework.web.bind.annotation.RestController");
-                        return null; // Remove the annotation
-                    }
-                    if (CONTROLLER_MATCHER.matches(ann)) {
-                        // Check if class also has @ResponseBody
-                        J.ClassDeclaration cd = (J.ClassDeclaration) parent;
-                        boolean hasResponseBody = cd.getLeadingAnnotations().stream()
-                                .anyMatch(RESPONSE_BODY_MATCHER::matches);
-                        if (hasResponseBody) {
-                            maybeRemoveImport("org.springframework.stereotype.Controller");
-                            return null; // Remove the annotation
-                        }
-                    } else if (RESPONSE_BODY_MATCHER.matches(ann)) {
-                        // Check if class also has @Controller
-                        J.ClassDeclaration cd = (J.ClassDeclaration) parent;
-                        boolean hasController = cd.getLeadingAnnotations().stream()
-                                .anyMatch(CONTROLLER_MATCHER::matches);
-                        if (hasController) {
-                            maybeRemoveImport("org.springframework.web.bind.annotation.ResponseBody");
-                            return null; // Remove the annotation
-                        }
-                    } else if (REQUEST_MAPPING_MATCHER.matches(ann)) {
-                        // Convert @RequestMapping to @Path at class level
-                        Expression path = extractPathValue(ann);
-                        maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
-                        maybeAddImport("jakarta.ws.rs.Path");
-
-                        // Build @Path with the correct argument
-                        String pathAnnotation = path != null ? "@Path(#{any()})" : "@Path";
-                        return JavaTemplate.builder(pathAnnotation)
-                                .contextSensitive()
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                                .imports("jakarta.ws.rs.Path")
-                                .build()
-                                .apply(getCursor(), ann.getCoordinates().replace(), path);
-                    }
-                }
-
-                // Handle method-level annotations
-                if (parent instanceof J.MethodDeclaration) {
-                    if (REQUEST_MAPPING_MATCHER.matches(ann)) {
-                        String jaxRsAnnotation = extractMethodType(ann);
-                        maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
-                        maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
-                        maybeAddImport("jakarta.ws.rs." + jaxRsAnnotation);
-                        return JavaTemplate.builder("@" + jaxRsAnnotation)
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                                .imports("jakarta.ws.rs." + jaxRsAnnotation)
-                                .build()
-                                .apply(getCursor(), ann.getCoordinates().replace());
-                    }
-                    if (GET_MAPPING_MATCHER.matches(ann)) {
-                        return convertHttpMethodMapping(ann, "GetMapping", "GET", ctx);
-                    }
-                    if (POST_MAPPING_MATCHER.matches(ann)) {
-                        return convertHttpMethodMapping(ann, "PostMapping", "POST", ctx);
-                    }
-                    if (PUT_MAPPING_MATCHER.matches(ann)) {
-                        return convertHttpMethodMapping(ann, "PutMapping", "PUT", ctx);
-                    }
-                    if (DELETE_MAPPING_MATCHER.matches(ann)) {
-                        return convertHttpMethodMapping(ann, "DeleteMapping", "DELETE", ctx);
-                    }
-                    if (PATCH_MAPPING_MATCHER.matches(ann)) {
-                        return convertHttpMethodMapping(ann, "PatchMapping", "PATCH", ctx);
-                    }
-                }
-
-                // Handle parameter annotations
-                if (parent instanceof J.VariableDeclarations) {
-                    if (PATH_VARIABLE_MATCHER.matches(ann)) {
-                        maybeRemoveImport("org.springframework.web.bind.annotation.PathVariable");
-                        maybeAddImport("jakarta.ws.rs.PathParam");
-                        return convertParamAnnotation(ann, "PathParam", (J.VariableDeclarations) parent, ctx);
-                    }
-                    if (REQUEST_PARAM_MATCHER.matches(ann)) {
-                        maybeRemoveImport("org.springframework.web.bind.annotation.RequestParam");
-                        maybeAddImport("jakarta.ws.rs.QueryParam");
-                        return convertParamAnnotation(ann, "QueryParam", (J.VariableDeclarations) parent, ctx);
-                    }
-                    if (REQUEST_HEADER_MATCHER.matches(ann)) {
-                        maybeRemoveImport("org.springframework.web.bind.annotation.RequestHeader");
-                        maybeAddImport("jakarta.ws.rs.HeaderParam");
-                        return convertParamAnnotation(ann, "HeaderParam", (J.VariableDeclarations) parent, ctx);
-                    }
-                }
-
-                return ann;
-            }
-
-            private J.Annotation convertParamAnnotation(J.Annotation ann, String jaxRsAnnotation, J.VariableDeclarations varDecls, ExecutionContext ctx) {
-                // Extract explicit value/name attribute from the annotation
-                Expression value = extractAttributeValue(ann, "value", "name");
-                String template;
-                Object[] args;
-                if (value != null) {
-                    template = "@" + jaxRsAnnotation + "(#{any()})";
-                    args = new Object[]{value};
-                } else {
-                    // Infer name from the variable declaration
-                    String paramName = varDecls.getVariables().get(0).getSimpleName();
-                    template = "@" + jaxRsAnnotation + "(\"" + paramName + "\")";
-                    args = new Object[0];
-                }
-                return JavaTemplate.builder(template)
-                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                        .imports("jakarta.ws.rs." + jaxRsAnnotation)
-                        .build()
-                        .apply(getCursor(), ann.getCoordinates().replace(), args);
-            }
-
-            private J.Annotation convertHttpMethodMapping(J.Annotation ann, String springMapping, String jaxRsMethod, ExecutionContext ctx) {
-                maybeRemoveImport("org.springframework.web.bind.annotation." + springMapping);
-                maybeAddImport("jakarta.ws.rs." + jaxRsMethod);
-                return JavaTemplate.builder("@" + jaxRsMethod)
-                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.ws.rs-api"))
-                        .imports("jakarta.ws.rs." + jaxRsMethod)
-                        .build()
-                        .apply(getCursor(), ann.getCoordinates().replace());
-            }
-
-            private @Nullable Expression extractPathValue(J.Annotation annotation) {
-                return extractAttributeValue(annotation, "value", "path");
-            }
-
-            private @Nullable Expression extractAttributeValue(J.Annotation annotation, String... attributeNames) {
-                if (annotation.getArguments() != null) {
-                    for (Expression arg : annotation.getArguments()) {
-                        if (arg instanceof J.Literal) {
-                            // For shorthand notation (single unnamed argument)
-                            if (attributeNames.length > 0 && ("value".equals(attributeNames[0]) || "path".equals(attributeNames[0]))) {
-                                return arg;
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                        List<J.Annotation> annotations = classDecl.getLeadingAnnotations();
+                        J.Annotation controller = find(annotations, CONTROLLER_MATCHER);
+                        J.Annotation requestMapping = find(annotations, REQUEST_MAPPING_MATCHER);
+                        boolean hasHandlers = false;
+                        boolean onlyRestHandlers = true;
+                        for (Statement statement : classDecl.getBody().getStatements()) {
+                            if (statement instanceof J.MethodDeclaration && findMapping(((J.MethodDeclaration) statement).getLeadingAnnotations()) != null) {
+                                J.MethodDeclaration handler = (J.MethodDeclaration) statement;
+                                JavaType returnType = handler.getReturnTypeExpression() == null ? null : handler.getReturnTypeExpression().getType();
+                                hasHandlers = true;
+                                onlyRestHandlers &= find(handler.getAllAnnotations(), RESPONSE_BODY_MATCHER) != null ||
+                                        TypeUtils.isAssignableTo("org.springframework.http.HttpEntity", returnType) ||
+                                        TypeUtils.isAssignableTo("jakarta.ws.rs.core.Response", returnType);
                             }
-                        } else if (arg instanceof J.Assignment) {
-                            J.Assignment assignment = (J.Assignment) arg;
-                            if (assignment.getVariable() instanceof J.Identifier) {
-                                String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
-                                for (String attrName : attributeNames) {
-                                    if (attrName.equals(name)) {
-                                        return assignment.getAssignment();
-                                    }
+                        }
+
+                        boolean resource;
+                        if (find(annotations, FEIGN_CLIENT_MATCHER) != null) {
+                            resource = false;
+                        } else if (find(annotations, REST_CONTROLLER_MATCHER) != null ||
+                                   (controller != null && find(annotations, RESPONSE_BODY_MATCHER) != null)) {
+                            resource = true;
+                        } else if (controller != null) {
+                            if (hasHandlers && !onlyRestHandlers) {
+                                return classDecl.withLeadingAnnotations(ListUtils.map(annotations, a -> a == controller ?
+                                        SearchResult.mergingFound(a, "Spring MVC view controller; migrate to Qute templates manually") : a));
+                            }
+                            resource = hasHandlers;
+                        } else {
+                            resource = hasHandlers && classDecl.getKind() == J.ClassDeclaration.Kind.Type.Interface;
+                        }
+
+                        if (resource && requestMapping != null && elements(attribute(requestMapping, "value", "path")).size() > 1) {
+                            return classDecl.withLeadingAnnotations(ListUtils.map(annotations, a -> a == requestMapping ?
+                                    SearchResult.mergingFound(a, "JAX-RS `@Path` supports a single path") : a));
+                        }
+
+                        getCursor().putMessage(RESOURCE, resource);
+                        J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
+                        if (!resource) {
+                            return cd;
+                        }
+
+                        J.Annotation anchor = requestMapping != null ? requestMapping :
+                                controller != null ? controller : find(annotations, REST_CONTROLLER_MATCHER);
+                        if (anchor == null) {
+                            return cd;
+                        }
+                        List<Expression> paths = anchor == requestMapping ? elements(attribute(requestMapping, "value", "path")) : emptyList();
+                        J.Annotation path = jaxRs("Path", paths.isEmpty() ? stringLiteral("") : paths.get(0), anchor.getPrefix());
+                        J.Annotation replaced = anchor;
+                        List<J.Annotation> converted = ListUtils.map(cd.getLeadingAnnotations(), a -> {
+                            if (a == replaced) {
+                                return path;
+                            }
+                            return REST_CONTROLLER_MATCHER.matches(a) || CONTROLLER_MATCHER.matches(a) ||
+                                   RESPONSE_BODY_MATCHER.matches(a) || REQUEST_MAPPING_MATCHER.matches(a) ? null : a;
+                        });
+                        maybeRemoveImport(SPRING_WEB + "RestController");
+                        maybeRemoveImport("org.springframework.stereotype.Controller");
+                        maybeRemoveImport(SPRING_WEB + "ResponseBody");
+                        maybeRemoveImport(SPRING_WEB + "RequestMapping");
+                        return cd.withLeadingAnnotations(ListUtils.mapFirst(converted, a -> a.withPrefix(annotations.get(0).getPrefix())));
+                    }
+
+                    @Override
+                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                        J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
+                        J.Annotation mapping = findMapping(m.getLeadingAnnotations());
+                        if (mapping == null || !getCursor().getNearestMessage(RESOURCE, false)) {
+                            return m;
+                        }
+
+                        String mappingName = TypeUtils.asFullyQualified(mapping.getType()).getClassName();
+                        String httpMethod = mappingName.replace("Mapping", "").toUpperCase();
+                        String problem = null;
+                        if ("REQUEST".equals(httpMethod)) {
+                            List<Expression> methods = elements(attribute(mapping, "method"));
+                            if (methods.isEmpty()) {
+                                problem = "Spring maps every HTTP method here; add the JAX-RS HTTP method annotation manually";
+                            } else if (methods.size() > 1) {
+                                problem = "JAX-RS needs a separate resource method per HTTP method";
+                            } else {
+                                httpMethod = methods.get(0) instanceof J.FieldAccess ? ((J.FieldAccess) methods.get(0)).getSimpleName() :
+                                        methods.get(0) instanceof J.Identifier ? ((J.Identifier) methods.get(0)).getSimpleName() : "";
+                                if (!JAX_RS_HTTP_METHODS.contains(httpMethod)) {
+                                    problem = "JAX-RS has no `" + httpMethod + "` HTTP method annotation";
                                 }
                             }
                         }
-                    }
-                }
-                return null;
-            }
-
-            private String extractMethodType(J.Annotation annotation) {
-                if (annotation.getArguments() != null) {
-                    for (Expression arg : annotation.getArguments()) {
-                        if (arg instanceof J.Assignment) {
-                            J.Assignment assignment = (J.Assignment) arg;
-                            if (assignment.getVariable() instanceof J.Identifier &&
-                                    "method".equals(((J.Identifier) assignment.getVariable()).getSimpleName())) {
-                                Expression methodExpr = assignment.getAssignment();
-                                if (methodExpr instanceof J.FieldAccess) {
-                                    return ((J.FieldAccess) methodExpr).getSimpleName();
-                                }
-                                if (methodExpr instanceof J.Identifier) {
-                                    return ((J.Identifier) methodExpr).getSimpleName();
+                        List<Expression> paths = elements(attribute(mapping, "value", "path"));
+                        if (paths.size() > 1) {
+                            problem = "JAX-RS `@Path` supports a single path";
+                        }
+                        for (Statement parameter : m.getParameters()) {
+                            if (parameter instanceof J.VariableDeclarations) {
+                                J.VariableDeclarations param = (J.VariableDeclarations) parameter;
+                                J.Annotation binding = findParamBinding(param.getLeadingAnnotations());
+                                JavaType.Array array = TypeUtils.asArray(param.getType());
+                                JavaType.Parameterized parameterized = TypeUtils.asParameterized(param.getType());
+                                JavaType elementType = array != null ? array.getElemType() :
+                                        parameterized != null && parameterized.getTypeParameters().size() == 1 ? parameterized.getTypeParameters().get(0) : param.getType();
+                                if (TypeUtils.isAssignableTo("org.springframework.web.multipart.MultipartFile", elementType)) {
+                                    problem = "Migrate `MultipartFile` to `@RestForm FileUpload` manually";
+                                } else if (binding != null && attribute(binding, "value", "name") == null &&
+                                           (TypeUtils.isAssignableTo("java.util.Map", param.getType()) ||
+                                            TypeUtils.isOfClassType(param.getType(), "org.springframework.http.HttpHeaders"))) {
+                                    problem = "Binds all values; migrate to `@Context HttpHeaders` or `@Context UriInfo` manually";
                                 }
                             }
                         }
+                        if (problem != null) {
+                            String description = problem;
+                            return m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), a -> a == mapping ?
+                                    SearchResult.mergingFound(a, description) : a));
+                        }
+
+                        Space newLine = Space.format("\n" + m.getPrefix().getIndent());
+                        List<J.Annotation> jaxRsAnnotations = new ArrayList<>();
+                        jaxRsAnnotations.add(jaxRs(httpMethod, null, mapping.getPrefix()));
+                        if (!paths.isEmpty()) {
+                            jaxRsAnnotations.add(jaxRs("Path", paths.get(0), newLine));
+                        }
+                        Expression consumes = attribute(mapping, "consumes");
+                        if (consumes != null) {
+                            jaxRsAnnotations.add(jaxRs("Consumes", consumes, newLine));
+                        }
+                        Expression produces = attribute(mapping, "produces");
+                        if (produces != null) {
+                            jaxRsAnnotations.add(jaxRs("Produces", produces, newLine));
+                        }
+                        m = m.withLeadingAnnotations(ListUtils.flatMap(m.getLeadingAnnotations(), a -> a == mapping ? jaxRsAnnotations : a));
+                        m = m.withParameters(ListUtils.map(m.getParameters(), p -> p instanceof J.VariableDeclarations ? convertParameter((J.VariableDeclarations) p) : p));
+                        m = (J.MethodDeclaration) new RemoveAnnotationVisitor(RESPONSE_BODY_MATCHER).visitNonNull(m, ctx, getCursor().getParentOrThrow());
+                        m = (J.MethodDeclaration) new RemoveAnnotationVisitor(REQUEST_BODY_MATCHER).visitNonNull(m, ctx, getCursor().getParentOrThrow());
+                        maybeRemoveImport(SPRING_WEB + mappingName);
+                        maybeRemoveImport(SPRING_WEB + "RequestMethod");
+                        maybeRemoveImport(SPRING_WEB + "ResponseBody");
+                        maybeRemoveImport(SPRING_WEB + "RequestBody");
+                        return m;
+                    }
+
+                    private J.VariableDeclarations convertParameter(J.VariableDeclarations param) {
+                        J.Annotation binding = findParamBinding(param.getLeadingAnnotations());
+                        if (binding == null) {
+                            return param;
+                        }
+                        String springName = TypeUtils.asFullyQualified(binding.getType()).getClassName();
+                        String jaxRsName = "PathVariable".equals(springName) ? "PathParam" :
+                                "RequestParam".equals(springName) ? "QueryParam" :
+                                "RequestHeader".equals(springName) ? "HeaderParam" : "CookieParam";
+                        Expression name = attribute(binding, "value", "name");
+                        Expression defaultValue = attribute(binding, "defaultValue");
+                        List<J.Annotation> jaxRsAnnotations = new ArrayList<>();
+                        jaxRsAnnotations.add(jaxRs(jaxRsName, name != null ? name : stringLiteral(param.getVariables().get(0).getSimpleName()), binding.getPrefix()));
+                        if (defaultValue != null) {
+                            jaxRsAnnotations.add(jaxRs("DefaultValue", defaultValue, Space.SINGLE_SPACE));
+                        }
+                        maybeRemoveImport(SPRING_WEB + springName);
+                        J.VariableDeclarations p = param.withLeadingAnnotations(ListUtils.flatMap(param.getLeadingAnnotations(), a -> a == binding ? jaxRsAnnotations : a));
+
+                        J.Primitive primitive = p.getTypeExpression() instanceof J.Primitive ? (J.Primitive) p.getTypeExpression() : null;
+                        if (defaultValue == null && primitive != null && primitive.getType() != JavaType.Primitive.Boolean &&
+                            J.Literal.isLiteralValue(attribute(binding, "required"), false)) {
+                            String keyword = primitive.getType().getKeyword();
+                            String boxedName = primitive.getType() == JavaType.Primitive.Int ? "Integer" :
+                                    primitive.getType() == JavaType.Primitive.Char ? "Character" :
+                                    Character.toUpperCase(keyword.charAt(0)) + keyword.substring(1);
+                            JavaType.FullyQualified boxed = JavaType.ShallowClass.build("java.lang." + boxedName);
+                            p = p.withTypeExpression(new J.Identifier(randomId(), primitive.getPrefix(), Markers.EMPTY, emptyList(), boxedName, boxed, null))
+                                    .withVariables(ListUtils.map(p.getVariables(), v -> v.withType(boxed).withName(v.getName().withType(boxed))));
+                        }
+                        return p;
+                    }
+
+                    private J.Annotation jaxRs(String simpleName, @Nullable Expression argument, Space prefix) {
+                        maybeAddImport(JAX_RS + simpleName);
+                        J.Annotation annotation = new J.Annotation(randomId(), prefix, Markers.EMPTY,
+                                new J.Identifier(randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), simpleName, JavaType.ShallowClass.build(JAX_RS + simpleName), null),
+                                null);
+                        return argument == null ? annotation : annotation.withArguments(singletonList(argument.withPrefix(Space.EMPTY)));
                     }
                 }
-                return "GET"; // Default to GET if no method specified
-            }
-        })
         );
+    }
+
+    private static J.@Nullable Annotation find(List<J.Annotation> annotations, AnnotationMatcher matcher) {
+        for (J.Annotation annotation : annotations) {
+            if (matcher.matches(annotation)) {
+                return annotation;
+            }
+        }
+        return null;
+    }
+
+    private static J.@Nullable Annotation findMapping(List<J.Annotation> annotations) {
+        for (J.Annotation annotation : annotations) {
+            JavaType.FullyQualified type = TypeUtils.asFullyQualified(annotation.getType());
+            if (type != null && type.getFullyQualifiedName().startsWith(SPRING_WEB) && type.getClassName().endsWith("Mapping")) {
+                return annotation;
+            }
+        }
+        return null;
+    }
+
+    private static J.@Nullable Annotation findParamBinding(List<J.Annotation> annotations) {
+        for (J.Annotation annotation : annotations) {
+            JavaType.FullyQualified type = TypeUtils.asFullyQualified(annotation.getType());
+            if (type != null && type.getFullyQualifiedName().startsWith(SPRING_WEB) &&
+                Arrays.asList("PathVariable", "RequestParam", "RequestHeader", "CookieValue").contains(type.getClassName())) {
+                return annotation;
+            }
+        }
+        return null;
+    }
+
+    private static @Nullable Expression attribute(J.Annotation annotation, String... names) {
+        List<String> attributeNames = Arrays.asList(names);
+        for (Expression argument : annotation.getArguments() == null ? Collections.<Expression>emptyList() : annotation.getArguments()) {
+            if (argument instanceof J.Assignment) {
+                J.Assignment assignment = (J.Assignment) argument;
+                if (assignment.getVariable() instanceof J.Identifier &&
+                    attributeNames.contains(((J.Identifier) assignment.getVariable()).getSimpleName())) {
+                    return assignment.getAssignment();
+                }
+            } else if (!(argument instanceof J.Empty) && attributeNames.contains("value")) {
+                return argument;
+            }
+        }
+        return null;
+    }
+
+    private static List<Expression> elements(@Nullable Expression expression) {
+        if (expression instanceof J.NewArray) {
+            List<Expression> initializer = ((J.NewArray) expression).getInitializer();
+            return initializer == null ? emptyList() : ListUtils.filter(initializer, e -> !(e instanceof J.Empty));
+        }
+        return expression == null ? emptyList() : singletonList(expression);
+    }
+
+    private static J.Literal stringLiteral(String value) {
+        return new J.Literal(randomId(), Space.EMPTY, Markers.EMPTY, value, "\"" + value + "\"", null, JavaType.Primitive.String);
     }
 }
