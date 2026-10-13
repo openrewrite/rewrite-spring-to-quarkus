@@ -28,9 +28,9 @@ import org.openrewrite.xml.tree.Xml;
 @EqualsAndHashCode(callSuper = false)
 public class RemoveSpringBootParent extends Recipe {
 
-    String displayName = "Remove Spring Boot 3.x parent POM";
+    String displayName = "Remove Spring Boot parent POM";
 
-    String description = "Removes the Spring Boot 3.x starter parent POM from Maven projects.";
+    String description = "Removes the Spring Boot 3.x or 4.x starter parent POM from Maven projects.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -55,10 +55,9 @@ public class RemoveSpringBootParent extends Recipe {
                 String artifactId = tag.getChildValue("artifactId").orElse("");
                 String version = tag.getChildValue("version").orElse("");
 
-                // Only process Spring Boot 3.x parent POMs
                 return "org.springframework.boot".equals(groupId) &&
                        "spring-boot-starter-parent".equals(artifactId) &&
-                       version.startsWith("3.");
+                       (version.startsWith("3.") || version.startsWith("4."));
             }
         };
     }

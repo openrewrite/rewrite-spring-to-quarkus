@@ -32,7 +32,7 @@ class SpringBootToQuarkusTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringBootToQuarkus")
-          .parser(JavaParser.fromJavaVersion().classpath("spring-web", "spring-context"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-boot-autoconfigure", "spring-web", "spring-context"));
     }
 
     @DocumentExample
@@ -40,6 +40,33 @@ class SpringBootToQuarkusTest implements RewriteTest {
     void migrateSpringBootParentToQuarkusBOM() {
         rewriteRun(
           mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import io.quarkus.runtime.Quarkus;
+                  import io.quarkus.runtime.annotations.QuarkusMain;
+
+                  @QuarkusMain
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          Quarkus.run(args);
+                      }
+                  }
+                  """
+              )
+            ),
             //language=xml
             pomXml(
               """
@@ -61,6 +88,14 @@ class SpringBootToQuarkusTest implements RewriteTest {
                             <artifactId>spring-boot-starter-web</artifactId>
                         </dependency>
                     </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
                 </project>
                 """,
               spec -> spec.after(actual -> {
@@ -123,6 +158,33 @@ class SpringBootToQuarkusTest implements RewriteTest {
     void migrateSpringBootWithExistingDependencyManagement() {
         rewriteRun(
           mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import io.quarkus.runtime.Quarkus;
+                  import io.quarkus.runtime.annotations.QuarkusMain;
+
+                  @QuarkusMain
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          Quarkus.run(args);
+                      }
+                  }
+                  """
+              )
+            ),
             //language=xml
             pomXml(
               """
@@ -152,6 +214,14 @@ class SpringBootToQuarkusTest implements RewriteTest {
                             <artifactId>spring-boot-starter-web</artifactId>
                         </dependency>
                     </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
                 </project>
                 """,
               spec -> spec.after(actual -> {
@@ -232,6 +302,14 @@ class SpringBootToQuarkusTest implements RewriteTest {
                             <version>3.1.0</version>
                         </dependency>
                     </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
                 </project>
                 """,
               spec -> spec.after(pom -> assertThat(pom)
@@ -244,6 +322,30 @@ class SpringBootToQuarkusTest implements RewriteTest {
                 .actual())
             ),
             srcMainJava(
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import io.quarkus.runtime.Quarkus;
+                  import io.quarkus.runtime.annotations.QuarkusMain;
+
+                  @QuarkusMain
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          Quarkus.run(args);
+                      }
+                  }
+                  """
+              ),
               java(
                 """
                   import org.springframework.web.bind.annotation.RestController;
@@ -279,22 +381,238 @@ class SpringBootToQuarkusTest implements RewriteTest {
     }
 
     @Test
+    void migrateSpringBoot4() {
+        rewriteRun(
+          mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import io.quarkus.runtime.Quarkus;
+                  import io.quarkus.runtime.annotations.QuarkusMain;
+
+                  @QuarkusMain
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          Quarkus.run(args);
+                      }
+                  }
+                  """
+              )
+            ),
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.0</version>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
+                </project>
+                """,
+              spec -> spec.after(pom -> assertThat(pom)
+                .contains("<artifactId>quarkus-bom</artifactId>", "<artifactId>quarkus-maven-plugin</artifactId>")
+                .doesNotContain("<artifactId>spring-boot-starter-parent</artifactId>")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void doNotMigrateLibrary() {
+        rewriteRun(
+          mavenProject("library",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <groupId>com.example</groupId>
+                    <artifactId>library</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-web</artifactId>
+                            <version>3.1.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.web.bind.annotation.GetMapping;
+                  import org.springframework.web.bind.annotation.RestController;
+
+                  @RestController
+                  public class UserController {
+                      @GetMapping("/users")
+                      public String getUsers() {
+                          return "users";
+                      }
+                  }
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void doNotMigrateProjectsNestedInResources() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                            <version>3.1.0</version>
+                        </dependency>
+                    </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
+                </project>
+                """,
+              spec -> spec.after(pom -> assertThat(pom).contains("<artifactId>quarkus-bom</artifactId>").actual())
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import io.quarkus.runtime.Quarkus;
+                  import io.quarkus.runtime.annotations.QuarkusMain;
+
+                  @QuarkusMain
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          Quarkus.run(args);
+                      }
+                  }
+                  """
+              )
+            ),
+            srcTestResources(
+              //language=java
+              java(
+                """
+                  import org.springframework.stereotype.Service;
+
+                  @Service
+                  public class FixtureService {
+                  }
+                  """,
+                spec -> spec.path("projects/fixture/src/main/java/FixtureService.java")
+              )
+            )
+          )
+        );
+    }
+
+    @Test
     void doNotMigrateSpringBoot2x() {
         rewriteRun(
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <parent>
-                      <groupId>org.springframework.boot</groupId>
-                      <artifactId>spring-boot-starter-parent</artifactId>
-                      <version>2.7.18</version>
-                  </parent>
-                  <groupId>com.example</groupId>
-                  <artifactId>demo</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-              </project>
+          mavenProject("project",
+            //language=xml
+            pomXml(
               """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>2.7.18</version>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
+                </project>
+                """
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """
+              )
+            )
           )
         );
     }
