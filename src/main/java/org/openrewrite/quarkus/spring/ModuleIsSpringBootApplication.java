@@ -140,7 +140,9 @@ public class ModuleIsSpringBootApplication extends ScanningRecipe<ModuleIsSpring
                         }
                     }
                 });
-                if (sourceFile instanceof JavaSourceFile && isMainSourceSet(sourceFile) && declaresApplication((JavaSourceFile) sourceFile)) {
+                if (sourceFile instanceof JavaSourceFile &&
+                    sourceFile.getMarkers().findFirst(JavaSourceSet.class).filter(sourceSet -> "main".equals(sourceSet.getName())).isPresent() &&
+                    declaresApplication((JavaSourceFile) sourceFile)) {
                     acc.withMainClass.add(module);
                 }
                 return tree;
@@ -169,20 +171,6 @@ public class ModuleIsSpringBootApplication extends ScanningRecipe<ModuleIsSpring
         return "org.springframework.boot".equals(dependency.getGroupId()) &&
                "spring-boot".equals(dependency.getArtifactId()) &&
                (dependency.getVersion().startsWith("3.") || dependency.getVersion().startsWith("4."));
-    }
-
-    private static boolean isMainSourceSet(SourceFile sourceFile) {
-        return sourceFile.getMarkers().findFirst(JavaSourceSet.class)
-                .map(sourceSet -> "main".equals(sourceSet.getName()))
-                .orElseGet(() -> {
-                    Path path = sourceFile.getSourcePath();
-                    for (int i = 0; i < path.getNameCount() - 1; i++) {
-                        if ("src".equals(path.getName(i).toString())) {
-                            return "main".equals(path.getName(i + 1).toString());
-                        }
-                    }
-                    return true;
-                });
     }
 
     // The outermost resources directory decides, so the configuration of a project nested inside resources is excluded too
