@@ -817,6 +817,83 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.quarkus.spring.ModuleIsSpringBootApplication
+examples:
+- description: '`ModuleIsSpringBootApplicationTest#markApplicationModule`'
+  sources:
+  - before: |
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication
+      public class DemoApplication {
+          public static void main(String[] args) {
+              SpringApplication.run(DemoApplication.class, args);
+          }
+      }
+    after: |
+      /*~~(Spring Boot application module)~~>*/import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication
+      public class DemoApplication {
+          public static void main(String[] args) {
+              SpringApplication.run(DemoApplication.class, args);
+          }
+      }
+    language: java
+  - before: demo
+    language: mavenProject
+  - before: server.port=8081
+    after: ~~(Spring Boot application module)~~>server.port=8081
+    path: application.properties
+    language: properties
+  - before: |
+      <project>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter</artifactId>
+                  <version>3.5.4</version>
+              </dependency>
+          </dependencies>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-maven-plugin</artifactId>
+                  </plugin>
+              </plugins>
+          </build>
+      </project>
+    after: |
+      <!--~~(Spring Boot application module)~~>--><project>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter</artifactId>
+                  <version>3.5.4</version>
+              </dependency>
+          </dependencies>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-maven-plugin</artifactId>
+                  </plugin>
+              </plugins>
+          </build>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.quarkus.spring.RemoveSpringBootParent
 examples:
 - description: '`RemoveSpringBootParentTest#removeSpringBootParent`'
@@ -998,6 +1075,27 @@ recipeName: org.openrewrite.quarkus.spring.SpringBootToQuarkus
 examples:
 - description: '`SpringBootToQuarkusTest#migrateSpringBootParentToQuarkusBOM`'
   sources:
+  - before: |
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication
+      public class DemoApplication {
+          public static void main(String[] args) {
+              SpringApplication.run(DemoApplication.class, args);
+          }
+      }
+    after: |
+      import io.quarkus.runtime.Quarkus;
+      import io.quarkus.runtime.annotations.QuarkusMain;
+
+      @QuarkusMain
+      public class DemoApplication {
+          public static void main(String[] args) {
+              Quarkus.run(args);
+          }
+      }
+    language: java
   - before: project
     language: mavenProject
   - before: |
@@ -1019,6 +1117,14 @@ examples:
                   <artifactId>spring-boot-starter-web</artifactId>
               </dependency>
           </dependencies>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-maven-plugin</artifactId>
+                  </plugin>
+              </plugins>
+          </build>
       </project>
     path: pom.xml
     language: xml

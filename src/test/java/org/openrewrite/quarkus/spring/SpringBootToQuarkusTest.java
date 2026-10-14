@@ -32,7 +32,11 @@ class SpringBootToQuarkusTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringBootToQuarkus")
-          .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-boot-autoconfigure", "spring-web", "spring-context"));
+          .parser(JavaParser.fromJavaVersion().classpath(
+            "spring-boot",
+            "spring-boot-autoconfigure",
+            "spring-web",
+            "spring-context"));
     }
 
     @DocumentExample
