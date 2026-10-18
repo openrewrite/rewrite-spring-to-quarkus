@@ -51,8 +51,8 @@ class SpringHealthIndicatorToQuarkusTest implements RewriteTest {
               }
               """,
             """
-              import org.springframework.boot.actuate.health.HealthCheckResponse;
-              import org.springframework.boot.actuate.health.HealthCheck;
+              import org.eclipse.microprofile.health.HealthCheck;
+              import org.eclipse.microprofile.health.HealthCheckResponse;
 
               public class CustomHealthIndicator implements HealthCheck {
                   @Override
@@ -84,8 +84,8 @@ class SpringHealthIndicatorToQuarkusTest implements RewriteTest {
               }
               """,
             """
-              import org.springframework.boot.actuate.health.HealthCheckResponse;
-              import org.springframework.boot.actuate.health.HealthCheck;
+              import org.eclipse.microprofile.health.HealthCheck;
+              import org.eclipse.microprofile.health.HealthCheckResponse;
 
               public class DatabaseHealthIndicator implements HealthCheck {
                   @Override

@@ -116,6 +116,12 @@ public class SpringHealthIndicatorToQuarkus extends Recipe {
                     }
 
                     @Override
+                    public J.Import visitImport(J.Import _import, ExecutionContext ctx) {
+                        // maybeRemoveImport and maybeAddImport replace the imports, so don't rename them in place
+                        return _import;
+                    }
+
+                    @Override
                     public J.Identifier visitIdentifier(J.Identifier ident, ExecutionContext ctx) {
                         J.Identifier id = super.visitIdentifier(ident, ctx);
 
@@ -123,6 +129,8 @@ public class SpringHealthIndicatorToQuarkus extends Recipe {
                         if ("HealthIndicator".equals(id.getSimpleName()) &&
                                 id.getType() != null &&
                                 HEALTH_INDICATOR_FQN.equals(id.getType().toString())) {
+                            maybeRemoveImport(HEALTH_INDICATOR_FQN);
+                            maybeAddImport(QUARKUS_HEALTH_CHECK_FQN);
                             return id.withSimpleName("HealthCheck")
                                     .withType(JavaType.buildType(QUARKUS_HEALTH_CHECK_FQN));
                         }
@@ -131,6 +139,8 @@ public class SpringHealthIndicatorToQuarkus extends Recipe {
                         if ("Health".equals(id.getSimpleName()) &&
                                 id.getType() != null &&
                                 SPRING_HEALTH_FQN.equals(id.getType().toString())) {
+                            maybeRemoveImport(SPRING_HEALTH_FQN);
+                            maybeAddImport(QUARKUS_HEALTH_RESPONSE_FQN);
                             return id.withSimpleName("HealthCheckResponse")
                                     .withType(JavaType.buildType(QUARKUS_HEALTH_RESPONSE_FQN));
                         }
