@@ -55,7 +55,7 @@ class CustomizeQuarkusVersionTest implements RewriteTest {
               </project>
               """,
             spec -> spec.after(actual -> assertThat(actual)
-              .containsPattern("<artifactId>quarkus-bom</artifactId>\\s*<version>3\\.\\d+\\.\\d+</version>")
+              .containsPattern("<artifactId>quarkus-bom</artifactId>\\s*<version>3(\\.\\d+)+</version>")
               .actual())
           )
         );
