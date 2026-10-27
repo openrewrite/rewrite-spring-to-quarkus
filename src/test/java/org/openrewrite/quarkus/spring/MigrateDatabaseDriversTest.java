@@ -23,6 +23,7 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class MigrateDatabaseDriversTest implements RewriteTest {
@@ -357,6 +358,99 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                   </dependencies>
               </project>
               """
+          )
+        );
+    }
+
+    @Test
+    void doNotAddTestDriverForTransitiveH2() {
+        rewriteRun(
+          mavenProject("persistence",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>persistence</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>3.26.4</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.h2database</groupId>
+                            <artifactId>h2</artifactId>
+                            <version>2.2.224</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>persistence</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>3.26.4</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>io.quarkus</groupId>
+                            <artifactId>quarkus-jdbc-h2</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
+          ),
+          mavenProject("service",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>service</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>3.26.4</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.example</groupId>
+                            <artifactId>persistence</artifactId>
+                            <version>0.0.1-SNAPSHOT</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
           )
         );
     }

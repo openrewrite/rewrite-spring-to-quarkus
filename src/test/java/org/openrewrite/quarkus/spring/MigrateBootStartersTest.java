@@ -20,6 +20,7 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class MigrateBootStartersTest implements RewriteTest {
@@ -979,6 +980,99 @@ class MigrateBootStartersTest implements RewriteTest {
                   </dependencies>
               </project>
               """
+          )
+        );
+    }
+
+    @Test
+    void doNotAddQuarkusExtensionForTransitiveStarter() {
+        rewriteRun(
+          mavenProject("web",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>web</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>3.26.4</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-web</artifactId>
+                            <version>3.1.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>web</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>3.26.4</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>io.quarkus</groupId>
+                            <artifactId>quarkus-resteasy-jackson</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
+          ),
+          mavenProject("service",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>service</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.platform</groupId>
+                                <artifactId>quarkus-bom</artifactId>
+                                <version>3.26.4</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.example</groupId>
+                            <artifactId>web</artifactId>
+                            <version>0.0.1-SNAPSHOT</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
           )
         );
     }
