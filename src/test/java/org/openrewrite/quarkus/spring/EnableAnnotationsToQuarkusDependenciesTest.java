@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -31,11 +32,11 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
             "/META-INF/rewrite/autoconfig.yml",
             "org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies")
           .parser(JavaParser.fromJavaVersion()
-            .classpath(
-              "spring-boot",
-              "spring-boot-autoconfigure",
-              "spring-context",
-              "spring-data-jpa"));
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-boot-3",
+              "spring-boot-autoconfigure-3",
+              "spring-context-6",
+              "spring-data-jpa-3"));
     }
 
     @DocumentExample

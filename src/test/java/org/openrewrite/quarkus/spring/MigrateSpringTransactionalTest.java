@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -29,7 +30,7 @@ class MigrateSpringTransactionalTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.MigrateSpringTransactional")
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-tx", "jakarta.transaction-api"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-tx-6", "jakarta.transaction-api-2"));
     }
 
     @DocumentExample
