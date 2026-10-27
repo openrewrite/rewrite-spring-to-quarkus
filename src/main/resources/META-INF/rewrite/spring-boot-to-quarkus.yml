@@ -91,9 +91,7 @@ preconditions:
   - org.openrewrite.java.search.FindTypes:
       fullyQualifiedTypeName: org.springframework.boot.autoconfigure.SpringBootApplication
 recipeList:
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.SpringBootApplication
-      newFullyQualifiedTypeName: io.quarkus.runtime.annotations.QuarkusMain
+  - org.openrewrite.quarkus.spring.SpringBootApplicationToQuarkusMain
   - org.openrewrite.quarkus.spring.SpringApplicationRunToQuarkusRun
 
 ---
