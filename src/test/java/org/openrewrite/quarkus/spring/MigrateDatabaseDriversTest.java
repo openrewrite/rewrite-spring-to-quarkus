@@ -363,6 +363,42 @@ class MigrateDatabaseDriversTest implements RewriteTest {
     }
 
     @Test
+    void doNotChangeProvidedH2() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <dependencyManagement>
+                      <dependencies>
+                          <dependency>
+                              <groupId>io.quarkus.platform</groupId>
+                              <artifactId>quarkus-bom</artifactId>
+                              <version>3.26.4</version>
+                              <type>pom</type>
+                              <scope>import</scope>
+                          </dependency>
+                      </dependencies>
+                  </dependencyManagement>
+                  <dependencies>
+                      <dependency>
+                          <groupId>com.h2database</groupId>
+                          <artifactId>h2</artifactId>
+                          <version>2.2.224</version>
+                          <scope>provided</scope>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
     void doNotAddTestDriverForTransitiveH2() {
         rewriteRun(
           mavenProject("persistence",
