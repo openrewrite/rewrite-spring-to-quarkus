@@ -74,33 +74,12 @@ public class WebToJaxRs extends Recipe {
                         List<J.Annotation> annotations = classDecl.getLeadingAnnotations();
                         J.Annotation controller = find(annotations, CONTROLLER_MATCHER);
                         J.Annotation requestMapping = find(annotations, REQUEST_MAPPING_MATCHER);
-                        boolean hasHandlers = false;
-                        boolean onlyRestHandlers = true;
-                        for (Statement statement : classDecl.getBody().getStatements()) {
-                            if (statement instanceof J.MethodDeclaration && findMapping(((J.MethodDeclaration) statement).getLeadingAnnotations()) != null) {
-                                J.MethodDeclaration handler = (J.MethodDeclaration) statement;
-                                JavaType returnType = handler.getReturnTypeExpression() == null ? null : handler.getReturnTypeExpression().getType();
-                                hasHandlers = true;
-                                onlyRestHandlers &= find(handler.getAllAnnotations(), RESPONSE_BODY_MATCHER) != null ||
-                                        TypeUtils.isAssignableTo("org.springframework.http.HttpEntity", returnType) ||
-                                        TypeUtils.isAssignableTo("jakarta.ws.rs.core.Response", returnType);
-                            }
-                        }
-
-                        boolean resource;
-                        if (find(annotations, FEIGN_CLIENT_MATCHER) != null) {
-                            resource = false;
-                        } else if (find(annotations, REST_CONTROLLER_MATCHER) != null ||
-                                   (controller != null && find(annotations, RESPONSE_BODY_MATCHER) != null)) {
-                            resource = true;
-                        } else if (controller != null) {
-                            if (hasHandlers && !onlyRestHandlers) {
-                                return classDecl.withLeadingAnnotations(ListUtils.map(annotations, a -> a == controller ?
-                                        SearchResult.mergingFound(a, "Spring MVC view controller; migrate to Qute templates manually") : a));
-                            }
-                            resource = hasHandlers;
-                        } else {
-                            resource = hasHandlers && classDecl.getKind() == J.ClassDeclaration.Kind.Type.Interface;
+                        boolean resource = isResource(classDecl);
+                        if (!resource && controller != null && find(annotations, FEIGN_CLIENT_MATCHER) == null &&
+                            classDecl.getBody().getStatements().stream().anyMatch(s -> s instanceof J.MethodDeclaration &&
+                                    findMapping(((J.MethodDeclaration) s).getLeadingAnnotations()) != null)) {
+                            return classDecl.withLeadingAnnotations(ListUtils.map(annotations, a -> a == controller ?
+                                    SearchResult.mergingFound(a, "Spring MVC view controller; migrate to Qute templates manually") : a));
                         }
 
                         if (resource && requestMapping != null && elements(attribute(requestMapping, "value", "path")).size() > 1) {
@@ -257,6 +236,30 @@ public class WebToJaxRs extends Recipe {
         );
     }
 
+    static boolean isResource(J.ClassDeclaration classDecl) {
+        List<J.Annotation> annotations = classDecl.getLeadingAnnotations();
+        J.Annotation controller = find(annotations, CONTROLLER_MATCHER);
+        if (find(annotations, FEIGN_CLIENT_MATCHER) != null) {
+            return false;
+        }
+        if (find(annotations, REST_CONTROLLER_MATCHER) != null || (controller != null && find(annotations, RESPONSE_BODY_MATCHER) != null)) {
+            return true;
+        }
+        boolean hasHandlers = false;
+        boolean onlyRestHandlers = true;
+        for (Statement statement : classDecl.getBody().getStatements()) {
+            if (statement instanceof J.MethodDeclaration && findMapping(((J.MethodDeclaration) statement).getLeadingAnnotations()) != null) {
+                J.MethodDeclaration handler = (J.MethodDeclaration) statement;
+                JavaType returnType = handler.getReturnTypeExpression() == null ? null : handler.getReturnTypeExpression().getType();
+                hasHandlers = true;
+                onlyRestHandlers &= find(handler.getAllAnnotations(), RESPONSE_BODY_MATCHER) != null ||
+                        TypeUtils.isAssignableTo("org.springframework.http.HttpEntity", returnType) ||
+                        TypeUtils.isAssignableTo("jakarta.ws.rs.core.Response", returnType);
+            }
+        }
+        return hasHandlers && (controller != null ? onlyRestHandlers : classDecl.getKind() == J.ClassDeclaration.Kind.Type.Interface);
+    }
+
     private static J.@Nullable Annotation find(List<J.Annotation> annotations, AnnotationMatcher matcher) {
         for (J.Annotation annotation : annotations) {
             if (matcher.matches(annotation)) {
@@ -266,7 +269,7 @@ public class WebToJaxRs extends Recipe {
         return null;
     }
 
-    private static J.@Nullable Annotation findMapping(List<J.Annotation> annotations) {
+    static J.@Nullable Annotation findMapping(List<J.Annotation> annotations) {
         for (J.Annotation annotation : annotations) {
             JavaType.FullyQualified type = TypeUtils.asFullyQualified(annotation.getType());
             if (type != null && type.getFullyQualifiedName().startsWith(SPRING_WEB) && type.getClassName().endsWith("Mapping")) {
