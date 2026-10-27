@@ -165,6 +165,10 @@ preconditions:
   - org.openrewrite.java.dependencies.FindDependency:
       groupId: com.h2database
       artifactId: h2
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: com.h2database
+      artifactIdPattern: h2
+      scope: test
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: com.h2database
