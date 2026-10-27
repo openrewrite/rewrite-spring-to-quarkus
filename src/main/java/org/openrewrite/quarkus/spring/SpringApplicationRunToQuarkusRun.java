@@ -46,7 +46,7 @@ public class SpringApplicationRunToQuarkusRun extends Recipe {
     private static final MethodMatcher KOTLIN_RUN_APPLICATION = new MethodMatcher("org.springframework.boot.SpringApplicationExtensionsKt runApplication(..)");
 
     private static final JavaType.FullyQualified QUARKUS = JavaType.ShallowClass.build("io.quarkus.runtime.Quarkus");
-    private static final JavaType.Method QUARKUS_RUN = new JavaType.Method(null, Flag.flagsToBitMap(EnumSet.of(Flag.Public, Flag.Static)),
+    private static final JavaType.Method QUARKUS_RUN = new JavaType.Method(null, Flag.flagsToBitMap(EnumSet.of(Flag.Public, Flag.Static, Flag.Varargs)),
             QUARKUS, "run", JavaType.Primitive.Void, singletonList("args"), singletonList(new JavaType.Array(null, JavaType.Primitive.String, null)),
             emptyList(), emptyList(), null, emptyList());
 

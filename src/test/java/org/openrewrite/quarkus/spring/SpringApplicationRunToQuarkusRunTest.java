@@ -116,6 +116,33 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
     }
 
     @Test
+    void replaceWithoutArguments() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.SpringApplication;
+
+              public class DemoApplication {
+                  public static void main(String[] args) {
+                      SpringApplication.run(DemoApplication.class);
+                  }
+              }
+              """,
+            """
+              import io.quarkus.runtime.Quarkus;
+
+              public class DemoApplication {
+                  public static void main(String[] args) {
+                      Quarkus.run();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void replaceWithOtherPrimarySources() {
         rewriteRun(
           //language=java
