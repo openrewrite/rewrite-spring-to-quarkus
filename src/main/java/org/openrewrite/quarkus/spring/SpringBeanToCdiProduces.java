@@ -22,38 +22,54 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
+import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.trait.Annotated;
-import org.openrewrite.java.trait.Literal;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
+import org.openrewrite.marker.SearchResult;
 
-import java.util.Optional;
+import java.util.*;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.openrewrite.Tree.randomId;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class SpringBeanToCdiProduces extends Recipe {
 
     public static final String BEAN_FQN = "org.springframework.context.annotation.Bean";
-    private static final Annotated.Matcher BEAN_MATCHER = new Annotated.Matcher("@" + BEAN_FQN);
     public static final String SCOPE_FQN = "org.springframework.context.annotation.Scope";
-    private static final Annotated.Matcher SCOPE_MATCHER = new Annotated.Matcher("@" + SCOPE_FQN);
+    private static final AnnotationMatcher BEAN_MATCHER = new AnnotationMatcher("@" + BEAN_FQN);
+    private static final AnnotationMatcher SCOPE_MATCHER = new AnnotationMatcher("@" + SCOPE_FQN);
 
     public static final String PRODUCES_FQN = "jakarta.enterprise.inject.Produces";
     public static final String APPLICATION_SCOPED_FQN = "jakarta.enterprise.context.ApplicationScoped";
     public static final String CONFIGURABLE_BEAN_FACTORY_FQN = "org.springframework.beans.factory.config.ConfigurableBeanFactory";
     public static final String DEPENDENT_FQN = "jakarta.enterprise.context.Dependent";
     public static final String NAMED_FQN = "jakarta.inject.Named";
-    public static final String DEPENDENT = "@Dependent";
-    public static final String APPLICATION_SCOPED = "@ApplicationScoped";
-    public static final String NAMED = "@Named";
+
+    private static final Map<String, String> CDI_SCOPES = new HashMap<>();
+
+    static {
+        CDI_SCOPES.put("", APPLICATION_SCOPED_FQN);
+        CDI_SCOPES.put("singleton", APPLICATION_SCOPED_FQN);
+        CDI_SCOPES.put("application", APPLICATION_SCOPED_FQN);
+        CDI_SCOPES.put("prototype", DEPENDENT_FQN);
+        CDI_SCOPES.put("request", "jakarta.enterprise.context.RequestScoped");
+        CDI_SCOPES.put("session", "jakarta.enterprise.context.SessionScoped");
+    }
+
+    static final String SPRING_SECURITY = "Spring Security configuration has no CDI equivalent; migrate it to Quarkus security manually";
+    static final String CONDITIONAL_CONFIGURATION = "CDI has no equivalent of Spring conditional configuration; migrate it manually, e.g. to `@IfBuildProperty`";
 
     String displayName = "Replace Spring `@Bean` with CDI `@Produces`";
 
-    String description = "Transform Spring `@Bean` methods to CDI `@Produces` methods with appropriate scope annotations.";
+    String description = "Transform Spring `@Bean` methods to CDI `@Produces` methods with appropriate scope annotations, " +
+            "keeping any other annotations on the method. Spring Security beans, beans of conditional configuration " +
+            "classes and beans in scopes CDI does not have are left unchanged.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -63,59 +79,128 @@ public class SpringBeanToCdiProduces extends Recipe {
                     @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-
-                        Optional<Annotated> annotated = BEAN_MATCHER.lower(getCursor()).findFirst();
-                        if (!annotated.isPresent()) {
+                        List<J.Annotation> annotations = m.getLeadingAnnotations();
+                        J.Annotation bean = find(annotations, BEAN_MATCHER);
+                        if (bean == null) {
                             return m;
                         }
-                        Annotated beanAnnotation = annotated.get();
+                        if (isSpringSecurityBean(m)) {
+                            return m.withLeadingAnnotations(ListUtils.map(annotations, a -> a == bean ? SearchResult.found(a, SPRING_SECURITY) : a));
+                        }
+                        J.ClassDeclaration enclosing = getCursor().firstEnclosing(J.ClassDeclaration.class);
+                        if (enclosing != null && unconvertibleConfigurationReason(enclosing) != null) {
+                            return m;
+                        }
+
+                        J.Annotation scope = find(annotations, SCOPE_MATCHER);
+                        Expression scopeName = scope == null ? null : attribute(scope, "value", "scopeName");
+                        String springScope = scopeName instanceof J.Literal ? String.valueOf(((J.Literal) scopeName).getValue()) :
+                                scopeName instanceof J.FieldAccess ? ((J.FieldAccess) scopeName).getSimpleName().replaceFirst("^SCOPE_", "").toLowerCase() :
+                                scopeName instanceof J.Identifier ? ((J.Identifier) scopeName).getSimpleName().replaceFirst("^SCOPE_", "").toLowerCase() :
+                                "";
+                        String cdiScope = CDI_SCOPES.get(springScope);
+                        if (cdiScope == null) {
+                            return m.withLeadingAnnotations(ListUtils.map(annotations, a -> a == scope ?
+                                    SearchResult.found(a, "CDI has no equivalent of the Spring `" + springScope + "` scope") : a));
+                        }
 
                         maybeRemoveImport(BEAN_FQN);
                         maybeRemoveImport(SCOPE_FQN);
                         maybeRemoveImport(CONFIGURABLE_BEAN_FACTORY_FQN);
+                        maybeRemoveImport("org.springframework.context.annotation.ScopedProxyMode");
+                        maybeRemoveImport("org.springframework.web.context.WebApplicationContext");
+                        int beanIndex = annotations.indexOf(bean);
+                        J declaration = m.getModifiers().isEmpty() ? m.getReturnTypeExpression() : m.getModifiers().get(0);
+                        Space separator = beanIndex > 0 ? bean.getPrefix() :
+                                annotations.size() > 1 ? annotations.get(1).getPrefix() :
+                                        declaration != null && !declaration.getPrefix().getWhitespace().contains("\n") ? Space.SINGLE_SPACE :
+                                                Space.format("\n" + m.getPrefix().getIndent());
+                        List<J.Annotation> cdiAnnotations = new ArrayList<>();
+                        J.Annotation produces = annotation(PRODUCES_FQN, null, bean.getPrefix());
+                        List<String> lifecycle = new ArrayList<>();
+                        for (String lifecycleMethod : Arrays.asList("initMethod", "destroyMethod")) {
+                            Expression methodName = attribute(bean, lifecycleMethod);
+                            if (methodName != null && !J.Literal.isLiteralValue(methodName, "")) {
+                                lifecycle.add(lifecycleMethod + " = " + methodName.printTrimmed(getCursor()));
+                            }
+                        }
+                        cdiAnnotations.add(lifecycle.isEmpty() ? produces : SearchResult.found(produces,
+                                "Spring called `" + String.join(", ", lifecycle) + "` on this bean; call it from the producer or a `@Disposes` method"));
                         maybeAddImport(PRODUCES_FQN);
-                        maybeAddImport(APPLICATION_SCOPED_FQN);
-                        maybeAddImport(NAMED_FQN);
-                        maybeAddImport(DEPENDENT_FQN);
-
-                        String template = createTemplate(
-                                beanAnnotation.getDefaultAttribute("name").map(Literal::getString).orElse(null),
-                                determineCdiScope(SCOPE_MATCHER.lower(getCursor()).findFirst().map(Annotated::getTree).orElse(null)));
-                        return JavaTemplate.builder(template)
-                                .imports(PRODUCES_FQN, APPLICATION_SCOPED_FQN, DEPENDENT_FQN, NAMED_FQN)
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.enterprise.cdi-api-4", "jakarta.inject-api"))
-                                .build()
-                                .apply(getCursor(), m.getCoordinates().replaceAnnotations());
-                    }
-
-                    private String createTemplate(@Nullable String beanName, @Nullable String scopeToAdd) {
-                        StringBuilder templateBuilder = new StringBuilder("@Produces\n");
-                        if (beanName != null) {
-                            templateBuilder.append(NAMED + "(\"").append(beanName).append("\")\n");
+                        List<Expression> names = elements(attribute(bean, "value", "name"));
+                        if (!names.isEmpty()) {
+                            cdiAnnotations.add(annotation(NAMED_FQN, names.get(0), separator));
+                            maybeAddImport(NAMED_FQN);
                         }
-                        if (scopeToAdd != null) {
-                            templateBuilder.append(scopeToAdd);
-                        } else {
-                            templateBuilder.append(APPLICATION_SCOPED);
-                        }
-                        return templateBuilder.toString();
-                    }
+                        cdiAnnotations.add(annotation(cdiScope, null, separator));
+                        maybeAddImport(cdiScope);
 
-                    private @Nullable String determineCdiScope(J.@Nullable Annotation scopeAnnotation) {
-                        if (scopeAnnotation == null || scopeAnnotation.getArguments() == null || scopeAnnotation.getArguments().isEmpty()) {
-                            return null;
-                        }
-
-                        Expression arg = scopeAnnotation.getArguments().get(0);
-                        String scopeValue = null;
-                        if (arg instanceof J.Literal) {
-                            scopeValue = (String) ((J.Literal) arg).getValue();
-                        } else if (arg instanceof J.FieldAccess) {
-                            scopeValue = ((J.FieldAccess) arg).getSimpleName();
-                        }
-
-                        return scopeValue != null && scopeValue.toLowerCase().contains("prototype") ? DEPENDENT : APPLICATION_SCOPED;
+                        List<J.Annotation> converted = ListUtils.flatMap(annotations, a -> a == bean ? cdiAnnotations : a == scope ? null : a);
+                        return m.withLeadingAnnotations(ListUtils.mapFirst(converted, a -> a.withPrefix(annotations.get(0).getPrefix())));
                     }
                 });
+    }
+
+    static boolean isSpringSecurityBean(J.MethodDeclaration method) {
+        JavaType.FullyQualified returnType = method.getReturnTypeExpression() == null ? null :
+                TypeUtils.asFullyQualified(method.getReturnTypeExpression().getType());
+        return returnType != null && returnType.getFullyQualifiedName().startsWith("org.springframework.security.") &&
+               find(method.getLeadingAnnotations(), BEAN_MATCHER) != null;
+    }
+
+    static @Nullable String unconvertibleConfigurationReason(J.ClassDeclaration classDecl) {
+        for (J.Annotation annotation : classDecl.getLeadingAnnotations()) {
+            JavaType.FullyQualified type = TypeUtils.asFullyQualified(annotation.getType());
+            if (type != null && ("org.springframework.context.annotation.Conditional".equals(type.getFullyQualifiedName()) ||
+                                 type.getFullyQualifiedName().startsWith("org.springframework.boot.") && type.getClassName().startsWith("ConditionalOn"))) {
+                return CONDITIONAL_CONFIGURATION;
+            }
+        }
+        for (Statement statement : classDecl.getBody().getStatements()) {
+            if (statement instanceof J.MethodDeclaration && isSpringSecurityBean((J.MethodDeclaration) statement)) {
+                return SPRING_SECURITY;
+            }
+        }
+        return null;
+    }
+
+    static J.Annotation annotation(String fqn, @Nullable Expression argument, Space prefix) {
+        J.Annotation annotation = new J.Annotation(randomId(), prefix, Markers.EMPTY,
+                new J.Identifier(randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), fqn.substring(fqn.lastIndexOf('.') + 1), JavaType.ShallowClass.build(fqn), null),
+                null);
+        return argument == null ? annotation : annotation.withArguments(singletonList(argument.withPrefix(Space.EMPTY)));
+    }
+
+    private static J.@Nullable Annotation find(List<J.Annotation> annotations, AnnotationMatcher matcher) {
+        for (J.Annotation annotation : annotations) {
+            if (matcher.matches(annotation)) {
+                return annotation;
+            }
+        }
+        return null;
+    }
+
+    private static @Nullable Expression attribute(J.Annotation annotation, String... names) {
+        List<String> attributeNames = Arrays.asList(names);
+        for (Expression argument : annotation.getArguments() == null ? Collections.<Expression>emptyList() : annotation.getArguments()) {
+            if (argument instanceof J.Assignment) {
+                J.Assignment assignment = (J.Assignment) argument;
+                if (assignment.getVariable() instanceof J.Identifier &&
+                    attributeNames.contains(((J.Identifier) assignment.getVariable()).getSimpleName())) {
+                    return assignment.getAssignment();
+                }
+            } else if (!(argument instanceof J.Empty) && attributeNames.contains("value")) {
+                return argument;
+            }
+        }
+        return null;
+    }
+
+    private static List<Expression> elements(@Nullable Expression expression) {
+        if (expression instanceof J.NewArray) {
+            List<Expression> initializer = ((J.NewArray) expression).getInitializer();
+            return initializer == null ? emptyList() : ListUtils.filter(initializer, e -> !(e instanceof J.Empty));
+        }
+        return expression == null ? emptyList() : singletonList(expression);
     }
 }
