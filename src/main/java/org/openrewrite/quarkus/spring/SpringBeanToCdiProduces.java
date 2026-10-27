@@ -105,9 +105,11 @@ public class SpringBeanToCdiProduces extends Recipe {
                         }
 
                         int beanIndex = annotations.indexOf(bean);
+                        J declaration = m.getModifiers().isEmpty() ? m.getReturnTypeExpression() : m.getModifiers().get(0);
                         Space separator = beanIndex > 0 ? bean.getPrefix() :
                                 annotations.size() > 1 ? annotations.get(1).getPrefix() :
-                                        Space.format("\n" + m.getPrefix().getIndent());
+                                        declaration != null && !declaration.getPrefix().getWhitespace().contains("\n") ? Space.SINGLE_SPACE :
+                                                Space.format("\n" + m.getPrefix().getIndent());
                         List<J.Annotation> cdiAnnotations = new ArrayList<>();
                         J.Annotation produces = annotation(PRODUCES_FQN, null, bean.getPrefix());
                         List<String> lifecycle = new ArrayList<>();

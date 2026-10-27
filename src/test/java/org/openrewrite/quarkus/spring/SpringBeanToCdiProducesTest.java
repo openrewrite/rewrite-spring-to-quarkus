@@ -365,6 +365,45 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
     }
 
     @Test
+    void keepSingleBeanAnnotationOnDeclarationLine() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.web.client.RestTemplate;
+
+              class AppConfig {
+                  @Bean RestTemplate restTemplate() {
+                      return new RestTemplate();
+                  }
+
+                  @Bean("named") public RestTemplate namedTemplate() {
+                      return new RestTemplate();
+                  }
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
+              import jakarta.enterprise.inject.Produces;
+              import jakarta.inject.Named;
+              import org.springframework.web.client.RestTemplate;
+
+              class AppConfig {
+                  @Produces @ApplicationScoped RestTemplate restTemplate() {
+                      return new RestTemplate();
+                  }
+
+                  @Produces @Named("named") @ApplicationScoped public RestTemplate namedTemplate() {
+                      return new RestTemplate();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void reuseNonLiteralBeanName() {
         rewriteRun(
           //language=java
