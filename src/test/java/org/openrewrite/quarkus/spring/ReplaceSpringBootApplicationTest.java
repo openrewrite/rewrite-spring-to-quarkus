@@ -144,8 +144,6 @@ class ReplaceSpringBootApplicationTest implements RewriteTest {
           //language=java
           java(
             """
-              package com.example.multimodule.application;
-
               import org.springframework.boot.SpringApplication;
               import org.springframework.boot.autoconfigure.SpringBootApplication;
               import org.springframework.web.bind.annotation.RestController;
@@ -159,8 +157,6 @@ class ReplaceSpringBootApplicationTest implements RewriteTest {
               }
               """,
             """
-              package com.example.multimodule.application;
-
               import io.quarkus.runtime.Quarkus;
               import io.quarkus.runtime.annotations.QuarkusMain;
               import org.springframework.web.bind.annotation.RestController;
@@ -234,8 +230,6 @@ class ReplaceSpringBootApplicationTest implements RewriteTest {
           //language=kotlin
           kotlin(
             """
-              package com.example.asyncmethod
-
               import org.springframework.boot.autoconfigure.SpringBootApplication
               import org.springframework.boot.runApplication
               import org.springframework.context.annotation.Bean
@@ -254,8 +248,6 @@ class ReplaceSpringBootApplicationTest implements RewriteTest {
               }
               """,
             """
-              package com.example.asyncmethod
-
               import io.quarkus.runtime.Quarkus
               import io.quarkus.runtime.annotations.QuarkusMain
               import jakarta.enterprise.context.ApplicationScoped
@@ -355,8 +347,6 @@ class ReplaceSpringBootApplicationTest implements RewriteTest {
           //language=java
           java(
             """
-              package example.springdata.jpa.pagination;
-
               import org.springframework.boot.autoconfigure.SpringBootApplication;
               import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
@@ -368,8 +358,6 @@ class ReplaceSpringBootApplicationTest implements RewriteTest {
               class PagingRepoConfig {}
               """,
             """
-              package example.springdata.jpa.pagination;
-
               import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
               /**

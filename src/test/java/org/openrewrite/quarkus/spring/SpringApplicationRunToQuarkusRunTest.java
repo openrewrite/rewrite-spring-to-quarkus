@@ -190,8 +190,6 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
           //language=kotlin
           kotlin(
             """
-              package com.example.restservice
-
               import org.springframework.boot.autoconfigure.SpringBootApplication
               import org.springframework.boot.runApplication
 
@@ -203,8 +201,6 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
               }
               """,
             """
-              package com.example.restservice
-
               import io.quarkus.runtime.Quarkus
               import org.springframework.boot.autoconfigure.SpringBootApplication
 
@@ -219,8 +215,6 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
           //language=kotlin
           kotlin(
             """
-              package com.example.data.jdbc.h2.kotlin
-
               import org.springframework.boot.SpringApplication
 
               class DataJdbcH2Application
@@ -230,8 +224,6 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
               }
               """,
             """
-              package com.example.data.jdbc.h2.kotlin
-
               import io.quarkus.runtime.Quarkus
 
               class DataJdbcH2Application
