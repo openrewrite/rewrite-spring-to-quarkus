@@ -106,19 +106,19 @@ recipeList:
   - org.openrewrite.java.ReplaceAnnotation:
       annotationPatternToReplace: '@org.springframework.context.annotation.Configuration'
       annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
-      classpathResourceName: 'jakarta.enterprise.cdi-api'
+      classpathResourceName: 'jakarta.enterprise.cdi-api-4'
   - org.openrewrite.java.ReplaceAnnotation:
       annotationPatternToReplace: '@org.springframework.stereotype.Service'
       annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
-      classpathResourceName: 'jakarta.enterprise.cdi-api'
+      classpathResourceName: 'jakarta.enterprise.cdi-api-4'
   - org.openrewrite.java.ReplaceAnnotation:
       annotationPatternToReplace: '@org.springframework.stereotype.Component'
       annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
-      classpathResourceName: 'jakarta.enterprise.cdi-api'
+      classpathResourceName: 'jakarta.enterprise.cdi-api-4'
   - org.openrewrite.java.ReplaceAnnotation:
       annotationPatternToReplace: '@org.springframework.stereotype.Repository'
       annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
-      classpathResourceName: 'jakarta.enterprise.cdi-api'
+      classpathResourceName: 'jakarta.enterprise.cdi-api-4'
   - org.openrewrite.java.ReplaceAnnotation:
       annotationPatternToReplace: '@org.springframework.beans.factory.annotation.Autowired'
       annotationTemplateToInsert: '@jakarta.inject.Inject'
