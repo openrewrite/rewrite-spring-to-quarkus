@@ -30,8 +30,18 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new SpringApplicationRunToQuarkusRun())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3", "spring-boot-autoconfigure-3", "spring-beans-6", "spring-context-6", "spring-core-6"))
-          .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3", "spring-boot-autoconfigure-3", "spring-beans-6", "spring-context-6", "spring-core-6"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-boot-3",
+            "spring-boot-autoconfigure-3",
+            "spring-beans-6",
+            "spring-context-6",
+            "spring-core-6"))
+          .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-boot-3",
+            "spring-boot-autoconfigure-3",
+            "spring-beans-6",
+            "spring-context-6",
+            "spring-core-6"));
     }
 
     @DocumentExample
