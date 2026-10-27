@@ -97,7 +97,7 @@ public class SpringEventListenerToObserves extends Recipe {
                             J.VariableDeclarations vd = (J.VariableDeclarations) param;
                             return JavaTemplate.builder("@Observes")
                                     .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "jakarta.enterprise.cdi-api"))
+                                            .classpathFromResources(ctx, "jakarta.enterprise.cdi-api-4"))
                                     .imports(OBSERVES_FQN)
                                     .build()
                                     .apply(new Cursor(getCursor(), vd), vd.getCoordinates().addAnnotation((a1, a2) -> 0));

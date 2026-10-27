@@ -106,7 +106,7 @@ public class SpringHealthIndicatorToQuarkus extends Recipe {
                         if (!hasApplicationScoped) {
                             cd = JavaTemplate.builder("@ApplicationScoped")
                                     .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "jakarta.enterprise.cdi-api"))
+                                            .classpathFromResources(ctx, "jakarta.enterprise.cdi-api-4"))
                                     .imports(APPLICATION_SCOPED_FQN)
                                     .build()
                                     .apply(updateCursor(cd), cd.getCoordinates().addAnnotation((a1, a2) -> 0));

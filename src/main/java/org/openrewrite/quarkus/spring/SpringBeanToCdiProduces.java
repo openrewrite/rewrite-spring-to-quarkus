@@ -83,7 +83,7 @@ public class SpringBeanToCdiProduces extends Recipe {
                                 determineCdiScope(SCOPE_MATCHER.lower(getCursor()).findFirst().map(Annotated::getTree).orElse(null)));
                         return JavaTemplate.builder(template)
                                 .imports(PRODUCES_FQN, APPLICATION_SCOPED_FQN, DEPENDENT_FQN, NAMED_FQN)
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.enterprise.cdi-api", "jakarta.inject-api"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.enterprise.cdi-api-4", "jakarta.inject-api"))
                                 .build()
                                 .apply(getCursor(), m.getCoordinates().replaceAnnotations());
                     }

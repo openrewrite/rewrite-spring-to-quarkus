@@ -16,7 +16,7 @@ recipeDependencies {
     parserClasspath("io.quarkus:quarkus-hibernate-orm-panache:3.28.2")
     parserClasspath("io.quarkus:quarkus-panache-common:3.28.2")
     parserClasspath("io.smallrye:smallrye-health-api:4.0.0")
-    parserClasspath("io.smallrye:smallrye-config-core:3.4.0")
+    parserClasspath("io.smallrye.config:smallrye-config-core:3.4.0")
     parserClasspath("org.eclipse.microprofile.health:microprofile-health-api:4.0.1")
     parserClasspath("io.quarkus:quarkus-junit5:3.28.2")
 
