@@ -63,23 +63,14 @@ recipeList:
   # Remove devtools-related properties
   - org.openrewrite.properties.DeleteProperty:
       propertyKey: spring.devtools.restart.enabled
-      fileMatcher: "**/application*.properties"
   - org.openrewrite.properties.DeleteProperty:
       propertyKey: spring.devtools.livereload.enabled
-      fileMatcher: "**/application*.properties"
   - org.openrewrite.properties.DeleteProperty:
       propertyKey: spring.devtools.restart.exclude
-      fileMatcher: "**/application*.properties"
   - org.openrewrite.properties.DeleteProperty:
       propertyKey: spring.devtools.restart.additional-paths
-      fileMatcher: "**/application*.properties"
   - org.openrewrite.properties.DeleteProperty:
       propertyKey: spring.devtools.restart.additional-exclude
-      fileMatcher: "**/application*.properties"
   # Remove YAML equivalents
   - org.openrewrite.yaml.DeleteKey:
       keyPath: $.spring.devtools
-      fileMatcher: "**/application*.yml"
-  - org.openrewrite.yaml.DeleteKey:
-      keyPath: $.spring.devtools
-      fileMatcher: "**/application*.yaml"

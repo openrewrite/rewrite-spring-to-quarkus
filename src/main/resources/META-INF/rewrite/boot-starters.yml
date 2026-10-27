@@ -74,10 +74,9 @@ tags:
   - web
   - reactive
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-web
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-web
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: io.projectreactor
       artifactIdPattern: "*"
@@ -101,10 +100,9 @@ tags:
   - web
   - classic
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-web
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-web
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -125,10 +123,9 @@ tags:
   - jpa
   - data
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-data-jpa
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-jpa
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -148,10 +145,9 @@ tags:
   - quarkus
   - security
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-security
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-security
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -171,10 +167,9 @@ tags:
   - quarkus
   - validation
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-validation
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-validation
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -194,10 +189,9 @@ tags:
   - quarkus
   - test
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-test
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-test
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -219,10 +213,9 @@ tags:
   - actuator
   - health
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-actuator
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-actuator
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -242,10 +235,9 @@ tags:
   - quarkus
   - websocket
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-websocket
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-websocket
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -265,10 +257,9 @@ tags:
   - quarkus
   - cache
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-cache
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-cache
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -289,10 +280,9 @@ tags:
   - webflux
   - reactive
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-webflux
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webflux
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: io.projectreactor
       artifactIdPattern: "*"
@@ -317,10 +307,9 @@ tags:
   - mongodb
   - data
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-data-mongodb
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -341,10 +330,9 @@ tags:
   - redis
   - data
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-data-redis
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-redis
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -366,10 +354,9 @@ tags:
   - messaging
   - reactive
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-amqp
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-amqp
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: io.projectreactor
       artifactIdPattern: "*"
@@ -394,10 +381,9 @@ tags:
   - rabbitmq
   - classic
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-amqp
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-amqp
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -419,10 +405,9 @@ tags:
   - messaging
   - reactive
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.kafka
-      artifactIdPattern: spring-kafka
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.kafka
+      artifactId: spring-kafka
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: io.projectreactor
       artifactIdPattern: "*"
@@ -446,10 +431,9 @@ tags:
   - kafka
   - classic
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.kafka
-      artifactIdPattern: spring-kafka
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.kafka
+      artifactId: spring-kafka
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.kafka
@@ -470,10 +454,9 @@ tags:
   - oauth2
   - security
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-oauth2-resource-server
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-oauth2-resource-server
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -494,10 +477,9 @@ tags:
   - oauth2
   - security
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-oauth2-client
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-oauth2-client
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -518,10 +500,9 @@ tags:
   - jdbc
   - datasource
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-jdbc
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-jdbc
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -541,10 +522,9 @@ tags:
   - quarkus
   - mail
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-mail
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-mail
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -565,10 +545,9 @@ tags:
   - batch
   - scheduler
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-batch
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-batch
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -588,10 +567,9 @@ tags:
   - quarkus
   - templating
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-thymeleaf
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-thymeleaf
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -612,10 +590,9 @@ tags:
   - scheduler
   - quartz
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-quartz
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-quartz
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -636,10 +613,9 @@ tags:
   - integration
   - camel
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-integration
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-integration
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -660,10 +636,9 @@ tags:
   - jms
   - activemq
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-activemq
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-activemq
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -684,10 +659,9 @@ tags:
   - jms
   - artemis
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-artemis
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-artemis
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -708,10 +682,9 @@ tags:
   - elasticsearch
   - data
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-data-elasticsearch
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-elasticsearch
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -732,10 +705,9 @@ tags:
   - rest
   - data
 preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-data-rest
-      onlyDirect: true
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-rest
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot

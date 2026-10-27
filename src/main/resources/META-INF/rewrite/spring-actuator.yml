@@ -58,7 +58,5 @@ recipeList:
   # but Quarkus SmallRye Health exposes all health endpoints by default
   - org.openrewrite.properties.DeleteProperty:
       propertyKey: management.endpoints.web.exposure.include
-      fileMatcher: "**/application*.properties"
   - org.openrewrite.properties.DeleteProperty:
       propertyKey: management.endpoint.health.show-details
-      fileMatcher: "**/application*.properties"
