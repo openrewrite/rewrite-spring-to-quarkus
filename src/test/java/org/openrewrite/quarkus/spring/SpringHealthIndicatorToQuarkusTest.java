@@ -30,8 +30,7 @@ class SpringHealthIndicatorToQuarkusTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new SpringHealthIndicatorToQuarkus())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-actuator-3", "spring-context-6"))
-          .typeValidationOptions(org.openrewrite.test.TypeValidation.none());
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-actuator-3", "spring-context-6"));
     }
 
     @DocumentExample
@@ -52,13 +51,17 @@ class SpringHealthIndicatorToQuarkusTest implements RewriteTest {
               }
               """,
             """
+              import jakarta.enterprise.context.ApplicationScoped;
               import org.eclipse.microprofile.health.HealthCheck;
               import org.eclipse.microprofile.health.HealthCheckResponse;
+              import org.eclipse.microprofile.health.Liveness;
 
+              @Liveness
+              @ApplicationScoped
               public class CustomHealthIndicator implements HealthCheck {
                   @Override
                   public HealthCheckResponse call() {
-                      return HealthCheckResponse.up().build();
+                      return HealthCheckResponse.up("custom");
                   }
               }
               """
@@ -75,25 +78,129 @@ class SpringHealthIndicatorToQuarkusTest implements RewriteTest {
               import org.springframework.boot.actuate.health.Health;
               import org.springframework.boot.actuate.health.HealthIndicator;
 
+              import java.time.Duration;
+
               public class DatabaseHealthIndicator implements HealthIndicator {
                   @Override
                   public Health health() {
                       return Health.up()
                               .withDetail("database", "PostgreSQL")
+                              .withDetail("connections", 10)
+                              .withDetail("readOnly", false)
+                              .withDetail("latency", Duration.ofMillis(5))
                               .build();
+                  }
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
+              import org.eclipse.microprofile.health.HealthCheck;
+              import org.eclipse.microprofile.health.HealthCheckResponse;
+              import org.eclipse.microprofile.health.Liveness;
+
+              import java.time.Duration;
+
+              @Liveness
+              @ApplicationScoped
+              public class DatabaseHealthIndicator implements HealthCheck {
+                  @Override
+                  public HealthCheckResponse call() {
+                      return HealthCheckResponse.named("database").up()
+                              .withData("database", "PostgreSQL")
+                              .withData("connections", 10)
+                              .withData("readOnly", false)
+                              .withData("latency", String.valueOf(Duration.ofMillis(5)))
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void convertDownBuilderChain() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.actuate.health.Health;
+              import org.springframework.boot.actuate.health.HealthIndicator;
+
+              public class DiskSpaceHealthIndicator implements HealthIndicator {
+                  private final boolean full;
+
+                  DiskSpaceHealthIndicator(boolean full) {
+                      this.full = full;
+                  }
+
+                  @Override
+                  public Health health() {
+                      if (full) {
+                          return Health.down().build();
+                      }
+                      return new Health.Builder().up().withDetail("free", 42L).build();
+                  }
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
+              import org.eclipse.microprofile.health.HealthCheck;
+              import org.eclipse.microprofile.health.HealthCheckResponse;
+              import org.eclipse.microprofile.health.Liveness;
+
+              @Liveness
+              @ApplicationScoped
+              public class DiskSpaceHealthIndicator implements HealthCheck {
+                  private final boolean full;
+
+                  DiskSpaceHealthIndicator(boolean full) {
+                      this.full = full;
+                  }
+
+                  @Override
+                  public HealthCheckResponse call() {
+                      if (full) {
+                          return HealthCheckResponse.down("diskSpace");
+                      }
+                      return HealthCheckResponse.named("diskSpace").up().withData("free", 42L).build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addLivenessButLeaveComponentForStereotypeMigration() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.actuate.health.Health;
+              import org.springframework.boot.actuate.health.HealthIndicator;
+              import org.springframework.stereotype.Component;
+
+              @Component
+              public class PingHealthIndicator implements HealthIndicator {
+                  @Override
+                  public Health health() {
+                      return Health.up().build();
                   }
               }
               """,
             """
               import org.eclipse.microprofile.health.HealthCheck;
               import org.eclipse.microprofile.health.HealthCheckResponse;
+              import org.eclipse.microprofile.health.Liveness;
+              import org.springframework.stereotype.Component;
 
-              public class DatabaseHealthIndicator implements HealthCheck {
+              @Component
+              @Liveness
+              public class PingHealthIndicator implements HealthCheck {
                   @Override
                   public HealthCheckResponse call() {
-                      return HealthCheckResponse.up()
-                              .withData("database", "PostgreSQL")
-                              .build();
+                      return HealthCheckResponse.up("ping");
                   }
               }
               """
