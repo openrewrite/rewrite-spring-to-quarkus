@@ -17,6 +17,8 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -30,7 +32,8 @@ class AddSpringCompatibilityExtensionsTest implements RewriteTest {
         spec.recipeFromResource(
           "/META-INF/rewrite/autoconfig.yml",
           "org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions"
-        );
+        ).parser(JavaParser.fromJavaVersion()
+          .classpathFromResources(new InMemoryExecutionContext(), "spring-beans-6", "spring-context-6", "spring-web-6", "spring-data-commons-3"));
     }
 
     @DocumentExample

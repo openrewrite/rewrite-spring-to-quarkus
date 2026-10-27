@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -32,11 +33,11 @@ class SpringBootToQuarkusTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.SpringBootToQuarkus")
-          .parser(JavaParser.fromJavaVersion().classpath(
-            "spring-boot",
-            "spring-boot-autoconfigure",
-            "spring-web",
-            "spring-context"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-boot-3",
+            "spring-boot-autoconfigure-3",
+            "spring-web-6",
+            "spring-context-6"));
     }
 
     @DocumentExample

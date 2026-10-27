@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -30,7 +31,7 @@ class JpaEntityToPanacheEntityTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JpaEntityToPanacheEntity())
           .parser(JavaParser.fromJavaVersion()
-            .classpath("jakarta.persistence-api", "quarkus-hibernate-orm-panache"));
+            .classpathFromResources(new InMemoryExecutionContext(), "jakarta.persistence-api-3", "quarkus-hibernate-orm-panache-3.17"));
     }
 
     @DocumentExample

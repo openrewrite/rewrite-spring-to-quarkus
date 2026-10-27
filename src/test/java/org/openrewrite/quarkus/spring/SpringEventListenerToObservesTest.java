@@ -17,6 +17,7 @@ package org.openrewrite.quarkus.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -29,7 +30,7 @@ class SpringEventListenerToObservesTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new SpringEventListenerToObserves())
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-context"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-6"));
     }
 
     @DocumentExample
