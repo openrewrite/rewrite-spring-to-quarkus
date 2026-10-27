@@ -104,6 +104,11 @@ public class SpringBeanToCdiProduces extends Recipe {
                                     SearchResult.found(a, "CDI has no equivalent of the Spring `" + springScope + "` scope") : a));
                         }
 
+                        maybeRemoveImport(BEAN_FQN);
+                        maybeRemoveImport(SCOPE_FQN);
+                        maybeRemoveImport(CONFIGURABLE_BEAN_FACTORY_FQN);
+                        maybeRemoveImport("org.springframework.context.annotation.ScopedProxyMode");
+                        maybeRemoveImport("org.springframework.web.context.WebApplicationContext");
                         int beanIndex = annotations.indexOf(bean);
                         J declaration = m.getModifiers().isEmpty() ? m.getReturnTypeExpression() : m.getModifiers().get(0);
                         Space separator = beanIndex > 0 ? bean.getPrefix() :
@@ -130,11 +135,6 @@ public class SpringBeanToCdiProduces extends Recipe {
                         cdiAnnotations.add(annotation(cdiScope, null, separator));
                         maybeAddImport(cdiScope);
 
-                        maybeRemoveImport(BEAN_FQN);
-                        maybeRemoveImport(SCOPE_FQN);
-                        maybeRemoveImport(CONFIGURABLE_BEAN_FACTORY_FQN);
-                        maybeRemoveImport("org.springframework.context.annotation.ScopedProxyMode");
-                        maybeRemoveImport("org.springframework.web.context.WebApplicationContext");
                         List<J.Annotation> converted = ListUtils.flatMap(annotations, a -> a == bean ? cdiAnnotations : a == scope ? null : a);
                         return m.withLeadingAnnotations(ListUtils.mapFirst(converted, a -> a.withPrefix(annotations.get(0).getPrefix())));
                     }
