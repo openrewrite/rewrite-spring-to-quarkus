@@ -86,7 +86,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.ReplaceSpringBootApplication
 displayName: Replace `@SpringBootApplication` with Quarkus equivalent
-description: Replace `@SpringBootApplication` annotation with `@QuarkusMain`, `SpringApplication.run()` calls.
+description: Replace `@SpringBootApplication` with `@QuarkusMain` on the class that declares `main`, and `SpringApplication.run()` calls with `Quarkus.run()`.
 preconditions:
   - org.openrewrite.java.search.FindTypes:
       fullyQualifiedTypeName: org.springframework.boot.autoconfigure.SpringBootApplication
