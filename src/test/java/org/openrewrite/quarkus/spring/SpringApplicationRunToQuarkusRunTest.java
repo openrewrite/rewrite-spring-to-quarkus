@@ -118,6 +118,7 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
     @Test
     void replaceWithOtherPrimarySources() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -138,6 +139,7 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
               }
               """
           ),
+          //language=java
           java(
             """
               import org.springframework.boot.SpringApplication;
@@ -158,6 +160,7 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
               }
               """
           ),
+          //language=java
           java(
             """
               import org.springframework.boot.SpringApplication;
@@ -244,6 +247,7 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
     @Test
     void markWhenApplicationContextIsUsed() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.boot.SpringApplication;
@@ -268,6 +272,7 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
               }
               """
           ),
+          //language=java
           java(
             """
               import org.springframework.boot.SpringApplication;
@@ -288,6 +293,7 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
               }
               """
           ),
+          //language=kotlin
           kotlin(
             """
               import org.springframework.boot.runApplication
@@ -316,6 +322,7 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
     @Test
     void markCustomizedSpringApplication() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.boot.SpringApplication;
@@ -342,6 +349,7 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
               }
               """
           ),
+          //language=java
           java(
             """
               import org.springframework.boot.WebApplicationType;
@@ -368,6 +376,7 @@ class SpringApplicationRunToQuarkusRunTest implements RewriteTest {
               }
               """
           ),
+          //language=kotlin
           kotlin(
             """
               import org.springframework.boot.Banner
