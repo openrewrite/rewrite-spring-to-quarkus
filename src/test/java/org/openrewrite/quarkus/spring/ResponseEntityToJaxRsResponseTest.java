@@ -15,6 +15,7 @@
  */
 package org.openrewrite.quarkus.spring;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -432,104 +433,107 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
         );
     }
 
-    @Test
-    void doNotChangeOutsideResourceMethods() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.http.ResponseEntity;
-              import org.springframework.web.client.RestTemplate;
+    @Nested
+    class NoChange {
+        @Test
+        void outsideResourceMethods() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.http.ResponseEntity;
+                  import org.springframework.web.client.RestTemplate;
 
-              class GitHubTemplate {
-                  private final RestTemplate restTemplate = new RestTemplate();
+                  class GitHubTemplate {
+                      private final RestTemplate restTemplate = new RestTemplate();
 
-                  ResponseEntity<String> fetch(String url) {
-                      ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-                      return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+                      ResponseEntity<String> fetch(String url) {
+                          ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+                          return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+                      }
                   }
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              import org.springframework.http.HttpStatus;
-              import org.springframework.http.ResponseEntity;
-              import org.springframework.web.bind.annotation.ControllerAdvice;
-              import org.springframework.web.bind.annotation.ExceptionHandler;
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import org.springframework.http.HttpStatus;
+                  import org.springframework.http.ResponseEntity;
+                  import org.springframework.web.bind.annotation.ControllerAdvice;
+                  import org.springframework.web.bind.annotation.ExceptionHandler;
 
-              @ControllerAdvice
-              class GlobalControllerAdvice {
-                  @ExceptionHandler(Throwable.class)
-                  public ResponseEntity<String> problem(Throwable e) {
-                      return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                  @ControllerAdvice
+                  class GlobalControllerAdvice {
+                      @ExceptionHandler(Throwable.class)
+                      public ResponseEntity<String> problem(Throwable e) {
+                          return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                      }
                   }
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              import org.springframework.http.ResponseEntity;
-              import org.springframework.stereotype.Controller;
-              import org.springframework.web.bind.annotation.GetMapping;
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import org.springframework.http.ResponseEntity;
+                  import org.springframework.stereotype.Controller;
+                  import org.springframework.web.bind.annotation.GetMapping;
 
-              @Controller
-              class HomeController {
-                  @GetMapping("/")
-                  String home() {
-                      return "home";
+                  @Controller
+                  class HomeController {
+                      @GetMapping("/")
+                      String home() {
+                          return "home";
+                      }
+
+                      @GetMapping("/ping")
+                      ResponseEntity<String> ping() {
+                          return ResponseEntity.ok("pong");
+                      }
                   }
+                  """
+              )
+            );
+        }
 
-                  @GetMapping("/ping")
-                  ResponseEntity<String> ping() {
-                      return ResponseEntity.ok("pong");
+        @Test
+        void handlersThatWebToJaxRsLeavesToSpring() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.http.ResponseEntity;
+                  import org.springframework.web.bind.annotation.RequestMapping;
+                  import org.springframework.web.bind.annotation.RestController;
+
+                  @RestController
+                  class AnyMethodController {
+                      @RequestMapping("/ping")
+                      ResponseEntity<String> ping() {
+                          return ResponseEntity.ok("pong");
+                      }
                   }
-              }
-              """
-          )
-        );
-    }
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import org.springframework.http.ResponseEntity;
+                  import org.springframework.web.bind.annotation.GetMapping;
+                  import org.springframework.web.bind.annotation.RequestMapping;
+                  import org.springframework.web.bind.annotation.RestController;
 
-    @Test
-    void doNotChangeHandlersThatWebToJaxRsLeavesToSpring() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.http.ResponseEntity;
-              import org.springframework.web.bind.annotation.RequestMapping;
-              import org.springframework.web.bind.annotation.RestController;
-
-              @RestController
-              class AnyMethodController {
-                  @RequestMapping("/ping")
-                  ResponseEntity<String> ping() {
-                      return ResponseEntity.ok("pong");
+                  @RestController
+                  @RequestMapping({"/v1", "/v2"})
+                  class TwoPathController {
+                      @GetMapping("/ping")
+                      ResponseEntity<String> ping() {
+                          return ResponseEntity.ok("pong");
+                      }
                   }
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              import org.springframework.http.ResponseEntity;
-              import org.springframework.web.bind.annotation.GetMapping;
-              import org.springframework.web.bind.annotation.RequestMapping;
-              import org.springframework.web.bind.annotation.RestController;
-
-              @RestController
-              @RequestMapping({"/v1", "/v2"})
-              class TwoPathController {
-                  @GetMapping("/ping")
-                  ResponseEntity<String> ping() {
-                      return ResponseEntity.ok("pong");
-                  }
-              }
-              """
-          )
-        );
+                  """
+              )
+            );
+        }
     }
 
     @Test
