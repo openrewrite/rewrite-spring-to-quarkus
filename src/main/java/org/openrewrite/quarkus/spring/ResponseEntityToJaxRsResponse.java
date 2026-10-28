@@ -108,15 +108,16 @@ public class ResponseEntityToJaxRsResponse extends Recipe {
 
             @Override
             public J visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                getCursor().putMessage(RESOURCE, WebToJaxRs.isResource(classDecl));
+                getCursor().putMessage(RESOURCE, WebToJaxRs.isResource(classDecl) && WebToJaxRs.hasSingleClassPath(classDecl));
                 return super.visitClassDeclaration(classDecl, ctx);
             }
 
             @Override
             public J visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 TypeTree returnType = method.getReturnTypeExpression();
-                if (returnType == null || !getCursor().getNearestMessage(RESOURCE, false) ||
-                    WebToJaxRs.findMapping(method.getLeadingAnnotations()) == null) {
+                J.Annotation mapping = WebToJaxRs.findMapping(method.getLeadingAnnotations());
+                if (returnType == null || !getCursor().getNearestMessage(RESOURCE, false) || mapping == null ||
+                    WebToJaxRs.handlerProblem(method, mapping) != null) {
                     return method;
                 }
                 J.ParameterizedType parameterized = returnType instanceof J.ParameterizedType ? (J.ParameterizedType) returnType : null;

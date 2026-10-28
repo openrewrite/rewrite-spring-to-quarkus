@@ -490,6 +490,46 @@ class ResponseEntityToJaxRsResponseTest implements RewriteTest {
     }
 
     @Test
+    void doNotChangeHandlersThatWebToJaxRsLeavesToSpring() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RestController;
+
+              @RestController
+              class AnyMethodController {
+                  @RequestMapping("/ping")
+                  ResponseEntity<String> ping() {
+                      return ResponseEntity.ok("pong");
+                  }
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.GetMapping;
+              import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RestController;
+
+              @RestController
+              @RequestMapping({"/v1", "/v2"})
+              class TwoPathController {
+                  @GetMapping("/ping")
+                  ResponseEntity<String> ping() {
+                      return ResponseEntity.ok("pong");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void markMethodsThatCannotBeConverted() {
         rewriteRun(
           //language=java

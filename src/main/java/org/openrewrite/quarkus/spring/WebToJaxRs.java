@@ -82,7 +82,7 @@ public class WebToJaxRs extends Recipe {
                                     SearchResult.mergingFound(a, "Spring MVC view controller; migrate to Qute templates manually") : a));
                         }
 
-                        if (resource && requestMapping != null && elements(attribute(requestMapping, "value", "path")).size() > 1) {
+                        if (resource && !hasSingleClassPath(classDecl)) {
                             return classDecl.withLeadingAnnotations(ListUtils.map(annotations, a -> a == requestMapping ?
                                     SearchResult.mergingFound(a, "JAX-RS `@Path` supports a single path") : a));
                         }
@@ -123,50 +123,15 @@ public class WebToJaxRs extends Recipe {
                             return m;
                         }
 
-                        String mappingName = TypeUtils.asFullyQualified(mapping.getType()).getClassName();
-                        String httpMethod = mappingName.replace("Mapping", "").toUpperCase();
-                        String problem = null;
-                        if ("REQUEST".equals(httpMethod)) {
-                            List<Expression> methods = elements(attribute(mapping, "method"));
-                            if (methods.isEmpty()) {
-                                problem = "Spring maps every HTTP method here; add the JAX-RS HTTP method annotation manually";
-                            } else if (methods.size() > 1) {
-                                problem = "JAX-RS needs a separate resource method per HTTP method";
-                            } else {
-                                httpMethod = methods.get(0) instanceof J.FieldAccess ? ((J.FieldAccess) methods.get(0)).getSimpleName() :
-                                        methods.get(0) instanceof J.Identifier ? ((J.Identifier) methods.get(0)).getSimpleName() : "";
-                                if (!JAX_RS_HTTP_METHODS.contains(httpMethod)) {
-                                    problem = "JAX-RS has no `" + httpMethod + "` HTTP method annotation";
-                                }
-                            }
-                        }
-                        List<Expression> paths = elements(attribute(mapping, "value", "path"));
-                        if (paths.size() > 1) {
-                            problem = "JAX-RS `@Path` supports a single path";
-                        }
-                        for (Statement parameter : m.getParameters()) {
-                            if (parameter instanceof J.VariableDeclarations) {
-                                J.VariableDeclarations param = (J.VariableDeclarations) parameter;
-                                J.Annotation binding = findParamBinding(param.getLeadingAnnotations());
-                                JavaType.Array array = TypeUtils.asArray(param.getType());
-                                JavaType.Parameterized parameterized = TypeUtils.asParameterized(param.getType());
-                                JavaType elementType = array != null ? array.getElemType() :
-                                        parameterized != null && parameterized.getTypeParameters().size() == 1 ? parameterized.getTypeParameters().get(0) : param.getType();
-                                if (TypeUtils.isAssignableTo("org.springframework.web.multipart.MultipartFile", elementType)) {
-                                    problem = "Migrate `MultipartFile` to `@RestForm FileUpload` manually";
-                                } else if (binding != null && attribute(binding, "value", "name") == null &&
-                                           (TypeUtils.isAssignableTo("java.util.Map", param.getType()) ||
-                                            TypeUtils.isOfClassType(param.getType(), "org.springframework.http.HttpHeaders"))) {
-                                    problem = "Binds all values; migrate to `@Context HttpHeaders` or `@Context UriInfo` manually";
-                                }
-                            }
-                        }
+                        String problem = handlerProblem(m, mapping);
                         if (problem != null) {
-                            String description = problem;
                             return m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), a -> a == mapping ?
-                                    SearchResult.mergingFound(a, description) : a));
+                                    SearchResult.mergingFound(a, problem) : a));
                         }
 
+                        String mappingName = TypeUtils.asFullyQualified(mapping.getType()).getClassName();
+                        String httpMethod = httpMethod(mapping);
+                        List<Expression> paths = elements(attribute(mapping, "value", "path"));
                         Space newLine = Space.format("\n" + m.getPrefix().getIndent());
                         List<J.Annotation> jaxRsAnnotations = new ArrayList<>();
                         jaxRsAnnotations.add(jaxRs(httpMethod, null, mapping.getPrefix()));
@@ -258,6 +223,53 @@ public class WebToJaxRs extends Recipe {
             }
         }
         return hasHandlers && (controller != null ? onlyRestHandlers : classDecl.getKind() == J.ClassDeclaration.Kind.Type.Interface);
+    }
+
+    static boolean hasSingleClassPath(J.ClassDeclaration classDecl) {
+        J.Annotation requestMapping = find(classDecl.getLeadingAnnotations(), REQUEST_MAPPING_MATCHER);
+        return requestMapping == null || elements(attribute(requestMapping, "value", "path")).size() <= 1;
+    }
+
+    static @Nullable String handlerProblem(J.MethodDeclaration handler, J.Annotation mapping) {
+        String problem = null;
+        if (REQUEST_MAPPING_MATCHER.matches(mapping)) {
+            int methods = elements(attribute(mapping, "method")).size();
+            String httpMethod = httpMethod(mapping);
+            problem = methods == 0 ? "Spring maps every HTTP method here; add the JAX-RS HTTP method annotation manually" :
+                    methods > 1 ? "JAX-RS needs a separate resource method per HTTP method" :
+                    !JAX_RS_HTTP_METHODS.contains(httpMethod) ? "JAX-RS has no `" + httpMethod + "` HTTP method annotation" : null;
+        }
+        if (elements(attribute(mapping, "value", "path")).size() > 1) {
+            problem = "JAX-RS `@Path` supports a single path";
+        }
+        for (Statement parameter : handler.getParameters()) {
+            if (parameter instanceof J.VariableDeclarations) {
+                J.VariableDeclarations param = (J.VariableDeclarations) parameter;
+                J.Annotation binding = findParamBinding(param.getLeadingAnnotations());
+                JavaType.Array array = TypeUtils.asArray(param.getType());
+                JavaType.Parameterized parameterized = TypeUtils.asParameterized(param.getType());
+                JavaType elementType = array != null ? array.getElemType() :
+                        parameterized != null && parameterized.getTypeParameters().size() == 1 ? parameterized.getTypeParameters().get(0) : param.getType();
+                if (TypeUtils.isAssignableTo("org.springframework.web.multipart.MultipartFile", elementType)) {
+                    problem = "Migrate `MultipartFile` to `@RestForm FileUpload` manually";
+                } else if (binding != null && attribute(binding, "value", "name") == null &&
+                           (TypeUtils.isAssignableTo("java.util.Map", param.getType()) ||
+                            TypeUtils.isOfClassType(param.getType(), "org.springframework.http.HttpHeaders"))) {
+                    problem = "Binds all values; migrate to `@Context HttpHeaders` or `@Context UriInfo` manually";
+                }
+            }
+        }
+        return problem;
+    }
+
+    private static String httpMethod(J.Annotation mapping) {
+        if (!REQUEST_MAPPING_MATCHER.matches(mapping)) {
+            return TypeUtils.asFullyQualified(mapping.getType()).getClassName().replace("Mapping", "").toUpperCase();
+        }
+        List<Expression> methods = elements(attribute(mapping, "method"));
+        Expression method = methods.size() == 1 ? methods.get(0) : null;
+        return method instanceof J.FieldAccess ? ((J.FieldAccess) method).getSimpleName() :
+                method instanceof J.Identifier ? ((J.Identifier) method).getSimpleName() : "";
     }
 
     private static J.@Nullable Annotation find(List<J.Annotation> annotations, AnnotationMatcher matcher) {
