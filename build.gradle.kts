@@ -57,6 +57,7 @@ dependencies {
     implementation("org.openrewrite.recipe:rewrite-static-analysis:${rewriteVersion}")
 
     testImplementation("org.openrewrite:rewrite-test")
+    testImplementation("org.openrewrite:rewrite-kotlin")
     testImplementation("org.openrewrite.gradle.tooling:model")
 
     testRuntimeOnly("org.openrewrite:rewrite-java-21")
