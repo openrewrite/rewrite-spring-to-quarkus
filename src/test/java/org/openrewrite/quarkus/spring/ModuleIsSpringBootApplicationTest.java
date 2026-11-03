@@ -32,7 +32,10 @@ class ModuleIsSpringBootApplicationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ModuleIsSpringBootApplication())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3", "spring-boot-autoconfigure-3", "spring-context-6"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-boot-3",
+            "spring-boot-autoconfigure-3",
+            "spring-context-6"));
     }
 
     @DocumentExample
