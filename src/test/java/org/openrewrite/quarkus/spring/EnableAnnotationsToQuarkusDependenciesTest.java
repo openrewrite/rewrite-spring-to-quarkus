@@ -35,7 +35,9 @@ class EnableAnnotationsToQuarkusDependenciesTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-boot-3",
               "spring-boot-autoconfigure-3",
+              "spring-beans-6",
               "spring-context-6",
+              "spring-data-commons-3",
               "spring-data-jpa-3"));
     }
 
