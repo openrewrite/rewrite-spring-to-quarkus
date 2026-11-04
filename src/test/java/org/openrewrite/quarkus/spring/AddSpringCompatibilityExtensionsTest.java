@@ -33,7 +33,11 @@ class AddSpringCompatibilityExtensionsTest implements RewriteTest {
           "/META-INF/rewrite/autoconfig.yml",
           "org.openrewrite.quarkus.spring.AddSpringCompatibilityExtensions"
         ).parser(JavaParser.fromJavaVersion()
-          .classpathFromResources(new InMemoryExecutionContext(), "spring-beans-6", "spring-context-6", "spring-web-6", "spring-data-commons-3"));
+          .classpathFromResources(new InMemoryExecutionContext(),
+            "spring-beans-6",
+            "spring-context-6",
+            "spring-web-6",
+            "spring-data-commons-3"));
     }
 
     @DocumentExample

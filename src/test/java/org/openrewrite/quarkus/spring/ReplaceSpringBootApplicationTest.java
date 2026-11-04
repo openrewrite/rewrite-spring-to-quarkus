@@ -29,7 +29,7 @@ class ReplaceSpringBootApplicationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.ReplaceSpringBootApplication")
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3", "spring-boot-autoconfigure-3"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3", "spring-boot-autoconfigure-3", "spring-beans-6"));
     }
 
     @DocumentExample

@@ -31,7 +31,10 @@ class MigrateSpringDataMongodbTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.MigrateSpringDataMongodb")
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-data-mongodb-4", "spring-data-commons-3", "quarkus-mongodb-panache-3"));
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-data-mongodb-4",
+              "spring-data-commons-3",
+              "quarkus-mongodb-panache-3"));
     }
 
     @DocumentExample
