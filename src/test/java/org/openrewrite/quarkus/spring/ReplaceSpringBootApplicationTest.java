@@ -36,6 +36,7 @@ class ReplaceSpringBootApplicationTest implements RewriteTest {
             "spring-boot-autoconfigure-3",
             "spring-beans-6",
             "spring-context-6",
+            "spring-data-commons-3",
             "spring-data-jpa-3",
             "spring-web-6"))
           .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(),
