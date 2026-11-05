@@ -59,6 +59,5 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite.gradle.tooling:model")
 
-    testRuntimeOnly("org.openrewrite:rewrite-java-21")
     testRuntimeOnly(gradleApi())
 }
