@@ -32,7 +32,8 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-context-6",
               "spring-beans-6",
-              "spring-web-6"));
+              "spring-web-6",
+              "spring-boot-autoconfigure-3"));
     }
 
     @DocumentExample
@@ -225,6 +226,252 @@ class SpringAnnotationsToCdiTest implements RewriteTest {
 
               class UserRepository {
                   void save() {}
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void removeAutowiredFromInjectedParameters() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.stereotype.Component;
+              import org.springframework.web.client.RestTemplate;
+
+              @Component
+              class Clients {
+                  private final UserRepository userRepository;
+
+                  Clients(@Autowired UserRepository userRepository) {
+                      this.userRepository = userRepository;
+                  }
+
+                  @Bean
+                  RestTemplate restTemplate(@Autowired UserRepository userRepository) {
+                      return new RestTemplate();
+                  }
+              }
+
+              class UserRepository {
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
+              import jakarta.enterprise.inject.Produces;
+              import org.springframework.web.client.RestTemplate;
+
+              @ApplicationScoped
+              class Clients {
+                  private final UserRepository userRepository;
+
+                  Clients(UserRepository userRepository) {
+                      this.userRepository = userRepository;
+                  }
+
+                  @Produces
+                  @ApplicationScoped
+                  RestTemplate restTemplate(UserRepository userRepository) {
+                      return new RestTemplate();
+                  }
+              }
+
+              class UserRepository {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeAutowiredTestMethodParameter() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.web.client.RestTemplate;
+
+              class ActuatorServiceApplicationTests {
+                  void shouldReturn200WhenSendingRequestToController(@Autowired RestTemplate rest) {
+                  }
+              }
+              """,
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.web.client.RestTemplate;
+
+              class ActuatorServiceApplicationTests {
+                  void shouldReturn200WhenSendingRequestToController(/*~~(CDI does not inject method parameters; inject an `@Inject` field instead)~~>*/@Autowired RestTemplate rest) {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeOptionalAutowired() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.ConfigurableApplicationContext;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.web.client.RestTemplate;
+
+              import java.util.List;
+
+              class IntegrationTestsSupport {
+                  @Autowired(required = false)
+                  private ConfigurableApplicationContext applicationContext;
+
+                  @Bean
+                  RestTemplate restTemplate(@Autowired(required = false) List<RestTemplate> mcpSyncClients) {
+                      return new RestTemplate();
+                  }
+              }
+              """,
+            """
+              import jakarta.enterprise.context.ApplicationScoped;
+              import jakarta.enterprise.inject.Produces;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.ConfigurableApplicationContext;
+              import org.springframework.web.client.RestTemplate;
+
+              import java.util.List;
+
+              class IntegrationTestsSupport {
+                  /*~~(Optional injection; migrate to `@Inject Instance<T>` manually)~~>*/@Autowired(required = false)
+                  private ConfigurableApplicationContext applicationContext;
+
+                  @Produces
+                  @ApplicationScoped
+                  RestTemplate restTemplate(/*~~(Optional injection; migrate to `@Inject Instance<T>` manually)~~>*/@Autowired(required = false) List<RestTemplate> mcpSyncClients) {
+                      return new RestTemplate();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void configurationWithoutNoArgConstructorBecomesSingleton() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+
+              @Configuration
+              public class RouteConfig {
+                  private final CoffeeService coffeeService;
+
+                  public RouteConfig(CoffeeService coffeeService) {
+                      this.coffeeService = coffeeService;
+                  }
+              }
+
+              class CoffeeService {
+              }
+              """,
+            """
+              import jakarta.inject.Singleton;
+
+              @Singleton
+              public class RouteConfig {
+                  private final CoffeeService coffeeService;
+
+                  public RouteConfig(CoffeeService coffeeService) {
+                      this.coffeeService = coffeeService;
+                  }
+              }
+
+              class CoffeeService {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeConditionalConfiguration() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.client.RestTemplate;
+
+              @Configuration
+              @ConditionalOnProperty("feature.enabled")
+              class FeatureConfig {
+                  @Bean
+                  RestTemplate restTemplate() {
+                      return new RestTemplate();
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.client.RestTemplate;
+
+              /*~~(CDI has no equivalent of Spring conditional configuration; migrate it manually, e.g. to `@IfBuildProperty`)~~>*/@Configuration
+              @ConditionalOnProperty("feature.enabled")
+              class FeatureConfig {
+                  @Bean
+                  RestTemplate restTemplate() {
+                      return new RestTemplate();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeSpringSecurityConfiguration() {
+        rewriteRun(
+          java(SpringBeanToCdiProducesTest.SECURITY_FILTER_CHAIN_STUB),
+          java(SpringBeanToCdiProducesTest.HTTP_SECURITY_STUB),
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              @Configuration
+              class WebSecurityConfig {
+                  @Bean
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              /*~~(Spring Security configuration has no CDI equivalent; migrate it to Quarkus security manually)~~>*/@Configuration
+              class WebSecurityConfig {
+                  /*~~(Spring Security configuration has no CDI equivalent; migrate it to Quarkus security manually)~~>*/@Bean
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                      return http.build();
+                  }
               }
               """
           )
