@@ -25,6 +25,7 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.marker.SearchResult;
@@ -53,19 +54,12 @@ public class SpringConfigurationToCdi extends Recipe {
                     @Override
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                         J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-                        J.Annotation configuration = null;
-                        for (J.Annotation annotation : cd.getLeadingAnnotations()) {
-                            if (CONFIGURATION_MATCHER.matches(annotation)) {
-                                configuration = annotation;
-                            }
-                        }
-                        if (configuration == null) {
+                        if (!service(AnnotationService.class).matches(getCursor(), CONFIGURATION_MATCHER)) {
                             return cd;
                         }
-                        J.Annotation replaced = configuration;
                         String reason = unconvertibleConfigurationReason(cd);
                         if (reason != null) {
-                            return cd.withLeadingAnnotations(ListUtils.map(cd.getLeadingAnnotations(), a -> a == replaced ? SearchResult.found(a, reason) : a));
+                            return cd.withLeadingAnnotations(ListUtils.map(cd.getLeadingAnnotations(), a -> CONFIGURATION_MATCHER.matches(a) ? SearchResult.found(a, reason) : a));
                         }
 
                         boolean hasConstructor = false;
@@ -82,7 +76,7 @@ public class SpringConfigurationToCdi extends Recipe {
                                 "jakarta.inject.Singleton" : SpringBeanToCdiProduces.APPLICATION_SCOPED_FQN;
                         maybeRemoveImport(CONFIGURATION_FQN);
                         maybeAddImport(scope);
-                        return cd.withLeadingAnnotations(ListUtils.map(cd.getLeadingAnnotations(), a -> a == replaced ? annotation(scope, null, a.getPrefix()) : a));
+                        return cd.withLeadingAnnotations(ListUtils.map(cd.getLeadingAnnotations(), a -> CONFIGURATION_MATCHER.matches(a) ? annotation(scope, null, a.getPrefix()) : a));
                     }
                 });
     }
