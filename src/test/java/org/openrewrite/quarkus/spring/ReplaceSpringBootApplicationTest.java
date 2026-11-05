@@ -34,6 +34,7 @@ class ReplaceSpringBootApplicationTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-boot-3",
             "spring-boot-autoconfigure-3",
+            "spring-beans-6",
             "spring-context-6",
             "spring-data-jpa-3",
             "spring-web-6"))

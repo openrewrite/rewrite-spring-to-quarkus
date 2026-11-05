@@ -74,36 +74,15 @@ public class WebToJaxRs extends Recipe {
                         List<J.Annotation> annotations = classDecl.getLeadingAnnotations();
                         J.Annotation controller = find(annotations, CONTROLLER_MATCHER);
                         J.Annotation requestMapping = find(annotations, REQUEST_MAPPING_MATCHER);
-                        boolean hasHandlers = false;
-                        boolean onlyRestHandlers = true;
-                        for (Statement statement : classDecl.getBody().getStatements()) {
-                            if (statement instanceof J.MethodDeclaration && findMapping(((J.MethodDeclaration) statement).getLeadingAnnotations()) != null) {
-                                J.MethodDeclaration handler = (J.MethodDeclaration) statement;
-                                JavaType returnType = handler.getReturnTypeExpression() == null ? null : handler.getReturnTypeExpression().getType();
-                                hasHandlers = true;
-                                onlyRestHandlers &= find(handler.getAllAnnotations(), RESPONSE_BODY_MATCHER) != null ||
-                                        TypeUtils.isAssignableTo("org.springframework.http.HttpEntity", returnType) ||
-                                        TypeUtils.isAssignableTo("jakarta.ws.rs.core.Response", returnType);
-                            }
+                        boolean resource = isResource(classDecl);
+                        if (!resource && controller != null && find(annotations, FEIGN_CLIENT_MATCHER) == null &&
+                            classDecl.getBody().getStatements().stream().anyMatch(s -> s instanceof J.MethodDeclaration &&
+                                    findMapping(((J.MethodDeclaration) s).getLeadingAnnotations()) != null)) {
+                            return classDecl.withLeadingAnnotations(ListUtils.map(annotations, a -> a == controller ?
+                                    SearchResult.mergingFound(a, "Spring MVC view controller; migrate to Qute templates manually") : a));
                         }
 
-                        boolean resource;
-                        if (find(annotations, FEIGN_CLIENT_MATCHER) != null) {
-                            resource = false;
-                        } else if (find(annotations, REST_CONTROLLER_MATCHER) != null ||
-                                   (controller != null && find(annotations, RESPONSE_BODY_MATCHER) != null)) {
-                            resource = true;
-                        } else if (controller != null) {
-                            if (hasHandlers && !onlyRestHandlers) {
-                                return classDecl.withLeadingAnnotations(ListUtils.map(annotations, a -> a == controller ?
-                                        SearchResult.mergingFound(a, "Spring MVC view controller; migrate to Qute templates manually") : a));
-                            }
-                            resource = hasHandlers;
-                        } else {
-                            resource = hasHandlers && classDecl.getKind() == J.ClassDeclaration.Kind.Type.Interface;
-                        }
-
-                        if (resource && requestMapping != null && elements(attribute(requestMapping, "value", "path")).size() > 1) {
+                        if (resource && !hasSingleClassPath(classDecl)) {
                             return classDecl.withLeadingAnnotations(ListUtils.map(annotations, a -> a == requestMapping ?
                                     SearchResult.mergingFound(a, "JAX-RS `@Path` supports a single path") : a));
                         }
@@ -144,50 +123,15 @@ public class WebToJaxRs extends Recipe {
                             return m;
                         }
 
-                        String mappingName = TypeUtils.asFullyQualified(mapping.getType()).getClassName();
-                        String httpMethod = mappingName.replace("Mapping", "").toUpperCase();
-                        String problem = null;
-                        if ("REQUEST".equals(httpMethod)) {
-                            List<Expression> methods = elements(attribute(mapping, "method"));
-                            if (methods.isEmpty()) {
-                                problem = "Spring maps every HTTP method here; add the JAX-RS HTTP method annotation manually";
-                            } else if (methods.size() > 1) {
-                                problem = "JAX-RS needs a separate resource method per HTTP method";
-                            } else {
-                                httpMethod = methods.get(0) instanceof J.FieldAccess ? ((J.FieldAccess) methods.get(0)).getSimpleName() :
-                                        methods.get(0) instanceof J.Identifier ? ((J.Identifier) methods.get(0)).getSimpleName() : "";
-                                if (!JAX_RS_HTTP_METHODS.contains(httpMethod)) {
-                                    problem = "JAX-RS has no `" + httpMethod + "` HTTP method annotation";
-                                }
-                            }
-                        }
-                        List<Expression> paths = elements(attribute(mapping, "value", "path"));
-                        if (paths.size() > 1) {
-                            problem = "JAX-RS `@Path` supports a single path";
-                        }
-                        for (Statement parameter : m.getParameters()) {
-                            if (parameter instanceof J.VariableDeclarations) {
-                                J.VariableDeclarations param = (J.VariableDeclarations) parameter;
-                                J.Annotation binding = findParamBinding(param.getLeadingAnnotations());
-                                JavaType.Array array = TypeUtils.asArray(param.getType());
-                                JavaType.Parameterized parameterized = TypeUtils.asParameterized(param.getType());
-                                JavaType elementType = array != null ? array.getElemType() :
-                                        parameterized != null && parameterized.getTypeParameters().size() == 1 ? parameterized.getTypeParameters().get(0) : param.getType();
-                                if (TypeUtils.isAssignableTo("org.springframework.web.multipart.MultipartFile", elementType)) {
-                                    problem = "Migrate `MultipartFile` to `@RestForm FileUpload` manually";
-                                } else if (binding != null && attribute(binding, "value", "name") == null &&
-                                           (TypeUtils.isAssignableTo("java.util.Map", param.getType()) ||
-                                            TypeUtils.isOfClassType(param.getType(), "org.springframework.http.HttpHeaders"))) {
-                                    problem = "Binds all values; migrate to `@Context HttpHeaders` or `@Context UriInfo` manually";
-                                }
-                            }
-                        }
+                        String problem = handlerProblem(m, mapping);
                         if (problem != null) {
-                            String description = problem;
                             return m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), a -> a == mapping ?
-                                    SearchResult.mergingFound(a, description) : a));
+                                    SearchResult.mergingFound(a, problem) : a));
                         }
 
+                        String mappingName = TypeUtils.asFullyQualified(mapping.getType()).getClassName();
+                        String httpMethod = httpMethod(mapping);
+                        List<Expression> paths = elements(attribute(mapping, "value", "path"));
                         Space newLine = Space.format("\n" + m.getPrefix().getIndent());
                         List<J.Annotation> jaxRsAnnotations = new ArrayList<>();
                         jaxRsAnnotations.add(jaxRs(httpMethod, null, mapping.getPrefix()));
@@ -257,6 +201,77 @@ public class WebToJaxRs extends Recipe {
         );
     }
 
+    static boolean isResource(J.ClassDeclaration classDecl) {
+        List<J.Annotation> annotations = classDecl.getLeadingAnnotations();
+        J.Annotation controller = find(annotations, CONTROLLER_MATCHER);
+        if (find(annotations, FEIGN_CLIENT_MATCHER) != null) {
+            return false;
+        }
+        if (find(annotations, REST_CONTROLLER_MATCHER) != null || (controller != null && find(annotations, RESPONSE_BODY_MATCHER) != null)) {
+            return true;
+        }
+        boolean hasHandlers = false;
+        boolean onlyRestHandlers = true;
+        for (Statement statement : classDecl.getBody().getStatements()) {
+            if (statement instanceof J.MethodDeclaration && findMapping(((J.MethodDeclaration) statement).getLeadingAnnotations()) != null) {
+                J.MethodDeclaration handler = (J.MethodDeclaration) statement;
+                JavaType returnType = handler.getReturnTypeExpression() == null ? null : handler.getReturnTypeExpression().getType();
+                hasHandlers = true;
+                onlyRestHandlers &= find(handler.getAllAnnotations(), RESPONSE_BODY_MATCHER) != null ||
+                        TypeUtils.isAssignableTo("org.springframework.http.HttpEntity", returnType) ||
+                        TypeUtils.isAssignableTo("jakarta.ws.rs.core.Response", returnType);
+            }
+        }
+        return hasHandlers && (controller != null ? onlyRestHandlers : classDecl.getKind() == J.ClassDeclaration.Kind.Type.Interface);
+    }
+
+    static boolean hasSingleClassPath(J.ClassDeclaration classDecl) {
+        J.Annotation requestMapping = find(classDecl.getLeadingAnnotations(), REQUEST_MAPPING_MATCHER);
+        return requestMapping == null || elements(attribute(requestMapping, "value", "path")).size() <= 1;
+    }
+
+    static @Nullable String handlerProblem(J.MethodDeclaration handler, J.Annotation mapping) {
+        String problem = null;
+        if (REQUEST_MAPPING_MATCHER.matches(mapping)) {
+            int methods = elements(attribute(mapping, "method")).size();
+            String httpMethod = httpMethod(mapping);
+            problem = methods == 0 ? "Spring maps every HTTP method here; add the JAX-RS HTTP method annotation manually" :
+                    methods > 1 ? "JAX-RS needs a separate resource method per HTTP method" :
+                    !JAX_RS_HTTP_METHODS.contains(httpMethod) ? "JAX-RS has no `" + httpMethod + "` HTTP method annotation" : null;
+        }
+        if (elements(attribute(mapping, "value", "path")).size() > 1) {
+            problem = "JAX-RS `@Path` supports a single path";
+        }
+        for (Statement parameter : handler.getParameters()) {
+            if (parameter instanceof J.VariableDeclarations) {
+                J.VariableDeclarations param = (J.VariableDeclarations) parameter;
+                J.Annotation binding = findParamBinding(param.getLeadingAnnotations());
+                JavaType.Array array = TypeUtils.asArray(param.getType());
+                JavaType.Parameterized parameterized = TypeUtils.asParameterized(param.getType());
+                JavaType elementType = array != null ? array.getElemType() :
+                        parameterized != null && parameterized.getTypeParameters().size() == 1 ? parameterized.getTypeParameters().get(0) : param.getType();
+                if (TypeUtils.isAssignableTo("org.springframework.web.multipart.MultipartFile", elementType)) {
+                    problem = "Migrate `MultipartFile` to `@RestForm FileUpload` manually";
+                } else if (binding != null && attribute(binding, "value", "name") == null &&
+                           (TypeUtils.isAssignableTo("java.util.Map", param.getType()) ||
+                            TypeUtils.isOfClassType(param.getType(), "org.springframework.http.HttpHeaders"))) {
+                    problem = "Binds all values; migrate to `@Context HttpHeaders` or `@Context UriInfo` manually";
+                }
+            }
+        }
+        return problem;
+    }
+
+    private static String httpMethod(J.Annotation mapping) {
+        if (!REQUEST_MAPPING_MATCHER.matches(mapping)) {
+            return TypeUtils.asFullyQualified(mapping.getType()).getClassName().replace("Mapping", "").toUpperCase();
+        }
+        List<Expression> methods = elements(attribute(mapping, "method"));
+        Expression method = methods.size() == 1 ? methods.get(0) : null;
+        return method instanceof J.FieldAccess ? ((J.FieldAccess) method).getSimpleName() :
+                method instanceof J.Identifier ? ((J.Identifier) method).getSimpleName() : "";
+    }
+
     private static J.@Nullable Annotation find(List<J.Annotation> annotations, AnnotationMatcher matcher) {
         for (J.Annotation annotation : annotations) {
             if (matcher.matches(annotation)) {
@@ -266,7 +281,7 @@ public class WebToJaxRs extends Recipe {
         return null;
     }
 
-    private static J.@Nullable Annotation findMapping(List<J.Annotation> annotations) {
+    static J.@Nullable Annotation findMapping(List<J.Annotation> annotations) {
         for (J.Annotation annotation : annotations) {
             JavaType.FullyQualified type = TypeUtils.asFullyQualified(annotation.getType());
             if (type != null && type.getFullyQualifiedName().startsWith(SPRING_WEB) && type.getClassName().endsWith("Mapping")) {

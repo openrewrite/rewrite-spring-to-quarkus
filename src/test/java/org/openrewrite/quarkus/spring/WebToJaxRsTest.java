@@ -32,7 +32,10 @@ class WebToJaxRsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new WebToJaxRs())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6", "spring-context-6", "spring-core-6"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-web-6",
+            "spring-context-6",
+            "spring-core-6"));
     }
 
     @DocumentExample
