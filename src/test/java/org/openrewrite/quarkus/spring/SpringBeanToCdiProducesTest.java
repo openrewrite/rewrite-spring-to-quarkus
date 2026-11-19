@@ -45,6 +45,7 @@ class SpringBeanToCdiProducesTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new SpringBeanToCdiProduces())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-beans-6",
             "spring-context-6",
             "spring-web-6",
             "spring-boot-autoconfigure-3"));
