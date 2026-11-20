@@ -138,7 +138,7 @@ preconditions:
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: com.h2database
       artifactIdPattern: h2
-      scope: compile
+      scope: runtime
 recipeList:
   - org.openrewrite.java.dependencies.ChangeDependency:
       newGroupId: io.quarkus
