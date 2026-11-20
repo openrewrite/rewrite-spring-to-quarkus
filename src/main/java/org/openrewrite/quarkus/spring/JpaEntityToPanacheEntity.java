@@ -26,6 +26,7 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JLeftPadded;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
+import org.openrewrite.java.tree.Statement;
 import org.openrewrite.marker.Markers;
 
 import static java.util.Collections.emptyList;
@@ -109,7 +110,7 @@ public class JpaEntityToPanacheEntity extends Recipe {
     }
 
     private static @Nullable IdFieldInfo findIdField(J.ClassDeclaration cd) {
-        for (org.openrewrite.java.tree.Statement stmt : cd.getBody().getStatements()) {
+        for (Statement stmt : cd.getBody().getStatements()) {
             if (stmt instanceof J.VariableDeclarations) {
                 J.VariableDeclarations vd = (J.VariableDeclarations) stmt;
                 if (vd.getLeadingAnnotations().stream().anyMatch(ID_MATCHER::matches)) {
