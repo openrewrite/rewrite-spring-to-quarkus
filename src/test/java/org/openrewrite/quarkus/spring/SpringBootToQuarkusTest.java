@@ -30,6 +30,7 @@ import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
+import static org.openrewrite.yaml.Assertions.yaml;
 
 class SpringBootToQuarkusTest implements RewriteTest {
     @Override
@@ -462,6 +463,93 @@ class SpringBootToQuarkusTest implements RewriteTest {
                 .doesNotContain("<artifactId>spring-boot-starter-parent</artifactId>")
                 .actual())
             )
+          )
+        );
+    }
+
+    @Test
+    void upgradeWorkflowOutsideApplicationModule() {
+        rewriteRun(
+          mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import io.quarkus.runtime.Quarkus;
+                  import io.quarkus.runtime.annotations.QuarkusMain;
+
+                  @QuarkusMain
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          Quarkus.run(args);
+                      }
+                  }
+                  """
+              )
+            ),
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.4</version>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
+                </project>
+                """,
+              spec -> spec.after(pom -> assertThat(pom).contains("<artifactId>quarkus-bom</artifactId>").actual())
+            )
+          ),
+          //language=yaml
+          yaml(
+            """
+              jobs:
+                build:
+                  runs-on: ubuntu-latest
+                  steps:
+                    - uses: actions/setup-java@v4
+                      with:
+                        java-version: '17'
+              """,
+            """
+              jobs:
+                build:
+                  runs-on: ubuntu-latest
+                  steps:
+                    - uses: actions/setup-java@v4
+                      with:
+                        java-version: '21'
+              """,
+            spec -> spec.path(".github/workflows/ci.yml")
           )
         );
     }

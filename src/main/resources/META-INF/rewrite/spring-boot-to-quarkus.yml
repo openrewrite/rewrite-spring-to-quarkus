@@ -24,6 +24,19 @@ tags:
   - quarkus
   - migration
   - bom
+recipeList:
+  - org.openrewrite.quarkus.spring.MigrateSpringBootApplicationModules
+  - org.openrewrite.quarkus.spring.UpgradeCiAndContainersToJava21
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringBootApplicationModules
+displayName: Migrate Spring Boot application modules to Quarkus
+description: Replace Spring Boot with Quarkus in the modules of Spring Boot 3 or 4 applications, and in the modules they depend on.
+tags:
+  - spring
+  - quarkus
+  - migration
 preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework.boot
@@ -81,6 +94,69 @@ recipeList:
   - org.openrewrite.gradle.RemoveRedundantDependencyVersions:
       groupPattern: io.quarkus
   #- org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals # Disabled until AddProfile is idempotent
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.UpgradeCiAndContainersToJava21
+displayName: Upgrade CI workflows and container images to Java 21
+description: >-
+  Quarkus 4 requires Java 21, so raise the `actions/setup-java` version in GitHub Actions workflows and the Java 17
+  base images in Dockerfiles to 21. These files usually sit outside the application modules, so this runs on the
+  whole repository once it contains a Spring Boot 3 or 4 application.
+tags:
+  - spring
+  - quarkus
+  - java21
+  - docker
+preconditions:
+  - org.openrewrite.quarkus.spring.RepositoryHasSpringBootApplication
+recipeList:
+  - org.openrewrite.github.SetupJavaUpgradeJavaVersion:
+      minimumJavaMajorVersion: 21
+  - org.openrewrite.docker.ChangeFrom:
+      oldImageName: eclipse-temurin
+      oldTag: '17'
+      newTag: '21'
+  - org.openrewrite.docker.ChangeFrom:
+      oldImageName: eclipse-temurin
+      oldTag: 17-*
+      newTag: 21-$1
+  - org.openrewrite.docker.ChangeFrom:
+      oldImageName: amazoncorretto
+      oldTag: '17'
+      newTag: '21'
+  - org.openrewrite.docker.ChangeFrom:
+      oldImageName: amazoncorretto
+      oldTag: 17-*
+      newTag: 21-$1
+  - org.openrewrite.docker.ChangeFrom:
+      oldImageName: bellsoft/liberica-*
+      oldTag: '17'
+      newTag: '21'
+  - org.openrewrite.docker.ChangeFrom:
+      oldImageName: bellsoft/liberica-*
+      oldTag: 17-*
+      newTag: 21-$1
+  - org.openrewrite.docker.ChangeFrom:
+      oldImageName: maven
+      oldTag: '*-eclipse-temurin-17'
+      newTag: $1-eclipse-temurin-21
+  - org.openrewrite.docker.ChangeFrom:
+      oldImageName: maven
+      oldTag: '*-eclipse-temurin-17-*'
+      newTag: $1-eclipse-temurin-21-$2
+  - org.openrewrite.docker.ChangeFrom:
+      oldImageName: maven
+      oldTag: '*-amazoncorretto-17'
+      newTag: $1-amazoncorretto-21
+  - org.openrewrite.docker.ChangeFrom:
+      oldImageName: maven
+      oldTag: '*-amazoncorretto-17-*'
+      newTag: $1-amazoncorretto-21-$2
+  - org.openrewrite.docker.ChangeFrom:
+      oldImageName: gradle
+      oldTag: '*jdk17*'
+      newTag: $1jdk21$2
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
