@@ -33,10 +33,13 @@ recipeList:
   - org.openrewrite.maven.AddManagedDependency:
       groupId: io.quarkus.platform
       artifactId: quarkus-bom
-      version: 3.x
+      version: 4.x
       type: pom
       scope: import
       addToRootPom: false
+  # Quarkus 4 requires Java 21; raise it while the Spring Boot parent still declares `java.version`
+  - org.openrewrite.java.migrate.UpgradeBuildToJava21
+  - org.openrewrite.java.migrate.UpgradePluginsForJava21
   - org.openrewrite.quarkus.spring.MigrateMavenPlugin
   - org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
   - org.openrewrite.quarkus.spring.MigrateBootStarters
@@ -105,13 +108,13 @@ recipeList:
   - org.openrewrite.java.ReplaceAnnotation:
       annotationPatternToReplace: '@org.springframework.stereotype.Service'
       annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
-      classpathResourceName: 'jakarta.enterprise.cdi-api-4'
+      classpathResourceName: 'jakarta.cdi-api-5'
   - org.openrewrite.java.ReplaceAnnotation:
       annotationPatternToReplace: '@org.springframework.stereotype.Component'
       annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
-      classpathResourceName: 'jakarta.enterprise.cdi-api-4'
+      classpathResourceName: 'jakarta.cdi-api-5'
   - org.openrewrite.java.ReplaceAnnotation:
       annotationPatternToReplace: '@org.springframework.stereotype.Repository'
       annotationTemplateToInsert: '@jakarta.enterprise.context.ApplicationScoped'
-      classpathResourceName: 'jakarta.enterprise.cdi-api-4'
+      classpathResourceName: 'jakarta.cdi-api-5'
   - org.openrewrite.quarkus.spring.SpringAutowiredToInject

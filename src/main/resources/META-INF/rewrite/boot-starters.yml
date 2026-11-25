@@ -53,7 +53,7 @@ recipeList:
   - org.openrewrite.quarkus.spring.SpringBootBatchToQuarkus
   - org.openrewrite.quarkus.spring.SpringBootThymeleafToQuarkus
   - org.openrewrite.quarkus.spring.SpringBootQuartzToQuarkus
-  - org.openrewrite.quarkus.spring.SpringBootIntegrationToQuarkus
+  #- org.openrewrite.quarkus.spring.SpringBootIntegrationToQuarkus # Camel Quarkus has no release for Quarkus 4 yet
   - org.openrewrite.quarkus.spring.SpringBootActiveMQToQuarkus
   - org.openrewrite.quarkus.spring.SpringBootArtemisToQuarkus
   - org.openrewrite.quarkus.spring.SpringBootElasticsearchToQuarkus
@@ -87,7 +87,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-rest-jackson
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -110,7 +110,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-resteasy-jackson
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -133,7 +133,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-hibernate-orm-panache
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -155,7 +155,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-security
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -177,13 +177,13 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-hibernate-validator
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.quarkus.spring.SpringBootTestToQuarkus
-displayName: Replace Spring Boot Test with Quarkus JUnit 5
-description: Migrates `spring-boot-starter-test` to `quarkus-junit5`.
+displayName: Replace Spring Boot Test with Quarkus JUnit
+description: Migrates `spring-boot-starter-test` to `quarkus-junit`.
 tags:
   - spring
   - quarkus
@@ -198,8 +198,8 @@ recipeList:
       artifactId: spring-boot-starter-test
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
-      artifactId: quarkus-junit5
-      version: x
+      artifactId: quarkus-junit
+      version: 4.x
       scope: test
 
 ---
@@ -223,7 +223,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-smallrye-health
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -245,7 +245,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-websockets
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -267,7 +267,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-cache
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -293,7 +293,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-rest-client-jackson
-      version: x
+      version: 4.x
 
 
 ---
@@ -317,7 +317,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-mongodb-panache
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -340,7 +340,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-redis-client
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -367,7 +367,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-messaging-amqp
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -391,7 +391,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-messaging-rabbitmq
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -418,7 +418,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-messaging-kafka
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -441,7 +441,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-kafka-client
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -464,7 +464,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-oidc
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -487,7 +487,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-oidc-client
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -510,7 +510,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-agroal
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -532,7 +532,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-mailer
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -555,7 +555,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-scheduler
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -577,7 +577,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-qute
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -600,7 +600,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-quartz
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -644,9 +644,9 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-activemq
   - org.openrewrite.java.dependencies.AddDependency:
-      groupId: io.quarkus
+      groupId: io.quarkiverse.artemis
       artifactId: quarkus-artemis-jms
-      version: x
+      version: 4.0.0.CR1
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -667,9 +667,9 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-artemis
   - org.openrewrite.java.dependencies.AddDependency:
-      groupId: io.quarkus
+      groupId: io.quarkiverse.artemis
       artifactId: quarkus-artemis-jms
-      version: x
+      version: 4.0.0.CR1
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -692,7 +692,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-elasticsearch-rest-client
-      version: x
+      version: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -715,4 +715,4 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-rest-jackson
-      version: x
+      version: 4.x

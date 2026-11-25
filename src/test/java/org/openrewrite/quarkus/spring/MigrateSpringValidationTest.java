@@ -46,7 +46,7 @@ class MigrateSpringValidationTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -72,7 +72,7 @@ class MigrateSpringValidationTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>

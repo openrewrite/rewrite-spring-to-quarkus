@@ -31,7 +31,7 @@ class JpaEntityToPanacheEntityTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JpaEntityToPanacheEntity())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "jakarta.persistence-api-3", "quarkus-hibernate-orm-panache-3.17"));
+            .classpathFromResources(new InMemoryExecutionContext(), "jakarta.persistence-api-3", "quarkus-hibernate-orm-panache-4"));
     }
 
     @DocumentExample

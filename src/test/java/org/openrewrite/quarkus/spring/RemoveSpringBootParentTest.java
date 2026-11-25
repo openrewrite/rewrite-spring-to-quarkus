@@ -244,7 +244,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
                   <description>Demo project with complex structure</description>
 
                   <properties>
-                      <java.version>21</java.version>
+                      <maven.compiler.release>21</maven.compiler.release>
                       <spring-cloud.version>2023.0.0</spring-cloud.version>
                       <testcontainers.version>1.19.3</testcontainers.version>
                   </properties>
@@ -319,4 +319,75 @@ class RemoveSpringBootParentTest implements RewriteTest {
         );
     }
 
+    @Test
+    void renameJavaVersionReferences() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.5.4</version>
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <java.version>21</java.version>
+                      <enforcer.java.version>${java.version}</enforcer.java.version>
+                  </properties>
+              </project>
+              """,
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <maven.compiler.release>21</maven.compiler.release>
+                      <enforcer.java.version>${maven.compiler.release}</enforcer.java.version>
+                  </properties>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepJavaVersionWhenReleaseAlreadyDeclared() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.5.4</version>
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <java.version>21</java.version>
+                      <maven.compiler.release>${java.version}</maven.compiler.release>
+                  </properties>
+              </project>
+              """,
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <java.version>21</java.version>
+                      <maven.compiler.release>${java.version}</maven.compiler.release>
+                  </properties>
+              </project>
+              """
+          )
+        );
+    }
 }

@@ -107,7 +107,7 @@ public class SpringHealthIndicatorToQuarkus extends Recipe {
                             maybeAddImport(APPLICATION_SCOPED);
                             cd = JavaTemplate.builder("@ApplicationScoped")
                                     .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "jakarta.enterprise.cdi-api-4"))
+                                            .classpathFromResources(ctx, "jakarta.cdi-api-5"))
                                     .imports(APPLICATION_SCOPED)
                                     .build()
                                     .apply(updateCursor(cd), cd.getCoordinates().addAnnotation((a1, a2) -> 0));

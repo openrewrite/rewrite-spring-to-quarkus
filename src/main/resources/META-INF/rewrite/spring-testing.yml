@@ -27,18 +27,18 @@ tags:
   - testing
   - migration
 recipeList:
-  # Replace spring-boot-starter-test with quarkus-junit5
+  # Replace spring-boot-starter-test with quarkus-junit
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-test
       newGroupId: io.quarkus
-      newArtifactId: quarkus-junit5
-      newVersion: x
-  # Add quarkus-junit5-mockito for mock support
+      newArtifactId: quarkus-junit
+      newVersion: 4.x
+  # Add quarkus-junit-mockito for mock support
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
-      artifactId: quarkus-junit5-mockito
-      version: x
+      artifactId: quarkus-junit-mockito
+      version: 4.x
       scope: test
       onlyIfUsing: org.springframework.boot.test.mock.mockito.MockBean
   # Convert test annotations
@@ -47,7 +47,7 @@ recipeList:
       newFullyQualifiedTypeName: io.quarkus.test.junit.QuarkusTest
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.test.mock.mockito.MockBean
-      newFullyQualifiedTypeName: io.quarkus.test.junit.mockito.InjectMock
+      newFullyQualifiedTypeName: io.quarkus.test.InjectMock
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.test.mock.mockito.SpyBean
       newFullyQualifiedTypeName: io.quarkus.test.junit.mockito.InjectSpy

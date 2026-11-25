@@ -55,7 +55,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -86,7 +86,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -120,7 +120,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -151,7 +151,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -161,7 +161,6 @@ class MigrateBootStartersTest implements RewriteTest {
                       <dependency>
                           <groupId>io.projectreactor</groupId>
                           <artifactId>reactor-core</artifactId>
-                          <version>3.5.0</version>
                       </dependency>
                       <dependency>
                           <groupId>io.quarkus</groupId>
@@ -190,7 +189,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -221,7 +220,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -259,7 +258,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -290,7 +289,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -300,7 +299,6 @@ class MigrateBootStartersTest implements RewriteTest {
                       <dependency>
                           <groupId>io.projectreactor</groupId>
                           <artifactId>reactor-core</artifactId>
-                          <version>3.5.0</version>
                       </dependency>
                       <dependency>
                           <groupId>io.quarkus</groupId>
@@ -329,7 +327,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -355,7 +353,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -389,7 +387,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -420,7 +418,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -430,7 +428,6 @@ class MigrateBootStartersTest implements RewriteTest {
                       <dependency>
                           <groupId>io.projectreactor</groupId>
                           <artifactId>reactor-core</artifactId>
-                          <version>3.5.0</version>
                       </dependency>
                       <dependency>
                           <groupId>io.quarkus</groupId>
@@ -459,7 +456,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -485,7 +482,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -519,7 +516,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -555,7 +552,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -565,7 +562,6 @@ class MigrateBootStartersTest implements RewriteTest {
                       <dependency>
                           <groupId>io.projectreactor</groupId>
                           <artifactId>reactor-core</artifactId>
-                          <version>3.5.0</version>
                       </dependency>
                       <dependency>
                           <groupId>io.quarkus</groupId>
@@ -598,7 +594,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -629,7 +625,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -667,7 +663,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -698,7 +694,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -736,7 +732,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -772,7 +768,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -814,7 +810,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -855,7 +851,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -901,7 +897,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -932,7 +928,7 @@ class MigrateBootStartersTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -1001,7 +997,7 @@ class MigrateBootStartersTest implements RewriteTest {
                             <dependency>
                                 <groupId>io.quarkus.platform</groupId>
                                 <artifactId>quarkus-bom</artifactId>
-                                <version>3.26.4</version>
+                                <version>4.0.1</version>
                                 <type>pom</type>
                                 <scope>import</scope>
                             </dependency>
@@ -1027,7 +1023,7 @@ class MigrateBootStartersTest implements RewriteTest {
                             <dependency>
                                 <groupId>io.quarkus.platform</groupId>
                                 <artifactId>quarkus-bom</artifactId>
-                                <version>3.26.4</version>
+                                <version>4.0.1</version>
                                 <type>pom</type>
                                 <scope>import</scope>
                             </dependency>
@@ -1057,7 +1053,7 @@ class MigrateBootStartersTest implements RewriteTest {
                             <dependency>
                                 <groupId>io.quarkus.platform</groupId>
                                 <artifactId>quarkus-bom</artifactId>
-                                <version>3.26.4</version>
+                                <version>4.0.1</version>
                                 <type>pom</type>
                                 <scope>import</scope>
                             </dependency>

@@ -51,7 +51,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -78,7 +78,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -103,7 +103,6 @@ class MigrateDatabaseDriversTest implements RewriteTest {
       org.mariadb.jdbc,mariadb-java-client,3.5.6,quarkus-jdbc-mariadb
       com.oracle.database.jdbc,ojdbc11,23.6.0.24.10,quarkus-jdbc-oracle
       com.microsoft.sqlserver,mssql-jdbc,13.2.0.jre11,quarkus-jdbc-mssql
-      org.apache.derby,derby,10.16.1.1,quarkus-jdbc-derby
       com.ibm.db2,jcc,12.1.0.0,quarkus-jdbc-db2
       """)
     @ParameterizedTest
@@ -122,7 +121,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -148,7 +147,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -182,7 +181,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -214,7 +213,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -253,7 +252,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -280,7 +279,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -314,7 +313,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -341,7 +340,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -376,7 +375,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                           <dependency>
                               <groupId>io.quarkus.platform</groupId>
                               <artifactId>quarkus-bom</artifactId>
-                              <version>3.26.4</version>
+                              <version>4.0.1</version>
                               <type>pom</type>
                               <scope>import</scope>
                           </dependency>
@@ -413,7 +412,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                             <dependency>
                                 <groupId>io.quarkus.platform</groupId>
                                 <artifactId>quarkus-bom</artifactId>
-                                <version>3.26.4</version>
+                                <version>4.0.1</version>
                                 <type>pom</type>
                                 <scope>import</scope>
                             </dependency>
@@ -439,7 +438,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                             <dependency>
                                 <groupId>io.quarkus.platform</groupId>
                                 <artifactId>quarkus-bom</artifactId>
-                                <version>3.26.4</version>
+                                <version>4.0.1</version>
                                 <type>pom</type>
                                 <scope>import</scope>
                             </dependency>
@@ -469,7 +468,7 @@ class MigrateDatabaseDriversTest implements RewriteTest {
                             <dependency>
                                 <groupId>io.quarkus.platform</groupId>
                                 <artifactId>quarkus-bom</artifactId>
-                                <version>3.26.4</version>
+                                <version>4.0.1</version>
                                 <type>pom</type>
                                 <scope>import</scope>
                             </dependency>

@@ -104,7 +104,7 @@ class SpringBootToQuarkusTest implements RewriteTest {
                 </project>
                 """,
               spec -> spec.after(actual -> {
-                  Matcher versionMatcher = Pattern.compile("<artifactId>quarkus-bom</artifactId>\\s*<version>(3\\.[^<]+)</version>").matcher(actual);
+                  Matcher versionMatcher = Pattern.compile("<artifactId>quarkus-bom</artifactId>\\s*<version>(4\\.[^<]+)</version>").matcher(actual);
                   assertThat(versionMatcher.find()).isTrue();
                   String quarkusVersion = versionMatcher.group(1);
                   return """
@@ -113,7 +113,7 @@ class SpringBootToQuarkusTest implements RewriteTest {
                         <artifactId>demo</artifactId>
                         <version>0.0.1-SNAPSHOT</version>
                         <properties>
-                            <java.version>17</java.version>
+                            <maven.compiler.release>21</maven.compiler.release>
                         </properties>
                         <dependencyManagement>
                             <dependencies>
@@ -230,7 +230,7 @@ class SpringBootToQuarkusTest implements RewriteTest {
                 </project>
                 """,
               spec -> spec.after(actual -> {
-                  Matcher versionMatcher = Pattern.compile("<artifactId>quarkus-bom</artifactId>\\s*<version>(3\\.[^<]+)</version>").matcher(actual);
+                  Matcher versionMatcher = Pattern.compile("<artifactId>quarkus-bom</artifactId>\\s*<version>(4\\.[^<]+)</version>").matcher(actual);
                   assertThat(versionMatcher.find()).isTrue();
                   String quarkusVersion = versionMatcher.group(1);
                   return """
@@ -238,6 +238,9 @@ class SpringBootToQuarkusTest implements RewriteTest {
                         <groupId>com.example</groupId>
                         <artifactId>demo</artifactId>
                         <version>0.0.1-SNAPSHOT</version>
+                        <properties>
+                            <maven.compiler.release>21</maven.compiler.release>
+                        </properties>
                         <dependencyManagement>
                             <dependencies>
                                 <dependency>

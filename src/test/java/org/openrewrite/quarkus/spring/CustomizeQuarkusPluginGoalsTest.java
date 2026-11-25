@@ -57,7 +57,6 @@ class CustomizeQuarkusPluginGoalsTest implements RewriteTest {
                               </property>
                           </activation>
                           <properties>
-                              <quarkus.package.type>native</quarkus.package.type>
                               <quarkus.native.enabled>true</quarkus.native.enabled>
                           </properties>
                       </profile>
@@ -98,7 +97,6 @@ class CustomizeQuarkusPluginGoalsTest implements RewriteTest {
                               </property>
                           </activation>
                           <properties>
-                              <quarkus.package.type>native</quarkus.package.type>
                               <quarkus.native.enabled>true</quarkus.native.enabled>
                           </properties>
                       </profile>

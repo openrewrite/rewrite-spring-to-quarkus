@@ -27,14 +27,12 @@ tags:
 recipeList:
   - org.openrewrite.quarkus.spring.H2DriverToQuarkus
   - org.openrewrite.quarkus.spring.H2TestDriverToQuarkus
-  - org.openrewrite.quarkus.spring.DerbyDriverToQuarkus
-  - org.openrewrite.quarkus.spring.DerbyTestDriverToQuarkus
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.postgresql
       oldArtifactId: postgresql
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-postgresql
-      newVersion: x
+      newVersion: 4.x
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-postgresql
@@ -43,7 +41,7 @@ recipeList:
       oldArtifactId: mysql-connector-j
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-mysql
-      newVersion: x
+      newVersion: 4.x
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-mysql
@@ -52,7 +50,7 @@ recipeList:
       oldArtifactId: mysql-connector-java
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-mysql
-      newVersion: x
+      newVersion: 4.x
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-mysql
@@ -61,7 +59,7 @@ recipeList:
       oldArtifactId: mariadb-java-client
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-mariadb
-      newVersion: x
+      newVersion: 4.x
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-mariadb
@@ -70,7 +68,7 @@ recipeList:
       oldArtifactId: ojdbc8
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-oracle
-      newVersion: x
+      newVersion: 4.x
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-oracle
@@ -79,7 +77,7 @@ recipeList:
       oldArtifactId: ojdbc10
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-oracle
-      newVersion: x
+      newVersion: 4.x
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-oracle
@@ -88,7 +86,7 @@ recipeList:
       oldArtifactId: ojdbc11
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-oracle
-      newVersion: x
+      newVersion: 4.x
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-oracle
@@ -97,7 +95,7 @@ recipeList:
       oldArtifactId: ojdbc8
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-oracle
-      newVersion: x
+      newVersion: 4.x
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-oracle
@@ -106,7 +104,7 @@ recipeList:
       oldArtifactId: mssql-jdbc
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-mssql
-      newVersion: x
+      newVersion: 4.x
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-mssql
@@ -115,7 +113,7 @@ recipeList:
       oldArtifactId: jcc
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-db2
-      newVersion: x
+      newVersion: 4.x
   - org.openrewrite.maven.ChangeDependencyScope:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-db2
@@ -143,7 +141,7 @@ recipeList:
   - org.openrewrite.java.dependencies.ChangeDependency:
       newGroupId: io.quarkus
       newArtifactId: quarkus-jdbc-h2
-      newVersion: x
+      newVersion: 4.x
       oldGroupId: com.h2database
       oldArtifactId: h2
   - org.openrewrite.maven.ChangeDependencyScope:
@@ -177,67 +175,5 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-jdbc-h2
-      version: x
-      scope: test
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.DerbyDriverToQuarkus
-displayName: Replace Derby driver with Quarkus JDBC Derby
-description: Migrates `org.apache.derby:derby` or `derbyclient` to `io.quarkus:quarkus-jdbc-derby` (excludes test scope).
-tags:
-  - spring
-  - quarkus
-  - database
-  - derby
-preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.apache.derby
-      artifactIdPattern: derby*
-recipeList:
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      newGroupId: io.quarkus
-      newArtifactId: quarkus-jdbc-derby
-      newVersion: x
-      oldGroupId: org.apache.derby
-      oldArtifactId: derby
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      newGroupId: io.quarkus
-      newArtifactId: quarkus-jdbc-derby
-      newVersion: x
-      oldGroupId: org.apache.derby
-      oldArtifactId: derbyclient
-  - org.openrewrite.maven.ChangeDependencyScope:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-derby
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.DerbyTestDriverToQuarkus
-displayName: Replace Derby test driver with Quarkus JDBC Derby (test scope)
-description: Migrates `org.apache.derby:derby` with test scope to `io.quarkus:quarkus-jdbc-derby` with test scope.
-tags:
-  - spring
-  - quarkus
-  - database
-  - derby
-  - test
-preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.apache.derby
-      artifactIdPattern: derby|derbyclient
-      scope: test
-recipeList:
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.apache.derby
-      artifactId: derby
-      scope: test
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.apache.derby
-      artifactId: derbyclient
-      scope: test
-  - org.openrewrite.java.dependencies.AddDependency:
-      groupId: io.quarkus
-      artifactId: quarkus-jdbc-derby
-      version: x
+      version: 4.x
       scope: test

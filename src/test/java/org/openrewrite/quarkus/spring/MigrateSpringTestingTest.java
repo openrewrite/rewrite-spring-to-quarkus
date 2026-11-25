@@ -23,7 +23,10 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import static org.openrewrite.java.Assertions.java;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
+import static org.openrewrite.java.Assertions.*;
 
 class MigrateSpringTestingTest implements RewriteTest {
 
@@ -89,8 +92,8 @@ class MigrateSpringTestingTest implements RewriteTest {
               }
               """,
             """
+              import io.quarkus.test.InjectMock;
               import io.quarkus.test.junit.QuarkusTest;
-              import io.quarkus.test.junit.mockito.InjectMock;
               import org.junit.jupiter.api.Test;
 
               @QuarkusTest
@@ -113,6 +116,54 @@ class MigrateSpringTestingTest implements RewriteTest {
                   }
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void gradleTestDependenciesUseQuarkus4() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          mavenProject("app",
+            srcTestJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.test.mock.mockito.MockBean;
+
+                  class ServiceTest {
+                      @MockBean
+                      Runnable runnable;
+                  }
+                  """,
+                """
+                  import io.quarkus.test.InjectMock;
+
+                  class ServiceTest {
+                      @InjectMock
+                      Runnable runnable;
+                  }
+                  """
+              )
+            ),
+            //language=groovy
+            buildGradle(
+              """
+                plugins {
+                    id 'java'
+                }
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.5.4'
+                }
+                """,
+              spec -> spec.after(gradle -> assertThat(gradle)
+                .containsPattern("testImplementation [\"']io\\.quarkus:quarkus-junit:4(\\.\\d+)+[\"']")
+                .containsPattern("testImplementation [\"']io\\.quarkus:quarkus-junit-mockito:4(\\.\\d+)+[\"']")
+                .actual())
+            )
           )
         );
     }

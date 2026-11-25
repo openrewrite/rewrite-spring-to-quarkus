@@ -33,17 +33,17 @@ recipeList:
       oldArtifactId: spring-boot-starter-validation
       newGroupId: io.quarkus
       newArtifactId: quarkus-hibernate-validator
-      newVersion: x
+      newVersion: 4.x
   # Add hibernate validator if using javax.validation or jakarta.validation
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-hibernate-validator
-      version: x
+      version: 4.x
       onlyIfUsing: jakarta.validation.constraints.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-hibernate-validator
-      version: x
+      version: 4.x
       onlyIfUsing: jakarta.validation.Valid
   # Change javax.validation to jakarta.validation if needed
   - org.openrewrite.java.ChangePackage:

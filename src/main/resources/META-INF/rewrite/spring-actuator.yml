@@ -35,17 +35,17 @@ recipeList:
       oldArtifactId: spring-boot-starter-actuator
       newGroupId: io.quarkus
       newArtifactId: quarkus-smallrye-health
-      newVersion: x
+      newVersion: 4.x
   # Add metrics extension
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-micrometer
-      version: x
+      version: 4.x
       onlyIfUsing: io.micrometer.core.instrument.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-micrometer-registry-prometheus
-      version: x
+      version: 4.x
       onlyIfUsing: io.micrometer.core.instrument.*
   # Convert HealthIndicator to HealthCheck
   - org.openrewrite.quarkus.spring.SpringHealthIndicatorToQuarkus

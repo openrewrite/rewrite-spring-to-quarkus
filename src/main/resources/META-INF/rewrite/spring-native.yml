@@ -51,7 +51,7 @@ name: org.openrewrite.quarkus.spring.CustomizeQuarkusVersion
 displayName: Customize Quarkus BOM Version
 description: >-
   Allows customization of the Quarkus BOM version used in the migration.
-  By default uses 3.x (latest 3.x version), but can be configured to use a specific version.
+  By default uses 4.x (latest 4.x version), but can be configured to use a specific version.
 tags:
   - spring
   - quarkus
@@ -64,11 +64,11 @@ recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: io.quarkus.platform
       artifactId: quarkus-bom
-      newVersion: 3.x
+      newVersion: 4.x
   - org.openrewrite.maven.UpgradePluginVersion:
       groupId: io.quarkus.platform
       artifactId: quarkus-maven-plugin
-      newVersion: 3.x
+      newVersion: 4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -96,7 +96,6 @@ recipeList:
         </activation>
       properties: |
         <properties>
-          <quarkus.package.type>native</quarkus.package.type>
           <quarkus.native.enabled>true</quarkus.native.enabled>
         </properties>
   # Add container build profile for container-native builds

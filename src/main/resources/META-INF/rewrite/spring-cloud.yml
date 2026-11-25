@@ -36,7 +36,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-config-yaml
-      version: x
+      version: 4.x
       onlyIfUsing: org.springframework.cloud.context.config.annotation.RefreshScope
   # Remove @RefreshScope (Quarkus handles config refresh differently)
   - org.openrewrite.java.RemoveAnnotation:
@@ -79,7 +79,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-smallrye-stork
-      version: 3.x
+      version: 4.x
       onlyIfUsing: org.springframework.cloud.client.discovery.*
   # Convert DiscoveryClient to Stork
   - org.openrewrite.java.ChangeType:
