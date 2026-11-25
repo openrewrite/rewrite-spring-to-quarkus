@@ -26,8 +26,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
+import static org.openrewrite.yaml.Assertions.yaml;
 
 class SpringBootToQuarkusTest implements RewriteTest {
     @Override
@@ -113,7 +116,10 @@ class SpringBootToQuarkusTest implements RewriteTest {
                         <artifactId>demo</artifactId>
                         <version>0.0.1-SNAPSHOT</version>
                         <properties>
+                            <maven.compiler.parameters>true</maven.compiler.parameters>
                             <maven.compiler.release>21</maven.compiler.release>
+                            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                            <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
                         </properties>
                         <dependencyManagement>
                             <dependencies>
@@ -233,20 +239,25 @@ class SpringBootToQuarkusTest implements RewriteTest {
                   Matcher versionMatcher = Pattern.compile("<artifactId>quarkus-bom</artifactId>\\s*<version>(4\\.[^<]+)</version>").matcher(actual);
                   assertThat(versionMatcher.find()).isTrue();
                   String quarkusVersion = versionMatcher.group(1);
+                  Matcher jacksonMatcher = Pattern.compile("<artifactId>jackson-bom</artifactId>\\s*<version>(3\\.[^<]+)</version>").matcher(actual);
+                  assertThat(jacksonMatcher.find()).isTrue();
                   return """
                     <project>
                         <groupId>com.example</groupId>
                         <artifactId>demo</artifactId>
                         <version>0.0.1-SNAPSHOT</version>
                         <properties>
+                            <maven.compiler.parameters>true</maven.compiler.parameters>
                             <maven.compiler.release>21</maven.compiler.release>
+                            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                            <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
                         </properties>
                         <dependencyManagement>
                             <dependencies>
                                 <dependency>
-                                    <groupId>com.fasterxml.jackson</groupId>
+                                    <groupId>tools.jackson</groupId>
                                     <artifactId>jackson-bom</artifactId>
-                                    <version>2.15.2</version>
+                                    <version>%s</version>
                                     <type>pom</type>
                                     <scope>import</scope>
                                 </dependency>
@@ -285,7 +296,7 @@ class SpringBootToQuarkusTest implements RewriteTest {
                             </plugins>
                         </build>
                     </project>
-                    """.formatted(quarkusVersion, quarkusVersion);
+                    """.formatted(jacksonMatcher.group(1), quarkusVersion, quarkusVersion);
               })
             )
           )
@@ -452,6 +463,93 @@ class SpringBootToQuarkusTest implements RewriteTest {
                 .doesNotContain("<artifactId>spring-boot-starter-parent</artifactId>")
                 .actual())
             )
+          )
+        );
+    }
+
+    @Test
+    void upgradeWorkflowOutsideApplicationModule() {
+        rewriteRun(
+          mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import io.quarkus.runtime.Quarkus;
+                  import io.quarkus.runtime.annotations.QuarkusMain;
+
+                  @QuarkusMain
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          Quarkus.run(args);
+                      }
+                  }
+                  """
+              )
+            ),
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.4</version>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
+                </project>
+                """,
+              spec -> spec.after(pom -> assertThat(pom).contains("<artifactId>quarkus-bom</artifactId>").actual())
+            )
+          ),
+          //language=yaml
+          yaml(
+            """
+              jobs:
+                build:
+                  runs-on: ubuntu-latest
+                  steps:
+                    - uses: actions/setup-java@v4
+                      with:
+                        java-version: '17'
+              """,
+            """
+              jobs:
+                build:
+                  runs-on: ubuntu-latest
+                  steps:
+                    - uses: actions/setup-java@v4
+                      with:
+                        java-version: '21'
+              """,
+            spec -> spec.path(".github/workflows/ci.yml")
           )
         );
     }
@@ -637,6 +735,185 @@ class SpringBootToQuarkusTest implements RewriteTest {
                   <version>0.0.1-SNAPSHOT</version>
               </project>
               """
+          )
+        );
+    }
+
+    @Test
+    void migrateJacksonToVersion3() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-boot-3",
+              "spring-boot-autoconfigure-3",
+              "jackson-annotations-2",
+              "jackson-core-2",
+              "jackson-databind-2")),
+          mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import io.quarkus.runtime.Quarkus;
+                  import io.quarkus.runtime.annotations.QuarkusMain;
+
+                  @QuarkusMain
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          Quarkus.run(args);
+                      }
+                  }
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import com.fasterxml.jackson.annotation.JsonProperty;
+                  import com.fasterxml.jackson.core.JsonProcessingException;
+                  import com.fasterxml.jackson.databind.ObjectMapper;
+
+                  class Greeting {
+                      @JsonProperty("text")
+                      String message;
+
+                      String toJson(ObjectMapper mapper) throws JsonProcessingException {
+                          return mapper.writeValueAsString(this);
+                      }
+                  }
+                  """,
+                """
+                  import com.fasterxml.jackson.annotation.JsonProperty;
+                  import tools.jackson.databind.ObjectMapper;
+
+                  class Greeting {
+                      @JsonProperty("text")
+                      String message;
+
+                      String toJson(ObjectMapper mapper) {
+                          return mapper.writeValueAsString(this);
+                      }
+                  }
+                  """
+              )
+            ),
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.1.0</version>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-web</artifactId>
+                        </dependency>
+                    </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
+                </project>
+                """,
+              spec -> spec.after(pom -> assertThat(pom)
+                .contains("<artifactId>quarkus-resteasy-jackson</artifactId>")
+                .containsPattern("<groupId>tools.jackson.core</groupId>\\s*<artifactId>jackson-databind</artifactId>\\s*</dependency>")
+                .doesNotContain("com.fasterxml.jackson")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void migrateGradleBuild() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import io.quarkus.runtime.Quarkus;
+                  import io.quarkus.runtime.annotations.QuarkusMain;
+
+                  @QuarkusMain
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          Quarkus.run(args);
+                      }
+                  }
+                  """
+              )
+            ),
+            //language=groovy
+            buildGradle(
+              """
+                plugins {
+                    id 'java'
+                    id 'org.springframework.boot' version '3.5.4'
+                    id 'io.spring.dependency-management' version '1.1.7'
+                }
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    implementation 'org.springframework.boot:spring-boot-starter-web'
+                    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+                }
+                """,
+              spec -> spec.after(actual -> {
+                  Matcher versionMatcher = Pattern.compile("id 'io\\.quarkus' version '(4\\.[^']+)'").matcher(actual);
+                  assertThat(versionMatcher.find()).isTrue();
+                  String quarkusVersion = versionMatcher.group(1);
+                  return """
+                    plugins {
+                        id 'java'
+                        id 'io.quarkus' version '%s'
+                    }
+                    repositories {
+                        mavenCentral()
+                    }
+                    dependencies {
+                        implementation platform("io.quarkus.platform:quarkus-bom:%s")
+                        implementation "io.quarkus:quarkus-resteasy-jackson"
+
+                        testImplementation "io.quarkus:quarkus-junit"
+                    }
+                    """.formatted(quarkusVersion, quarkusVersion);
+              })
+            )
           )
         );
     }

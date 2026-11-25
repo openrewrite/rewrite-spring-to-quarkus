@@ -21,6 +21,7 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.maven.Assertions.pomXml;
+import static org.openrewrite.properties.Assertions.properties;
 
 class RemoveSpringBootParentTest implements RewriteTest {
 
@@ -65,6 +66,11 @@ class RemoveSpringBootParentTest implements RewriteTest {
                   <groupId>com.example</groupId>
                   <artifactId>demo</artifactId>
                   <version>0.0.1-SNAPSHOT</version>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+                  </properties>
 
                   <dependencies>
                       <dependency>
@@ -106,6 +112,11 @@ class RemoveSpringBootParentTest implements RewriteTest {
                   <groupId>com.example</groupId>
                   <artifactId>demo</artifactId>
                   <version>0.0.1-SNAPSHOT</version>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+                  </properties>
               </project>
               """
           )
@@ -244,7 +255,10 @@ class RemoveSpringBootParentTest implements RewriteTest {
                   <description>Demo project with complex structure</description>
 
                   <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
                       <maven.compiler.release>21</maven.compiler.release>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
                       <spring-cloud.version>2023.0.0</spring-cloud.version>
                       <testcontainers.version>1.19.3</testcontainers.version>
                   </properties>
@@ -313,6 +327,11 @@ class RemoveSpringBootParentTest implements RewriteTest {
                   <groupId>com.example</groupId>
                   <artifactId>minimal-demo</artifactId>
                   <version>1.0.0</version>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+                  </properties>
               </project>
               """
           )
@@ -346,8 +365,11 @@ class RemoveSpringBootParentTest implements RewriteTest {
                   <artifactId>demo</artifactId>
                   <version>1.0.0</version>
                   <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
                       <maven.compiler.release>21</maven.compiler.release>
                       <enforcer.java.version>${maven.compiler.release}</enforcer.java.version>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
                   </properties>
               </project>
               """
@@ -373,6 +395,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
                   <properties>
                       <java.version>21</java.version>
                       <maven.compiler.release>${java.version}</maven.compiler.release>
+                      <maven.compiler.testRelease>${java.version}</maven.compiler.testRelease>
                   </properties>
               </project>
               """,
@@ -383,10 +406,362 @@ class RemoveSpringBootParentTest implements RewriteTest {
                   <version>1.0.0</version>
                   <properties>
                       <java.version>21</java.version>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
                       <maven.compiler.release>${java.version}</maven.compiler.release>
+                      <maven.compiler.testRelease>${java.version}</maven.compiler.testRelease>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
                   </properties>
               </project>
               """
+          )
+        );
+    }
+
+    @Test
+    void keepDeclaredEncodingAndCompilerParameters() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.5.4</version>
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+                  </properties>
+                  <build>
+                      <plugins>
+                          <plugin>
+                              <groupId>org.apache.maven.plugins</groupId>
+                              <artifactId>maven-compiler-plugin</artifactId>
+                              <configuration>
+                                  <parameters>false</parameters>
+                              </configuration>
+                          </plugin>
+                      </plugins>
+                  </build>
+              </project>
+              """,
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+                  </properties>
+                  <build>
+                      <plugins>
+                          <plugin>
+                              <groupId>org.apache.maven.plugins</groupId>
+                              <artifactId>maven-compiler-plugin</artifactId>
+                              <configuration>
+                                  <parameters>false</parameters>
+                              </configuration>
+                          </plugin>
+                      </plugins>
+                  </build>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void renameJavaVersionInProfile() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.5.4</version>
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <java.version>21</java.version>
+                  </properties>
+                  <profiles>
+                      <profile>
+                          <id>java25</id>
+                          <properties>
+                              <java.version>25</java.version>
+                          </properties>
+                      </profile>
+                  </profiles>
+              </project>
+              """,
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                      <maven.compiler.release>21</maven.compiler.release>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+                  </properties>
+                  <profiles>
+                      <profile>
+                          <id>java25</id>
+                          <properties>
+                              <maven.compiler.release>25</maven.compiler.release>
+                          </properties>
+                      </profile>
+                  </profiles>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void renameJavaVersionReferencesInChildModules() {
+        rewriteRun(
+          pomXml(
+            //language=xml
+            """
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.5.4</version>
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo-parent</artifactId>
+                  <version>1.0.0</version>
+                  <packaging>pom</packaging>
+                  <modules>
+                      <module>app</module>
+                  </modules>
+                  <properties>
+                      <java.version>21</java.version>
+                  </properties>
+              </project>
+              """,
+            //language=xml
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo-parent</artifactId>
+                  <version>1.0.0</version>
+                  <packaging>pom</packaging>
+                  <modules>
+                      <module>app</module>
+                  </modules>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                      <maven.compiler.release>21</maven.compiler.release>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+                  </properties>
+              </project>
+              """
+          ),
+          pomXml(
+            //language=xml
+            """
+              <project>
+                  <parent>
+                      <groupId>com.example</groupId>
+                      <artifactId>demo-parent</artifactId>
+                      <version>1.0.0</version>
+                  </parent>
+                  <artifactId>app</artifactId>
+                  <properties>
+                      <enforcer.java.version>${java.version}</enforcer.java.version>
+                  </properties>
+              </project>
+              """,
+            //language=xml
+            """
+              <project>
+                  <parent>
+                      <groupId>com.example</groupId>
+                      <artifactId>demo-parent</artifactId>
+                      <version>1.0.0</version>
+                  </parent>
+                  <artifactId>app</artifactId>
+                  <properties>
+                      <enforcer.java.version>${maven.compiler.release}</enforcer.java.version>
+                  </properties>
+              </project>
+              """,
+            spec -> spec.path("app/pom.xml")
+          )
+        );
+    }
+
+    @Test
+    void keepResourceFilteringForPlaceholders() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.5.4</version>
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+              </project>
+              """,
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+                  </properties>
+                  <build>
+                      <resources>
+                          <resource>
+                              <directory>src/main/resources</directory>
+                              <filtering>true</filtering>
+                              <includes>
+                                  <include>**/application*.yml</include>
+                                  <include>**/application*.yaml</include>
+                                  <include>**/application*.properties</include>
+                              </includes>
+                          </resource>
+                          <resource>
+                              <directory>src/main/resources</directory>
+                              <excludes>
+                                  <exclude>**/application*.yml</exclude>
+                                  <exclude>**/application*.yaml</exclude>
+                                  <exclude>**/application*.properties</exclude>
+                              </excludes>
+                          </resource>
+                      </resources>
+                      <plugins>
+                          <plugin>
+                              <groupId>org.apache.maven.plugins</groupId>
+                              <artifactId>maven-resources-plugin</artifactId>
+                              <configuration>
+                                  <delimiters>
+                                      <delimiter>@</delimiter>
+                                  </delimiters>
+                                  <useDefaultDelimiters>false</useDefaultDelimiters>
+                              </configuration>
+                          </plugin>
+                      </plugins>
+                  </build>
+              </project>
+              """
+          ),
+          properties(
+            "app.version=@project.version@",
+            spec -> spec.path("src/main/resources/application.properties")
+          )
+        );
+    }
+
+    @Test
+    void doNotAddResourceFilteringWhenResourcesPluginIsDeclared() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.5.4</version>
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <build>
+                      <plugins>
+                          <plugin>
+                              <groupId>org.apache.maven.plugins</groupId>
+                              <artifactId>maven-resources-plugin</artifactId>
+                          </plugin>
+                      </plugins>
+                  </build>
+              </project>
+              """,
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+                  </properties>
+                  <build>
+                      <plugins>
+                          <plugin>
+                              <groupId>org.apache.maven.plugins</groupId>
+                              <artifactId>maven-resources-plugin</artifactId>
+                          </plugin>
+                      </plugins>
+                  </build>
+              </project>
+              """
+          ),
+          properties(
+            "app.version=@project.version@",
+            spec -> spec.path("src/main/resources/application.properties")
+          )
+        );
+    }
+
+    @Test
+    void addResourceFilteringOnlyForApplicationWithPlaceholders() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.5.4</version>
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>other</artifactId>
+                  <version>1.0.0</version>
+              </project>
+              """,
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>other</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+                  </properties>
+              </project>
+              """,
+            spec -> spec.path("other/pom.xml")
+          ),
+          properties(
+            "app.version=@project.version@",
+            spec -> spec.path("demo/src/main/resources/application.properties")
           )
         );
     }

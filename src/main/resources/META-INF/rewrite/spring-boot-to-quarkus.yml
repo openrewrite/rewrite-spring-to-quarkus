@@ -24,6 +24,20 @@ tags:
   - quarkus
   - migration
   - bom
+recipeList:
+  # Quarkus 4 requires Java 21; raise it while the Spring Boot parent still declares `java.version`
+  - org.openrewrite.quarkus.spring.UpgradeRepositoryToJava21
+  - org.openrewrite.quarkus.spring.MigrateSpringBootApplicationModules
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.MigrateSpringBootApplicationModules
+displayName: Migrate Spring Boot application modules to Quarkus
+description: Replace Spring Boot with Quarkus in the modules of Spring Boot 3 or 4 applications, and in the modules they depend on.
+tags:
+  - spring
+  - quarkus
+  - migration
 preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework.boot
@@ -37,12 +51,20 @@ recipeList:
       type: pom
       scope: import
       addToRootPom: false
-  # Quarkus 4 requires Java 21; raise it while the Spring Boot parent still declares `java.version`
-  - org.openrewrite.java.migrate.UpgradeBuildToJava21
+  - org.openrewrite.gradle.AddPlatformDependency:
+      groupId: io.quarkus.platform
+      artifactId: quarkus-bom
+      version: 4.x
+  - org.openrewrite.gradle.plugins.ChangePlugin:
+      pluginId: org.springframework.boot
+      newPluginId: io.quarkus
+      newVersion: 4.x
+  - org.openrewrite.quarkus.spring.RemoveSpringDependencyManagementPlugin
   - org.openrewrite.java.migrate.UpgradePluginsForJava21
   - org.openrewrite.quarkus.spring.MigrateMavenPlugin
   - org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
   - org.openrewrite.quarkus.spring.MigrateBootStarters
+  - org.openrewrite.java.jackson.UpgradeJackson_2_3
   - org.openrewrite.quarkus.spring.SpringApplicationRunToQuarkusRun
   - org.openrewrite.quarkus.spring.ReplaceSpringBootApplication
   - org.openrewrite.quarkus.spring.EnableAnnotationsToQuarkusDependencies
@@ -66,7 +88,29 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateSpringCloudServiceDiscovery
   - org.openrewrite.quarkus.spring.MigrateSpringBootDevTools
   - org.openrewrite.quarkus.spring.CustomizeQuarkusVersion
+  # Unlike Maven, Gradle dependencies added above carry an explicit version, which the Quarkus platform already manages
+  - org.openrewrite.gradle.RemoveRedundantDependencyVersions:
+      groupPattern: io.quarkus
   #- org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals # Disabled until AddProfile is idempotent
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.quarkus.spring.UpgradeRepositoryToJava21
+displayName: Upgrade the repository to Java 21
+description: >-
+  Quarkus 4 requires Java 21, so raise the Java version to 21 in build files, CI configuration and container images.
+  CI workflows and Dockerfiles usually sit outside the application modules, so this runs on the whole repository
+  once it contains a Spring Boot 3 or 4 application.
+tags:
+  - spring
+  - quarkus
+  - java21
+preconditions:
+  - org.openrewrite.quarkus.spring.RepositoryHasSpringBootApplication
+recipeList:
+  - org.openrewrite.java.migrate.UpgradeBuildToJava21
+  - org.openrewrite.github.SetupJavaUpgradeJavaVersion:
+      minimumJavaMajorVersion: 21
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
