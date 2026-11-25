@@ -674,4 +674,57 @@ class RemoveSpringBootParentTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void doNotAddResourceFilteringWhenResourcesPluginIsDeclared() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.5.4</version>
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <build>
+                      <plugins>
+                          <plugin>
+                              <groupId>org.apache.maven.plugins</groupId>
+                              <artifactId>maven-resources-plugin</artifactId>
+                          </plugin>
+                      </plugins>
+                  </build>
+              </project>
+              """,
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+                  </properties>
+                  <build>
+                      <plugins>
+                          <plugin>
+                              <groupId>org.apache.maven.plugins</groupId>
+                              <artifactId>maven-resources-plugin</artifactId>
+                          </plugin>
+                      </plugins>
+                  </build>
+              </project>
+              """
+          ),
+          properties(
+            "app.version=@project.version@",
+            spec -> spec.path("src/main/resources/application.properties")
+          )
+        );
+    }
 }

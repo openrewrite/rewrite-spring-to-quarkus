@@ -124,7 +124,8 @@ public class RemoveSpringBootParent extends ScanningRecipe<AtomicBoolean> {
                                 new TagNameComparator()).visitNonNull(d, ctx);
                     }
                 }
-                if (usesResourcePlaceholders.get() && FindTags.find(d, "/project/build/resources").isEmpty()) {
+                if (usesResourcePlaceholders.get() && FindTags.find(d, "/project/build/resources").isEmpty() &&
+                    FindTags.find(d, "//plugin[artifactId='maven-resources-plugin']").isEmpty()) {
                     d = (Xml.Document) new AddPlugin("org.apache.maven.plugins", "maven-resources-plugin", null,
                             "<configuration><delimiters><delimiter>@</delimiter></delimiters><useDefaultDelimiters>false</useDefaultDelimiters></configuration>",
                             null, null, null).getVisitor().visitNonNull(d, ctx);
