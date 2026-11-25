@@ -65,7 +65,6 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateMavenPlugin
   - org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
   - org.openrewrite.quarkus.spring.MigrateBootStarters
-  # Quarkus 4 uses Jackson 3, which the Quarkus BOM manages alongside the Jackson 2 annotations
   - org.openrewrite.java.jackson.UpgradeJackson_2_3
   - org.openrewrite.quarkus.spring.SpringApplicationRunToQuarkusRun
   - org.openrewrite.quarkus.spring.ReplaceSpringBootApplication
