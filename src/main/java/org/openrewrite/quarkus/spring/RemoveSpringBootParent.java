@@ -22,24 +22,52 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.maven.MavenIsoVisitor;
+import org.openrewrite.xml.XPathMatcher;
+import org.openrewrite.xml.XmlIsoVisitor;
 import org.openrewrite.xml.tree.Xml;
+
+import java.util.Optional;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class RemoveSpringBootParent extends Recipe {
 
+    private static final XPathMatcher JAVA_VERSION_PROPERTY = new XPathMatcher("/project/properties/java.version");
+
     String displayName = "Remove Spring Boot parent POM";
 
-    String description = "Removes the Spring Boot 3.x or 4.x starter parent POM from Maven projects.";
+    String description = "Removes the Spring Boot 3.x or 4.x starter parent POM from Maven projects, and renames " +
+                         "`java.version`, which only that parent reads, to `maven.compiler.release`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new MavenIsoVisitor<ExecutionContext>() {
 
             @Override
+            public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
+                Xml.Document d = super.visitDocument(document, ctx);
+                Optional<Xml.Tag> properties = d.getRoot().getChild("properties");
+                if (d == document ||
+                    !properties.flatMap(p -> p.getChild("java.version")).isPresent() ||
+                    properties.flatMap(p -> p.getChild("maven.compiler.release")).isPresent()) {
+                    return d;
+                }
+                return (Xml.Document) new XmlIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
+                        Xml.Tag t = super.visitTag(tag, ctx);
+                        if (JAVA_VERSION_PROPERTY.matches(getCursor())) {
+                            return t.withName("maven.compiler.release");
+                        }
+                        String value = t.getValue().orElse("");
+                        return value.contains("${java.version}") ? t.withValue(value.replace("${java.version}", "${maven.compiler.release}")) : t;
+                    }
+                }.visitNonNull(d, ctx);
+            }
+
+            @Override
             public  Xml.@Nullable Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
                 if (isSpringBootParent(tag)) {
-                    // Remove the parent tag entirely
                     return null;
                 }
                 return super.visitTag(tag, ctx);

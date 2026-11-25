@@ -8,17 +8,17 @@ group = "org.openrewrite.recipe"
 description = "A collection of OpenRewrite recipes to assist with Spring to Quarkus migrations"
 
 recipeDependencies {
-    parserClasspath("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
+    parserClasspath("jakarta.ws.rs:jakarta.ws.rs-api:4.0.0")
     parserClasspath("jakarta.inject:jakarta.inject-api:2.0.1")
-    parserClasspath("jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1")
-    parserClasspath("org.eclipse.microprofile.config:microprofile-config-api:3.0.3")
-    parserClasspath("io.quarkus:quarkus-core:3.28.2")
-    parserClasspath("io.quarkus:quarkus-hibernate-orm-panache:3.28.2")
-    parserClasspath("io.quarkus:quarkus-panache-common:3.28.2")
-    parserClasspath("io.smallrye:smallrye-health-api:4.0.0")
-    parserClasspath("io.smallrye.config:smallrye-config-core:3.4.0")
-    parserClasspath("org.eclipse.microprofile.health:microprofile-health-api:4.0.1")
-    parserClasspath("io.quarkus:quarkus-junit5:3.28.2")
+    parserClasspath("jakarta.cdi:jakarta.cdi-api:5.0.0")
+    parserClasspath("org.eclipse.microprofile.config:microprofile-config-api:3.1.3")
+    parserClasspath("io.quarkus:quarkus-core:4.0.1")
+    parserClasspath("io.quarkus:quarkus-hibernate-orm-panache:4.0.1")
+    parserClasspath("io.quarkus:quarkus-panache-common:4.0.1")
+    parserClasspath("io.smallrye:smallrye-health-api:4.3.0")
+    parserClasspath("io.smallrye.config:smallrye-config-core:4.2.2")
+    parserClasspath("org.eclipse.microprofile.health:microprofile-health-api:4.0.2")
+    parserClasspath("io.quarkus:quarkus-junit:4.0.1")
 
     testParserClasspath("org.springframework.boot:spring-boot:3.5.4")
     testParserClasspath("org.springframework.boot:spring-boot-autoconfigure:3.5.4")
@@ -36,8 +36,8 @@ recipeDependencies {
     testParserClasspath("org.springframework.cloud:spring-cloud-commons:4.1.4")
     testParserClasspath("jakarta.persistence:jakarta.persistence-api:3.1.0")
     testParserClasspath("jakarta.transaction:jakarta.transaction-api:2.0.1")
-    testParserClasspath("io.quarkus:quarkus-hibernate-orm-panache:3.17.8")
-    testParserClasspath("io.quarkus:quarkus-mongodb-panache:3.17.8")
+    testParserClasspath("io.quarkus:quarkus-hibernate-orm-panache:4.0.1")
+    testParserClasspath("io.quarkus:quarkus-mongodb-panache:4.0.1")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()

@@ -32,7 +32,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-hibernate-orm-panache
-      version: x
+      version: 4.x
       onlyIfUsing: jakarta.persistence.Entity
   # Convert entities to extend PanacheEntity
   - org.openrewrite.quarkus.spring.JpaEntityToPanacheEntity
@@ -57,7 +57,7 @@ recipeList:
       oldArtifactId: spring-boot-starter-data-mongodb
       newGroupId: io.quarkus
       newArtifactId: quarkus-mongodb-panache
-      newVersion: x
+      newVersion: 4.x
   # Change MongoRepository to PanacheMongoRepository (drops ID type param)
   - org.openrewrite.quarkus.spring.MongoRepositoryToPanacheMongoRepository
   # Change @Document to @MongoEntity

@@ -31,7 +31,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.quarkus
       artifactId: quarkus-narayana-jta
-      version: x
+      version: 4.x
       onlyIfUsing: org.springframework.transaction.annotation.Transactional
   # Change @Transactional import
   - org.openrewrite.java.ChangeType:

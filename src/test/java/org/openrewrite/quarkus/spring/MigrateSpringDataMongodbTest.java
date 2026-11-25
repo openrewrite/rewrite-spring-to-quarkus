@@ -34,7 +34,7 @@ class MigrateSpringDataMongodbTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-data-mongodb-4",
               "spring-data-commons-3",
-              "quarkus-mongodb-panache-3"));
+              "quarkus-mongodb-panache-4"));
     }
 
     @DocumentExample
