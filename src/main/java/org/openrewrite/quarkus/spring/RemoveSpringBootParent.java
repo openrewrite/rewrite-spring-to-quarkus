@@ -26,23 +26,21 @@ import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.Parent;
 import org.openrewrite.xml.AddToTagVisitor;
 import org.openrewrite.xml.TagNameComparator;
-import org.openrewrite.xml.XPathMatcher;
-import org.openrewrite.xml.XmlIsoVisitor;
 import org.openrewrite.xml.search.FindTags;
 import org.openrewrite.xml.tree.Xml;
 
+import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
-public class RemoveSpringBootParent extends ScanningRecipe<AtomicBoolean> {
+public class RemoveSpringBootParent extends ScanningRecipe<Set<Path>> {
 
-    private static final XPathMatcher JAVA_VERSION_PROPERTY = new XPathMatcher("/project/properties/java.version");
-    private static final XPathMatcher PROFILE_JAVA_VERSION_PROPERTY = new XPathMatcher("/project/profiles/profile/properties/java.version");
-    private static final Pattern FILTERED_APPLICATION_CONFIG = Pattern.compile("(.*/)?src/main/resources/(.*/)?application[^/]*\\.(properties|ya?ml)");
+    private static final String FILTERED_APPLICATION_CONFIG = "**/src/main/resources/**/application*.{properties,yml,yaml}";
     private static final Pattern RESOURCE_PLACEHOLDER = Pattern.compile("@[\\w.-]+@");
 
     String displayName = "Remove Spring Boot parent POM";
@@ -53,20 +51,21 @@ public class RemoveSpringBootParent extends ScanningRecipe<AtomicBoolean> {
                          "and its `@..@` resource filtering when application configuration files use such placeholders.";
 
     @Override
-    public AtomicBoolean getInitialValue(ExecutionContext ctx) {
-        return new AtomicBoolean();
+    public Set<Path> getInitialValue(ExecutionContext ctx) {
+        return new HashSet<>();
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean usesResourcePlaceholders) {
+    public TreeVisitor<?, ExecutionContext> getScanner(Set<Path> configsWithPlaceholders) {
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (!usesResourcePlaceholders.get() && tree instanceof SourceFile) {
+                if (tree instanceof SourceFile) {
                     SourceFile sourceFile = (SourceFile) tree;
-                    usesResourcePlaceholders.set(
-                            FILTERED_APPLICATION_CONFIG.matcher(PathUtils.separatorsToUnix(sourceFile.getSourcePath().toString())).matches() &&
-                            RESOURCE_PLACEHOLDER.matcher(sourceFile.printAll()).find());
+                    if (PathUtils.matchesGlob(sourceFile.getSourcePath(), FILTERED_APPLICATION_CONFIG) &&
+                        RESOURCE_PLACEHOLDER.matcher(sourceFile.printAll()).find()) {
+                        configsWithPlaceholders.add(sourceFile.getSourcePath());
+                    }
                 }
                 return tree;
             }
@@ -74,7 +73,7 @@ public class RemoveSpringBootParent extends ScanningRecipe<AtomicBoolean> {
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean usesResourcePlaceholders) {
+    public TreeVisitor<?, ExecutionContext> getVisitor(Set<Path> configsWithPlaceholders) {
         return new MavenIsoVisitor<ExecutionContext>() {
 
             @Override
@@ -90,11 +89,11 @@ public class RemoveSpringBootParent extends ScanningRecipe<AtomicBoolean> {
                 boolean keepsJavaVersion = d.getRoot().getChild("properties")
                         .filter(p -> p.getChild("java.version").isPresent() && p.getChild("maven.compiler.release").isPresent())
                         .isPresent();
-                d = (Xml.Document) new XmlIsoVisitor<ExecutionContext>() {
+                d = (Xml.Document) new MavenIsoVisitor<ExecutionContext>() {
                     @Override
                     public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
                         Xml.Tag t = super.visitTag(tag, ctx);
-                        if (JAVA_VERSION_PROPERTY.matches(getCursor()) || PROFILE_JAVA_VERSION_PROPERTY.matches(getCursor())) {
+                        if ("java.version".equals(t.getName()) && (isPropertyTag() || isProfilePropertyTag())) {
                             Xml.Tag properties = getCursor().getParentTreeCursor().getValue();
                             return properties.getChild("maven.compiler.release").isPresent() ? t : t.withName("maven.compiler.release");
                         }
@@ -124,31 +123,33 @@ public class RemoveSpringBootParent extends ScanningRecipe<AtomicBoolean> {
                                 new TagNameComparator()).visitNonNull(d, ctx);
                     }
                 }
-                if (usesResourcePlaceholders.get() && FindTags.find(d, "/project/build/resources").isEmpty() &&
+                Path pomDir = d.getSourcePath().getParent();
+                if (configsWithPlaceholders.stream().anyMatch(config -> pomDir == null || config.startsWith(pomDir)) &&
+                    FindTags.find(d, "/project/build/resources").isEmpty() &&
                     FindTags.find(d, "//plugin[artifactId='maven-resources-plugin']").isEmpty()) {
                     d = (Xml.Document) new AddPlugin("org.apache.maven.plugins", "maven-resources-plugin", null,
                             "<configuration><delimiters><delimiter>@</delimiter></delimiters><useDefaultDelimiters>false</useDefaultDelimiters></configuration>",
                             null, null, null).getVisitor().visitNonNull(d, ctx);
                     Xml.Tag build = d.getRoot().getChild("build").orElseThrow(IllegalStateException::new);
                     d = (Xml.Document) new AddToTagVisitor<>(build, Xml.Tag.build(
-                            "<resources>\n" +
-                            "<resource>\n" +
-                            "<directory>src/main/resources</directory>\n" +
-                            "<filtering>true</filtering>\n" +
-                            "<includes>\n" +
-                            "<include>**/application*.yml</include>\n" +
-                            "<include>**/application*.yaml</include>\n" +
-                            "<include>**/application*.properties</include>\n" +
-                            "</includes>\n" +
-                            "</resource>\n" +
-                            "<resource>\n" +
-                            "<directory>src/main/resources</directory>\n" +
-                            "<excludes>\n" +
-                            "<exclude>**/application*.yml</exclude>\n" +
-                            "<exclude>**/application*.yaml</exclude>\n" +
-                            "<exclude>**/application*.properties</exclude>\n" +
-                            "</excludes>\n" +
-                            "</resource>\n" +
+                            "<resources>" +
+                            "<resource>" +
+                            "<directory>src/main/resources</directory>" +
+                            "<filtering>true</filtering>" +
+                            "<includes>" +
+                            "<include>**/application*.yml</include>" +
+                            "<include>**/application*.yaml</include>" +
+                            "<include>**/application*.properties</include>" +
+                            "</includes>" +
+                            "</resource>" +
+                            "<resource>" +
+                            "<directory>src/main/resources</directory>" +
+                            "<excludes>" +
+                            "<exclude>**/application*.yml</exclude>" +
+                            "<exclude>**/application*.yaml</exclude>" +
+                            "<exclude>**/application*.properties</exclude>" +
+                            "</excludes>" +
+                            "</resource>" +
                             "</resources>"), (existing, added) -> 1).visitNonNull(d, ctx);
                 }
                 return d;
@@ -156,9 +157,7 @@ public class RemoveSpringBootParent extends ScanningRecipe<AtomicBoolean> {
 
             @Override
             public Xml.@Nullable Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
-                if ("parent".equals(tag.getName()) &&
-                    "org.springframework.boot".equals(tag.getChildValue("groupId").orElse(null)) &&
-                    isSpringBootParent(getResolutionResult().getPom().getRequested().getParent())) {
+                if (isParentTag() && isSpringBootParent(getResolutionResult().getPom().getRequested().getParent())) {
                     return null;
                 }
                 return super.visitTag(tag, ctx);

@@ -727,4 +727,42 @@ class RemoveSpringBootParentTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void addResourceFilteringOnlyForApplicationWithPlaceholders() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.5.4</version>
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>other</artifactId>
+                  <version>1.0.0</version>
+              </project>
+              """,
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>other</artifactId>
+                  <version>1.0.0</version>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+                  </properties>
+              </project>
+              """,
+            spec -> spec.path("other/pom.xml")
+          ),
+          properties(
+            "app.version=@project.version@",
+            spec -> spec.path("demo/src/main/resources/application.properties")
+          )
+        );
+    }
 }
