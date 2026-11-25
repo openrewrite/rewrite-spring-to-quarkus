@@ -115,7 +115,10 @@ class SpringBootToQuarkusTest implements RewriteTest {
                         <artifactId>demo</artifactId>
                         <version>0.0.1-SNAPSHOT</version>
                         <properties>
+                            <maven.compiler.parameters>true</maven.compiler.parameters>
                             <maven.compiler.release>21</maven.compiler.release>
+                            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                            <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
                         </properties>
                         <dependencyManagement>
                             <dependencies>
@@ -243,7 +246,10 @@ class SpringBootToQuarkusTest implements RewriteTest {
                         <artifactId>demo</artifactId>
                         <version>0.0.1-SNAPSHOT</version>
                         <properties>
+                            <maven.compiler.parameters>true</maven.compiler.parameters>
                             <maven.compiler.release>21</maven.compiler.release>
+                            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                            <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
                         </properties>
                         <dependencyManagement>
                             <dependencies>
