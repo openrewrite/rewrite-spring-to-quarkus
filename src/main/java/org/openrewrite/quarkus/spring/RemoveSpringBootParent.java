@@ -87,6 +87,9 @@ public class RemoveSpringBootParent extends ScanningRecipe<AtomicBoolean> {
                 if (!inheritsSpringBootParent) {
                     return d;
                 }
+                boolean keepsJavaVersion = d.getRoot().getChild("properties")
+                        .filter(p -> p.getChild("java.version").isPresent() && p.getChild("maven.compiler.release").isPresent())
+                        .isPresent();
                 d = (Xml.Document) new XmlIsoVisitor<ExecutionContext>() {
                     @Override
                     public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
@@ -96,7 +99,7 @@ public class RemoveSpringBootParent extends ScanningRecipe<AtomicBoolean> {
                             return properties.getChild("maven.compiler.release").isPresent() ? t : t.withName("maven.compiler.release");
                         }
                         String value = t.getValue().orElse("");
-                        return value.contains("${java.version}") && !"maven.compiler.release".equals(t.getName()) ?
+                        return !keepsJavaVersion && value.contains("${java.version}") && !"maven.compiler.release".equals(t.getName()) ?
                                 t.withValue(value.replace("${java.version}", "${maven.compiler.release}")) : t;
                     }
                 }.visitNonNull(d, ctx);

@@ -395,6 +395,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
                   <properties>
                       <java.version>21</java.version>
                       <maven.compiler.release>${java.version}</maven.compiler.release>
+                      <maven.compiler.testRelease>${java.version}</maven.compiler.testRelease>
                   </properties>
               </project>
               """,
@@ -407,6 +408,7 @@ class RemoveSpringBootParentTest implements RewriteTest {
                       <java.version>21</java.version>
                       <maven.compiler.parameters>true</maven.compiler.parameters>
                       <maven.compiler.release>${java.version}</maven.compiler.release>
+                      <maven.compiler.testRelease>${java.version}</maven.compiler.testRelease>
                       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
                       <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
                   </properties>
