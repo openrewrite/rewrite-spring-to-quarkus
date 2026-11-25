@@ -45,8 +45,7 @@ public class RemoveSpringDependencyManagementPlugin extends Recipe {
         return Preconditions.check(new IsBuildGradle<>(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                AtomicBoolean configured = new AtomicBoolean();
-                new JavaIsoVisitor<AtomicBoolean>() {
+                AtomicBoolean configured = new JavaIsoVisitor<AtomicBoolean>() {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicBoolean found) {
                         if ("dependencyManagement".equals(method.getSimpleName())) {
@@ -55,7 +54,7 @@ public class RemoveSpringDependencyManagementPlugin extends Recipe {
                         }
                         return super.visitMethodInvocation(method, found);
                     }
-                }.visit(tree, configured);
+                }.reduce(tree, new AtomicBoolean());
                 return configured.get() ? tree : new RemovePluginVisitor("io.spring.dependency-management").visit(tree, ctx);
             }
         });

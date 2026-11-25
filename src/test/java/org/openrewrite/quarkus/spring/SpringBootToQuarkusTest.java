@@ -744,7 +744,11 @@ class SpringBootToQuarkusTest implements RewriteTest {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-3", "spring-boot-autoconfigure-3", "jackson-annotations-2", "jackson-core-2", "jackson-databind-2")),
+              "spring-boot-3",
+              "spring-boot-autoconfigure-3",
+              "jackson-annotations-2",
+              "jackson-core-2",
+              "jackson-databind-2")),
           mavenProject("project",
             srcMainJava(
               //language=java
