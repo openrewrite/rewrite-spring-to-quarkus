@@ -30,7 +30,7 @@ class MigrateSpringActuatorTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.quarkus.spring.MigrateSpringActuator")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "micrometer-core-1", "micrometer-registry-prometheus-1"));
+            "micrometer-core-1", "micrometer-registry-prometheus-1", "simpleclient-0"));
     }
 
     @DocumentExample
@@ -41,19 +41,29 @@ class MigrateSpringActuatorTest implements RewriteTest {
           java(
             """
               import io.micrometer.prometheus.PrometheusMeterRegistry;
+              import io.prometheus.client.CollectorRegistry;
 
               class Metrics {
                   String scrape(PrometheusMeterRegistry registry) {
                       return registry.scrape();
                   }
+
+                  CollectorRegistry prometheusRegistry(PrometheusMeterRegistry registry) {
+                      return registry.getPrometheusRegistry();
+                  }
               }
               """,
             """
               import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+              import io.prometheus.metrics.model.registry.PrometheusRegistry;
 
               class Metrics {
                   String scrape(PrometheusMeterRegistry registry) {
                       return registry.scrape();
+                  }
+
+                  PrometheusRegistry prometheusRegistry(PrometheusMeterRegistry registry) {
+                      return registry.getPrometheusRegistry();
                   }
               }
               """

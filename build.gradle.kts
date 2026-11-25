@@ -43,6 +43,7 @@ recipeDependencies {
     testParserClasspath("com.fasterxml.jackson.core:jackson-databind:2.15.2")
     testParserClasspath("io.micrometer:micrometer-core:1.12.13")
     testParserClasspath("io.micrometer:micrometer-registry-prometheus:1.12.13")
+    testParserClasspath("io.prometheus:simpleclient:0.16.0")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
