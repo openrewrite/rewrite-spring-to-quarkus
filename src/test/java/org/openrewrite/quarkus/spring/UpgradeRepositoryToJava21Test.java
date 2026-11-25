@@ -29,11 +29,11 @@ import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-class UpgradeCiAndContainersToJava21Test implements RewriteTest {
+class UpgradeRepositoryToJava21Test implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.quarkus.spring.UpgradeCiAndContainersToJava21")
+        spec.recipeFromResources("org.openrewrite.quarkus.spring.UpgradeRepositoryToJava21")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-boot-3",
             "spring-boot-autoconfigure-3"));
@@ -53,6 +53,9 @@ class UpgradeCiAndContainersToJava21Test implements RewriteTest {
                   <groupId>com.example</groupId>
                   <artifactId>demo</artifactId>
                   <version>0.0.1-SNAPSHOT</version>
+                  <properties>
+                      <java.version>21</java.version>
+                  </properties>
                   <dependencies>
                       <dependency>
                           <groupId>org.springframework.boot</groupId>
@@ -185,6 +188,88 @@ class UpgradeCiAndContainersToJava21Test implements RewriteTest {
                   - mvn package
               """,
             spec -> spec.path(".gitlab-ci.yml")
+          )
+        );
+    }
+
+    @Test
+    void declareJavaVersionInheritedFromSpringBootParent() {
+        rewriteRun(
+          mavenProject("demo",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.4</version>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
+                </project>
+                """,
+              """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.4</version>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <properties>
+                        <java.version>21</java.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
+                </project>
+                """
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """
+              )
+            )
           )
         );
     }

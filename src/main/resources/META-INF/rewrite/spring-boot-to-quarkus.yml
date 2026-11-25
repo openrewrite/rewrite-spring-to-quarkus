@@ -25,8 +25,9 @@ tags:
   - migration
   - bom
 recipeList:
+  # Quarkus 4 requires Java 21; raise it while the Spring Boot parent still declares `java.version`
+  - org.openrewrite.quarkus.spring.UpgradeRepositoryToJava21
   - org.openrewrite.quarkus.spring.MigrateSpringBootApplicationModules
-  - org.openrewrite.quarkus.spring.UpgradeCiAndContainersToJava21
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -59,8 +60,6 @@ recipeList:
       newPluginId: io.quarkus
       newVersion: 4.x
   - org.openrewrite.quarkus.spring.RemoveSpringDependencyManagementPlugin
-  # Quarkus 4 requires Java 21; raise it while the Spring Boot parent still declares `java.version`
-  - org.openrewrite.java.migrate.UpgradeBuildToJava21
   - org.openrewrite.java.migrate.UpgradePluginsForJava21
   - org.openrewrite.quarkus.spring.MigrateMavenPlugin
   - org.openrewrite.quarkus.spring.MigrateDatabaseDrivers
@@ -96,26 +95,22 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.quarkus.spring.UpgradeCiAndContainersToJava21
-displayName: Upgrade CI workflows and container images to Java 21
+name: org.openrewrite.quarkus.spring.UpgradeRepositoryToJava21
+displayName: Upgrade the repository to Java 21
 description: >-
-  Quarkus 4 requires Java 21, so raise the `actions/setup-java` version in GitHub Actions workflows, the Java base
-  images in Dockerfiles and the Java container images that CI builds run on to 21. These files usually sit outside
-  the application modules, so this runs on the whole repository once it contains a Spring Boot 3 or 4 application.
+  Quarkus 4 requires Java 21, so raise the Java version to 21 in build files, CI configuration and container images.
+  CI workflows and Dockerfiles usually sit outside the application modules, so this runs on the whole repository
+  once it contains a Spring Boot 3 or 4 application.
 tags:
   - spring
   - quarkus
   - java21
-  - docker
 preconditions:
   - org.openrewrite.quarkus.spring.RepositoryHasSpringBootApplication
 recipeList:
+  - org.openrewrite.java.migrate.UpgradeBuildToJava21
   - org.openrewrite.github.SetupJavaUpgradeJavaVersion:
       minimumJavaMajorVersion: 21
-  - org.openrewrite.java.migrate.UpgradeDockerImageVersion:
-      version: 21
-  - org.openrewrite.java.migrate.UpgradeJavaContainerImages:
-      version: 21
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
