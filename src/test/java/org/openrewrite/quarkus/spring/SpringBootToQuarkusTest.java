@@ -26,6 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
@@ -740,6 +742,79 @@ class SpringBootToQuarkusTest implements RewriteTest {
                 .containsPattern("<groupId>tools.jackson.core</groupId>\\s*<artifactId>jackson-databind</artifactId>\\s*</dependency>")
                 .doesNotContain("com.fasterxml.jackson")
                 .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void migrateGradleBuild() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import io.quarkus.runtime.Quarkus;
+                  import io.quarkus.runtime.annotations.QuarkusMain;
+
+                  @QuarkusMain
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          Quarkus.run(args);
+                      }
+                  }
+                  """
+              )
+            ),
+            //language=groovy
+            buildGradle(
+              """
+                plugins {
+                    id 'java'
+                    id 'org.springframework.boot' version '3.5.4'
+                    id 'io.spring.dependency-management' version '1.1.7'
+                }
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    implementation 'org.springframework.boot:spring-boot-starter-web'
+                    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+                }
+                """,
+              spec -> spec.after(actual -> {
+                  Matcher versionMatcher = Pattern.compile("id 'io\\.quarkus' version '(4\\.[^']+)'").matcher(actual);
+                  assertThat(versionMatcher.find()).isTrue();
+                  String quarkusVersion = versionMatcher.group(1);
+                  return """
+                    plugins {
+                        id 'java'
+                        id 'io.quarkus' version '%s'
+                    }
+                    repositories {
+                        mavenCentral()
+                    }
+                    dependencies {
+                        implementation platform("io.quarkus.platform:quarkus-bom:%s")
+                        implementation "io.quarkus:quarkus-resteasy-jackson"
+
+                        testImplementation "io.quarkus:quarkus-junit"
+                    }
+                    """.formatted(quarkusVersion, quarkusVersion);
+              })
             )
           )
         );

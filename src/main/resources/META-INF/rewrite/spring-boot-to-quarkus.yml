@@ -37,6 +37,15 @@ recipeList:
       type: pom
       scope: import
       addToRootPom: false
+  - org.openrewrite.gradle.AddPlatformDependency:
+      groupId: io.quarkus.platform
+      artifactId: quarkus-bom
+      version: 4.x
+  - org.openrewrite.gradle.plugins.ChangePlugin:
+      pluginId: org.springframework.boot
+      newPluginId: io.quarkus
+      newVersion: 4.x
+  - org.openrewrite.quarkus.spring.RemoveSpringDependencyManagementPlugin
   # Quarkus 4 requires Java 21; raise it while the Spring Boot parent still declares `java.version`
   - org.openrewrite.java.migrate.UpgradeBuildToJava21
   - org.openrewrite.java.migrate.UpgradePluginsForJava21
@@ -68,6 +77,9 @@ recipeList:
   - org.openrewrite.quarkus.spring.MigrateSpringCloudServiceDiscovery
   - org.openrewrite.quarkus.spring.MigrateSpringBootDevTools
   - org.openrewrite.quarkus.spring.CustomizeQuarkusVersion
+  # Unlike Maven, Gradle dependencies added above carry an explicit version, which the Quarkus platform already manages
+  - org.openrewrite.gradle.RemoveRedundantDependencyVersions:
+      groupPattern: io.quarkus
   #- org.openrewrite.quarkus.spring.CustomizeQuarkusPluginGoals # Disabled until AddProfile is idempotent
 
 ---
