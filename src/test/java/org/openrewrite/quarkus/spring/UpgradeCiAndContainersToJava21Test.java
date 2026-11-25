@@ -15,6 +15,7 @@
  */
 package org.openrewrite.quarkus.spring;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -164,61 +165,64 @@ class UpgradeCiAndContainersToJava21Test implements RewriteTest {
         );
     }
 
-    @Test
-    void doNotChangePinnedOrNewerImages() {
-        rewriteRun(
-          springBootApplication(
-            docker(
-              """
-                FROM eclipse-temurin:17.0.9_9-jre AS pinned
-                FROM eclipse-temurin:21-jre
-                FROM eclipse-temurin:25
-                """
-            )
-          )
-        );
-    }
+    @Nested
+    class NoChange {
+        @Test
+        void doNotChangePinnedOrNewerImages() {
+            rewriteRun(
+              springBootApplication(
+                docker(
+                  """
+                    FROM eclipse-temurin:17.0.9_9-jre AS pinned
+                    FROM eclipse-temurin:21-jre
+                    FROM eclipse-temurin:25
+                    """
+                )
+              )
+            );
+        }
 
-    @Test
-    void doNotChangeRepositoryWithoutSpringBootApplication() {
-        rewriteRun(
-          mavenProject("library",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>library</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter</artifactId>
-                            <version>3.5.4</version>
-                        </dependency>
-                    </dependencies>
-                </project>
+        @Test
+        void doNotChangeRepositoryWithoutSpringBootApplication() {
+            rewriteRun(
+              mavenProject("library",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <groupId>com.example</groupId>
+                        <artifactId>library</artifactId>
+                        <version>0.0.1-SNAPSHOT</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter</artifactId>
+                                <version>3.5.4</version>
+                            </dependency>
+                        </dependencies>
+                    </project>
+                    """
+                ),
+                docker(
+                  """
+                    FROM eclipse-temurin:17-jre
+                    """
+                )
+              ),
+              //language=yaml
+              yaml(
                 """
-            ),
-            docker(
-              """
-                FROM eclipse-temurin:17-jre
-                """
-            )
-          ),
-          //language=yaml
-          yaml(
-            """
-              jobs:
-                build:
-                  runs-on: ubuntu-latest
-                  steps:
-                    - uses: actions/setup-java@v4
-                      with:
-                        java-version: 17
-              """,
-            spec -> spec.path(".github/workflows/ci.yml")
-          )
-        );
+                  jobs:
+                    build:
+                      runs-on: ubuntu-latest
+                      steps:
+                        - uses: actions/setup-java@v4
+                          with:
+                            java-version: 17
+                  """,
+                spec -> spec.path(".github/workflows/ci.yml")
+              )
+            );
+        }
     }
 }
