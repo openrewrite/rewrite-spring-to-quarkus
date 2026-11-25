@@ -39,80 +39,78 @@ class UpgradeCiAndContainersToJava21Test implements RewriteTest {
             "spring-boot-autoconfigure-3"));
     }
 
-    private static SourceSpecs springBootApplication(SourceSpecs... sources) {
-        SourceSpecs[] all = new SourceSpecs[sources.length + 2];
-        //language=xml
-        all[0] = pomXml(
-          """
-            <project>
-                <parent>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>3.5.4</version>
-                </parent>
-                <groupId>com.example</groupId>
-                <artifactId>demo</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter</artifactId>
-                    </dependency>
-                </dependencies>
-                <build>
-                    <plugins>
-                        <plugin>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-maven-plugin</artifactId>
-                        </plugin>
-                    </plugins>
-                </build>
-            </project>
+    private static SourceSpecs springBootApplication() {
+        return mavenProject("demo",
+          //language=xml
+          pomXml(
             """
-        );
-        all[1] = srcMainJava(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-              @SpringBootApplication
-              public class DemoApplication {
-                  public static void main(String[] args) {
-                      SpringApplication.run(DemoApplication.class, args);
-                  }
-              }
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>3.5.4</version>
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter</artifactId>
+                      </dependency>
+                  </dependencies>
+                  <build>
+                      <plugins>
+                          <plugin>
+                              <groupId>org.springframework.boot</groupId>
+                              <artifactId>spring-boot-maven-plugin</artifactId>
+                          </plugin>
+                      </plugins>
+                  </build>
+              </project>
               """
+          ),
+          srcMainJava(
+            //language=java
+            java(
+              """
+                import org.springframework.boot.SpringApplication;
+                import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                @SpringBootApplication
+                public class DemoApplication {
+                    public static void main(String[] args) {
+                        SpringApplication.run(DemoApplication.class, args);
+                    }
+                }
+                """
+            )
           )
         );
-        System.arraycopy(sources, 0, all, 2, sources.length);
-        return mavenProject("demo", all);
     }
 
     @DocumentExample
     @Test
     void upgradeWorkflowAndDockerfile() {
         rewriteRun(
-          springBootApplication(
-            docker(
-              """
-                FROM maven:3.9-eclipse-temurin-17 AS build
-                COPY . .
-                RUN mvn package
+          springBootApplication(),
+          docker(
+            """
+              FROM maven:3.9-eclipse-temurin-17 AS build
+              COPY . .
+              RUN mvn package
 
-                FROM eclipse-temurin:17-jre-alpine
-                COPY --from=build target/quarkus-app /app
-                """,
-              """
-                FROM maven:3.9-eclipse-temurin-21 AS build
-                COPY . .
-                RUN mvn package
+              FROM eclipse-temurin:17-jre-alpine
+              COPY --from=build target/quarkus-app /app
+              """,
+            """
+              FROM maven:3.9-eclipse-temurin-21 AS build
+              COPY . .
+              RUN mvn package
 
-                FROM eclipse-temurin:21-jre-alpine
-                COPY --from=build target/quarkus-app /app
-                """
-            )
+              FROM eclipse-temurin:21-jre-alpine
+              COPY --from=build target/quarkus-app /app
+              """
           ),
           //language=yaml
           yaml(
@@ -144,23 +142,49 @@ class UpgradeCiAndContainersToJava21Test implements RewriteTest {
     }
 
     @Test
-    void upgradeJava17BaseImages() {
+    void upgradeJavaBaseImages() {
         rewriteRun(
-          springBootApplication(
-            docker(
+          springBootApplication(),
+          docker(
+            """
+              FROM gradle:8.14-jdk17-alpine AS build
+              FROM maven:3-amazoncorretto-17-al2023 AS package
+              FROM amazoncorretto:17
+              FROM bellsoft/liberica-openjdk-alpine:17
+              FROM openjdk:17-jdk-slim
+              FROM eclipse-temurin:17.0.9_9-jre
+              """,
+            """
+              FROM gradle:8.14-jdk21-alpine AS build
+              FROM maven:3-amazoncorretto-21-al2023 AS package
+              FROM amazoncorretto:21
+              FROM bellsoft/liberica-openjdk-alpine:21
+              FROM eclipse-temurin:21-jdk
+              FROM eclipse-temurin:21-jre
               """
-                FROM gradle:8.14-jdk17-alpine AS build
-                FROM maven:3-amazoncorretto-17-al2023 AS package
-                FROM amazoncorretto:17
-                FROM bellsoft/liberica-openjre-alpine:17
-                """,
-              """
-                FROM gradle:8.14-jdk21-alpine AS build
-                FROM maven:3-amazoncorretto-21-al2023 AS package
-                FROM amazoncorretto:21
-                FROM bellsoft/liberica-openjre-alpine:21
-                """
-            )
+          )
+        );
+    }
+
+    @Test
+    void upgradeCiContainerImage() {
+        rewriteRun(
+          springBootApplication(),
+          //language=yaml
+          yaml(
+            """
+              build:
+                image: maven:3.9-eclipse-temurin-17
+                script:
+                  - mvn package
+              """,
+            """
+              build:
+                image: maven:3.9-eclipse-temurin-21
+                script:
+                  - mvn package
+              """,
+            spec -> spec.path(".gitlab-ci.yml")
           )
         );
     }
@@ -168,16 +192,14 @@ class UpgradeCiAndContainersToJava21Test implements RewriteTest {
     @Nested
     class NoChange {
         @Test
-        void doNotChangePinnedOrNewerImages() {
+        void doNotChangeNewerImages() {
             rewriteRun(
-              springBootApplication(
-                docker(
+              springBootApplication(),
+              docker(
+                """
+                  FROM eclipse-temurin:21-jre
+                  FROM eclipse-temurin:25
                   """
-                    FROM eclipse-temurin:17.0.9_9-jre AS pinned
-                    FROM eclipse-temurin:21-jre
-                    FROM eclipse-temurin:25
-                    """
-                )
               )
             );
         }
@@ -202,12 +224,12 @@ class UpgradeCiAndContainersToJava21Test implements RewriteTest {
                         </dependencies>
                     </project>
                     """
-                ),
-                docker(
-                  """
-                    FROM eclipse-temurin:17-jre
-                    """
                 )
+              ),
+              docker(
+                """
+                  FROM eclipse-temurin:17-jre
+                  """
               ),
               //language=yaml
               yaml(
