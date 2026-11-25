@@ -233,6 +233,8 @@ class SpringBootToQuarkusTest implements RewriteTest {
                   Matcher versionMatcher = Pattern.compile("<artifactId>quarkus-bom</artifactId>\\s*<version>(4\\.[^<]+)</version>").matcher(actual);
                   assertThat(versionMatcher.find()).isTrue();
                   String quarkusVersion = versionMatcher.group(1);
+                  Matcher jacksonMatcher = Pattern.compile("<artifactId>jackson-bom</artifactId>\\s*<version>(3\\.[^<]+)</version>").matcher(actual);
+                  assertThat(jacksonMatcher.find()).isTrue();
                   return """
                     <project>
                         <groupId>com.example</groupId>
@@ -244,9 +246,9 @@ class SpringBootToQuarkusTest implements RewriteTest {
                         <dependencyManagement>
                             <dependencies>
                                 <dependency>
-                                    <groupId>com.fasterxml.jackson</groupId>
+                                    <groupId>tools.jackson</groupId>
                                     <artifactId>jackson-bom</artifactId>
-                                    <version>2.15.2</version>
+                                    <version>%s</version>
                                     <type>pom</type>
                                     <scope>import</scope>
                                 </dependency>
@@ -285,7 +287,7 @@ class SpringBootToQuarkusTest implements RewriteTest {
                             </plugins>
                         </build>
                     </project>
-                    """.formatted(quarkusVersion, quarkusVersion);
+                    """.formatted(jacksonMatcher.group(1), quarkusVersion, quarkusVersion);
               })
             )
           )
@@ -637,6 +639,108 @@ class SpringBootToQuarkusTest implements RewriteTest {
                   <version>0.0.1-SNAPSHOT</version>
               </project>
               """
+          )
+        );
+    }
+
+    @Test
+    void migrateJacksonToVersion3() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-boot-3", "spring-boot-autoconfigure-3", "jackson-annotations-2", "jackson-core-2", "jackson-databind-2")),
+          mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(DemoApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import io.quarkus.runtime.Quarkus;
+                  import io.quarkus.runtime.annotations.QuarkusMain;
+
+                  @QuarkusMain
+                  public class DemoApplication {
+                      public static void main(String[] args) {
+                          Quarkus.run(args);
+                      }
+                  }
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import com.fasterxml.jackson.annotation.JsonProperty;
+                  import com.fasterxml.jackson.core.JsonProcessingException;
+                  import com.fasterxml.jackson.databind.ObjectMapper;
+
+                  class Greeting {
+                      @JsonProperty("text")
+                      String message;
+
+                      String toJson(ObjectMapper mapper) throws JsonProcessingException {
+                          return mapper.writeValueAsString(this);
+                      }
+                  }
+                  """,
+                """
+                  import com.fasterxml.jackson.annotation.JsonProperty;
+                  import tools.jackson.databind.ObjectMapper;
+
+                  class Greeting {
+                      @JsonProperty("text")
+                      String message;
+
+                      String toJson(ObjectMapper mapper) {
+                          return mapper.writeValueAsString(this);
+                      }
+                  }
+                  """
+              )
+            ),
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.1.0</version>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-web</artifactId>
+                        </dependency>
+                    </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
+                            </plugin>
+                        </plugins>
+                    </build>
+                </project>
+                """,
+              spec -> spec.after(pom -> assertThat(pom)
+                .contains("<artifactId>quarkus-resteasy-jackson</artifactId>")
+                .containsPattern("<groupId>tools.jackson.core</groupId>\\s*<artifactId>jackson-databind</artifactId>\\s*</dependency>")
+                .doesNotContain("com.fasterxml.jackson")
+                .actual())
+            )
           )
         );
     }

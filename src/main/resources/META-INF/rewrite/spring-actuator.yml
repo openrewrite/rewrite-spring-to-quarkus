@@ -47,6 +47,13 @@ recipeList:
       artifactId: quarkus-micrometer-registry-prometheus
       version: 4.x
       onlyIfUsing: io.micrometer.core.instrument.*
+  # Quarkus 4 ships Micrometer's Prometheus client 1.x registry; the rest of `UpgradeMicrometer_1_13` would pin Micrometer below the Quarkus BOM
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: io.micrometer.prometheus
+      newPackageName: io.micrometer.prometheusmetrics
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.prometheus.client.CollectorRegistry
+      newFullyQualifiedTypeName: io.prometheus.metrics.model.registry.PrometheusRegistry
   # Convert HealthIndicator to HealthCheck
   - org.openrewrite.quarkus.spring.SpringHealthIndicatorToQuarkus
   # Update management port property

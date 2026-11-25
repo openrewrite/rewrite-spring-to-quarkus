@@ -38,6 +38,11 @@ recipeDependencies {
     testParserClasspath("jakarta.transaction:jakarta.transaction-api:2.0.1")
     testParserClasspath("io.quarkus:quarkus-hibernate-orm-panache:4.0.1")
     testParserClasspath("io.quarkus:quarkus-mongodb-panache:4.0.1")
+    testParserClasspath("com.fasterxml.jackson.core:jackson-annotations:2.15.2")
+    testParserClasspath("com.fasterxml.jackson.core:jackson-core:2.15.2")
+    testParserClasspath("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    testParserClasspath("io.micrometer:micrometer-core:1.12.13")
+    testParserClasspath("io.micrometer:micrometer-registry-prometheus:1.12.13")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -52,6 +57,7 @@ dependencies {
     implementation("org.openrewrite:rewrite-maven")
     implementation("org.openrewrite:rewrite-xml")
     implementation("org.openrewrite:rewrite-properties")
+    implementation("org.openrewrite.recipe:rewrite-jackson:${rewriteVersion}")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
     implementation("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
     implementation("org.openrewrite.recipe:rewrite-static-analysis:${rewriteVersion}")
