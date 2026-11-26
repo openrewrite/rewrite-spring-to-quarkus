@@ -15,6 +15,7 @@
  */
 package org.openrewrite.quarkus.spring;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -202,165 +203,6 @@ class ModuleIsSpringBootApplicationTest implements RewriteTest {
                       public static void main(String[] args) {
                           SpringApplication.run(DemoApplication.class, args);
                       }
-                  }
-                  """
-              )
-            )
-          )
-        );
-    }
-
-    @Test
-    void doNotMarkSpringBoot2Application() {
-        rewriteRun(
-          mavenProject("demo",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter</artifactId>
-                            <version>2.7.18</version>
-                        </dependency>
-                    </dependencies>
-                    <build>
-                        <plugins>
-                            <plugin>
-                                <groupId>org.springframework.boot</groupId>
-                                <artifactId>spring-boot-maven-plugin</artifactId>
-                            </plugin>
-                        </plugins>
-                    </build>
-                </project>
-                """
-            ),
-            srcMainJava(
-              //language=java
-              java(
-                """
-                  import org.springframework.boot.SpringApplication;
-                  import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-                  @SpringBootApplication
-                  public class DemoApplication {
-                      public static void main(String[] args) {
-                          SpringApplication.run(DemoApplication.class, args);
-                      }
-                  }
-                  """
-              )
-            )
-          )
-        );
-    }
-
-    @Test
-    void doNotMarkLibraryWithTestApplication() {
-        rewriteRun(
-          mavenProject("library",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>library</artifactId>
-                    <version>1.0.0</version>
-                </project>
-                """
-            ),
-            srcMainJava(
-              //language=java
-              java(
-                """
-                  import org.springframework.context.annotation.Configuration;
-
-                  @Configuration
-                  public class LibraryAutoConfiguration {
-                  }
-                  """
-              )
-            ),
-            srcTestJava(
-              //language=java
-              java(
-                """
-                  import org.springframework.boot.SpringApplication;
-                  import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-                  @SpringBootApplication
-                  public class TestApplication {
-                      public static void main(String[] args) {
-                          SpringApplication.run(TestApplication.class, args);
-                      }
-                  }
-                  """
-              )
-            )
-          )
-        );
-    }
-
-    @Test
-    void doNotMarkLibraryWithoutBootPlugin() {
-        rewriteRun(
-          mavenProject("library",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>library</artifactId>
-                    <version>1.0.0</version>
-                </project>
-                """
-            ),
-            srcMainJava(
-              //language=java
-              java(
-                """
-                  import org.springframework.boot.SpringApplication;
-                  import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-                  @SpringBootApplication
-                  public class GenericApplicationMain {
-                      public static void main(String[] args) {
-                          SpringApplication.run(GenericApplicationMain.class, args);
-                      }
-                  }
-                  """
-              )
-            )
-          )
-        );
-    }
-
-    @Test
-    void doNotMarkConfigurationWithoutMainMethod() {
-        rewriteRun(
-          mavenProject("library",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>library</artifactId>
-                    <version>1.0.0</version>
-                </project>
-                """
-            ),
-            srcMainJava(
-              //language=java
-              java(
-                """
-                  import org.springframework.boot.SpringBootConfiguration;
-
-                  @SpringBootConfiguration
-                  public class LibraryConfiguration {
                   }
                   """
               )
@@ -681,5 +523,168 @@ class ModuleIsSpringBootApplicationTest implements RewriteTest {
             )
           )
         );
+    }
+
+    @Nested
+    class NoChange {
+
+        @Test
+        void doNotMarkSpringBoot2Application() {
+            rewriteRun(
+              mavenProject("demo",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <groupId>com.example</groupId>
+                        <artifactId>demo</artifactId>
+                        <version>1.0.0</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter</artifactId>
+                                <version>2.7.18</version>
+                            </dependency>
+                        </dependencies>
+                        <build>
+                            <plugins>
+                                <plugin>
+                                    <groupId>org.springframework.boot</groupId>
+                                    <artifactId>spring-boot-maven-plugin</artifactId>
+                                </plugin>
+                            </plugins>
+                        </build>
+                    </project>
+                    """
+                ),
+                srcMainJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.boot.SpringApplication;
+                      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                      @SpringBootApplication
+                      public class DemoApplication {
+                          public static void main(String[] args) {
+                              SpringApplication.run(DemoApplication.class, args);
+                          }
+                      }
+                      """
+                  )
+                )
+              )
+            );
+        }
+
+        @Test
+        void doNotMarkLibraryWithTestApplication() {
+            rewriteRun(
+              mavenProject("library",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <groupId>com.example</groupId>
+                        <artifactId>library</artifactId>
+                        <version>1.0.0</version>
+                    </project>
+                    """
+                ),
+                srcMainJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.context.annotation.Configuration;
+
+                      @Configuration
+                      public class LibraryAutoConfiguration {
+                      }
+                      """
+                  )
+                ),
+                srcTestJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.boot.SpringApplication;
+                      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                      @SpringBootApplication
+                      public class TestApplication {
+                          public static void main(String[] args) {
+                              SpringApplication.run(TestApplication.class, args);
+                          }
+                      }
+                      """
+                  )
+                )
+              )
+            );
+        }
+
+        @Test
+        void doNotMarkLibraryWithoutBootPlugin() {
+            rewriteRun(
+              mavenProject("library",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <groupId>com.example</groupId>
+                        <artifactId>library</artifactId>
+                        <version>1.0.0</version>
+                    </project>
+                    """
+                ),
+                srcMainJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.boot.SpringApplication;
+                      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                      @SpringBootApplication
+                      public class GenericApplicationMain {
+                          public static void main(String[] args) {
+                              SpringApplication.run(GenericApplicationMain.class, args);
+                          }
+                      }
+                      """
+                  )
+                )
+              )
+            );
+        }
+
+        @Test
+        void doNotMarkConfigurationWithoutMainMethod() {
+            rewriteRun(
+              mavenProject("library",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <groupId>com.example</groupId>
+                        <artifactId>library</artifactId>
+                        <version>1.0.0</version>
+                    </project>
+                    """
+                ),
+                srcMainJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.boot.SpringBootConfiguration;
+
+                      @SpringBootConfiguration
+                      public class LibraryConfiguration {
+                      }
+                      """
+                  )
+                )
+              )
+            );
+        }
     }
 }
