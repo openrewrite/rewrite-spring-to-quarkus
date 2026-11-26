@@ -15,6 +15,7 @@
  */
 package org.openrewrite.quarkus.spring;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -555,48 +556,6 @@ class SpringBootToQuarkusTest implements RewriteTest {
     }
 
     @Test
-    void doNotMigrateLibrary() {
-        rewriteRun(
-          mavenProject("library",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>library</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-web</artifactId>
-                            <version>3.1.0</version>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
-            srcMainJava(
-              //language=java
-              java(
-                """
-                  import org.springframework.web.bind.annotation.GetMapping;
-                  import org.springframework.web.bind.annotation.RestController;
-
-                  @RestController
-                  public class UserController {
-                      @GetMapping("/users")
-                      public String getUsers() {
-                          return "users";
-                      }
-                  }
-                  """
-              )
-            )
-          )
-        );
-    }
-
-    @Test
     void doNotMigrateProjectsNestedInResources() {
         rewriteRun(
           mavenProject("project",
@@ -666,75 +625,6 @@ class SpringBootToQuarkusTest implements RewriteTest {
                 spec -> spec.path("projects/fixture/src/main/java/FixtureService.java")
               )
             )
-          )
-        );
-    }
-
-    @Test
-    void doNotMigrateSpringBoot2x() {
-        rewriteRun(
-          mavenProject("project",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>2.7.18</version>
-                    </parent>
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter</artifactId>
-                        </dependency>
-                    </dependencies>
-                    <build>
-                        <plugins>
-                            <plugin>
-                                <groupId>org.springframework.boot</groupId>
-                                <artifactId>spring-boot-maven-plugin</artifactId>
-                            </plugin>
-                        </plugins>
-                    </build>
-                </project>
-                """
-            ),
-            srcMainJava(
-              //language=java
-              java(
-                """
-                  import org.springframework.boot.SpringApplication;
-                  import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-                  @SpringBootApplication
-                  public class DemoApplication {
-                      public static void main(String[] args) {
-                          SpringApplication.run(DemoApplication.class, args);
-                      }
-                  }
-                  """
-              )
-            )
-          )
-        );
-    }
-
-    @Test
-    void doNotTransformNonSpringBootProject() {
-        rewriteRun(
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <groupId>com.example</groupId>
-                  <artifactId>demo</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-              </project>
-              """
           )
         );
     }
@@ -916,5 +806,120 @@ class SpringBootToQuarkusTest implements RewriteTest {
             )
           )
         );
+    }
+
+    @Nested
+    class NoChange {
+
+        @Test
+        void doNotMigrateLibrary() {
+            rewriteRun(
+              mavenProject("library",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <groupId>com.example</groupId>
+                        <artifactId>library</artifactId>
+                        <version>0.0.1-SNAPSHOT</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter-web</artifactId>
+                                <version>3.1.0</version>
+                            </dependency>
+                        </dependencies>
+                    </project>
+                    """
+                ),
+                srcMainJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.web.bind.annotation.GetMapping;
+                      import org.springframework.web.bind.annotation.RestController;
+
+                      @RestController
+                      public class UserController {
+                          @GetMapping("/users")
+                          public String getUsers() {
+                              return "users";
+                          }
+                      }
+                      """
+                  )
+                )
+              )
+            );
+        }
+
+        @Test
+        void doNotMigrateSpringBoot2x() {
+            rewriteRun(
+              mavenProject("project",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <parent>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-parent</artifactId>
+                            <version>2.7.18</version>
+                        </parent>
+                        <groupId>com.example</groupId>
+                        <artifactId>demo</artifactId>
+                        <version>0.0.1-SNAPSHOT</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter</artifactId>
+                            </dependency>
+                        </dependencies>
+                        <build>
+                            <plugins>
+                                <plugin>
+                                    <groupId>org.springframework.boot</groupId>
+                                    <artifactId>spring-boot-maven-plugin</artifactId>
+                                </plugin>
+                            </plugins>
+                        </build>
+                    </project>
+                    """
+                ),
+                srcMainJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.boot.SpringApplication;
+                      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                      @SpringBootApplication
+                      public class DemoApplication {
+                          public static void main(String[] args) {
+                              SpringApplication.run(DemoApplication.class, args);
+                          }
+                      }
+                      """
+                  )
+                )
+              )
+            );
+        }
+
+        @Test
+        void doNotTransformNonSpringBootProject() {
+            rewriteRun(
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                      <groupId>com.example</groupId>
+                      <artifactId>demo</artifactId>
+                      <version>0.0.1-SNAPSHOT</version>
+                  </project>
+                  """
+              )
+            );
+        }
     }
 }
